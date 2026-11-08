@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1116">
+<title>Kite Trim</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#171b22; --line:#262c36; --text:#eef1f5; --muted:#8a94a3;
+    --accent:#3fb6ff; --ok:#3ddc84; --warn:#ffb020; --bad:#ff5a5a; --left:#3fb6ff; --right:#ff8a3d;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  body{display:flex;flex-direction:column;min-height:100dvh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  header{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+  select,input,button{font:inherit;color:inherit}
+  select,input{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+  header select{flex:1}
+  .btn{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer}
+  .btn:active{transform:scale(.97)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#001827;font-weight:700}
+  .icon{padding:10px 12px}
+  #bt{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--bad)}
+  .dot.on{background:var(--ok)} .dot.busy{background:var(--warn)}
+  main{flex:1;display:flex;flex-direction:column;padding:12px;gap:12px}
+  .side{display:flex;justify-content:space-between;align-items:center;font-weight:800;letter-spacing:.08em}
+  .side .tag{padding:6px 14px;border-radius:999px;font-size:20px}
+  .tag.L{background:var(--left);color:#001827} .tag.R{background:var(--right);color:#2a1000}
+  .progress{color:var(--muted);font-size:15px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:center}
+  #group{color:var(--muted);font-size:15px;min-height:1.2em}
+  #name{font-size:min(28vw,140px);font-weight:800;line-height:1;margin:6px 0 4px;letter-spacing:-.02em;cursor:pointer}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .lbl{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+  .val{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums}
+  #meas{font-size:min(16vw,72px)}
+  #diff{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;min-height:1.3em}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)} .muted{color:var(--muted)}
+  .other{font-size:14px;color:var(--muted);margin-top:6px}
+  .nav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .nav .btn{padding:20px 6px;font-size:20px;font-weight:700}
+  .del{color:var(--bad)}
+  .manual{display:flex;gap:8px}
+  .manual input{flex:1}
+  #toast{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));background:#222a35;
+    border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;align-items:center;gap:10px;
+    box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  #toast.show{display:flex} #toast span{flex:1}
+  #queue{font-size:13px;color:var(--warn);text-align:center;min-height:1em}
+  dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(560px,94vw);max-height:90dvh}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  dialog h2{margin:0 0 10px;font-size:20px}
+  dialog label{display:block;margin:10px 0 4px;color:var(--muted);font-size:14px}
+  dialog input{width:100%}
+  .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right}
+  td:first-child,th:first-child{text-align:left}
+  tr.grp td{color:var(--muted);font-size:13px;text-align:left;padding-top:14px}
+  td.cur{outline:2px solid var(--accent);border-radius:6px}
+  td.pick{cursor:pointer}
+  #log{font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;max-height:40dvh;overflow:auto;color:var(--muted)}
+  .hint{color:var(--muted);font-size:14px;line-height:1.4}
+  details summary{color:var(--muted);cursor:pointer;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <select id="kite" aria-label="Kite"></select>
+  <button class="btn" id="bt"><span class="dot" id="btdot"></span><span id="bttxt">Laser</span></button>
+  <button class="btn icon" id="listBtn" aria-label="Liste">☰</button>
+  <button class="btn icon" id="cfgBtn" aria-label="Einstellungen">⚙</button>
+</header>
+
+<main>
+  <div class="side">
+    <span class="tag L" id="sideTag">LINKS</span>
+    <span class="progress" id="progress">–</span>
+  </div>
+
+  <div class="card">
+    <div id="group">&nbsp;</div>
+    <div id="name" title="Liste öffnen">–</div>
+    <div class="grid" style="margin-top:12px">
+      <div><div class="lbl">Soll</div><div class="val" id="soll">–</div></div>
+      <div><div class="lbl">Gemessen</div><div class="val" id="meas">–</div></div>
+    </div>
+    <div id="diff">&nbsp;</div>
+    <div class="other" id="other">&nbsp;</div>
+  </div>
+
+  <div class="nav">
+    <button class="btn" id="prev">◀ Zurück</button>
+    <button class="btn del" id="del">✕ Löschen</button>
+    <button class="btn" id="next">Weiter ▶</button>
+  </div>
+
+  <div class="manual">
+    <input id="manual" type="number" inputmode="decimal" placeholder="Wert manuell (mm)">
+    <button class="btn" id="manualBtn">Eintragen</button>
+  </div>
+  <div id="queue"></div>
+</main>
+
+<div id="toast"><span id="toastTxt"></span><button class="btn" id="undo">Rückgängig</button></div>
+
+<dialog id="cfg">
+  <h2>Einstellungen</h2>
+  <label for="cUrl">Google-Skript-URL (endet auf /exec)</label>
+  <input id="cUrl" placeholder="https://script.google.com/macros/s/…/exec">
+  <label for="cKey">Passwort (wie im Skript)</label>
+  <input id="cKey" type="password">
+  <label for="cTol">Toleranz grün / gelb (mm)</label>
+  <div style="display:flex;gap:8px"><input id="cTol1" type="number" inputmode="numeric"><input id="cTol2" type="number" inputmode="numeric"></div>
+  <label><input type="checkbox" id="cAuto" style="width:auto"> Nach Messung automatisch weiter</label>
+  <button class="btn" id="btAll" style="width:100%;margin-top:14px">🔍 Laser suchen – alle Geräte anzeigen</button>
+  <details style="margin-top:12px"><summary>Bluetooth-Rohdaten</summary><div id="log"></div></details>
+  <div class="row">
+    <button class="btn" id="cfgCancel">Abbrechen</button>
+    <button class="btn primary" id="cfgSave">Speichern</button>
+  </div>
+</dialog>
+
+<dialog id="list">
+  <h2 id="listTitle">Übersicht</h2>
+  <p class="hint">Auf einen Wert tippen, um dorthin zu springen.</p>
+  <table id="tbl"></table>
+  <div class="row"><button class="btn" id="listClose">Schließen</button></div>
+</dialog>
+
+<script>
+const SVC = '02a6c0d0-0451-4000-b000-fb3210111989';
+const CHR = '02a6c0d1-0451-4000-b000-fb3210111989';
+const AUTOSYNC = new Uint8Array([0xC0, 0x55, 0x02, 0x01, 0x00, 0x1A]);
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+let cfg = store.get('cfg', { url:'', key:'', tol1:5, tol2:15, auto:true });
+let kites = [], lines = [], kite = store.get('kite', ''), pos = 0;
+let queue = store.get('queue', []);
+let lastUndo = null, toastTimer = null;
+let device = null, chr = null, wakeLock = null, lastPkt = { v:null, t:0 };
+
+/* ---------- Google-Skript ---------- */
+async function api(params){
+  if (!cfg.url) throw new Error('Keine Skript-URL – bitte in ⚙ eintragen');
+  const q = new URLSearchParams({ ...params, key: cfg.key });
+  const r = await fetch(cfg.url + '?' + q.toString(), { redirect:'follow' });
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error || 'Fehler');
+  return j;
+}
+
+async function loadKites(){
+  try{
+    const j = await api({ action:'kites' });
+    kites = j.kites;
+    $('kite').innerHTML = kites.map(k => `<option>${esc(k)}</option>`).join('');
+    if (!kites.includes(kite)) kite = kites[0] || '';
+    $('kite').value = kite;
+    await loadLines(true);
+  }catch(e){ showToast('⚠ ' + e.message); }
+}
+
+async function loadLines(jumpToFirstEmpty){
+  if (!kite) return;
+  try{
+    const j = await api({ action:'lines', kite });
+    lines = j.lines;
+    // noch nicht gesendete Werte lokal drüberlegen
+    queue.filter(x => x.kite === kite).forEach(x => {
+      const l = lines.find(l => l.row === x.row); if (l) l[x.side] = x.value === '' ? null : Number(x.value);
+    });
+    const saved = store.get('pos:' + kite, null);
+    pos = jumpToFirstEmpty ? firstEmpty() : Math.min(saved ?? 0, total() - 1);
+    render();
+  }catch(e){ showToast('⚠ ' + e.message); }
+}
+
+const N = () => lines.length;
+const total = () => N() * 2;
+const cur = () => ({ line: lines[pos % N()], side: pos < N() ? 'L' : 'R' });
+function firstEmpty(){
+  for (let i = 0; i < total(); i++){ const l = lines[i % N()], s = i < N() ? 'L' : 'R'; if (l[s] == null) return i; }
+  return total() - 1;
+}
+
+function setValue(p, value){ // value: Zahl oder '' zum Löschen
+  const l = lines[p % N()], side = p < N() ? 'L' : 'R';
+  const old = l[side];
+  l[side] = value === '' ? null : value;
+  queue = queue.filter(x => !(x.kite === kite && x.row === l.row && x.side === side));
+  queue.push({ kite, row:l.row, name:l.name, side, value: value === '' ? '' : String(value) });
+  store.set('queue', queue);
+  flush();
+  return old;
+}
+
+let flushing = false;
+async function flush(){
+  if (flushing) return; flushing = true;
+  try{
+    while (queue.length){
+      const x = queue[0];
+      try{
+        await api({ action:'set', kite:x.kite, row:x.row, name:x.name, side:x.side, value:x.value });
+        queue.shift(); store.set('queue', queue);
+      }catch(e){
+        $('queue').textContent = `⏳ ${queue.length} Wert(e) noch nicht in der Tabelle – ${e.message}`;
+        setTimeout(() => { flushing = false; flush(); }, 5000);
+        return;
+      }
+    }
+    $('queue').textContent = '';
+  } finally { flushing = false; }
+}
+
+/* ---------- Anzeige ---------- */
+function fmt(v){ return v == null ? '–' : String(Math.round(v)); }
+function render(){
+  if (!N()){ $('name').textContent = '–'; return; }
+  const { line, side } = cur();
+  $('sideTag').textContent = side === 'L' ? 'LINKS' : 'RECHTS';
+  $('sideTag').className = 'tag ' + side;
+  const done = lines.reduce((a, l) => a + (l.L != null) + (l.R != null), 0);
+  $('progress').textContent = `${(pos % N()) + 1}/${N()} · gesamt ${done}/${total()}`;
+  $('group').textContent = line.group || ' ';
+  $('name').textContent = line.name;
+  $('soll').textContent = fmt(line.soll);
+  const m = line[side];
+  $('meas').textContent = fmt(m);
+  $('meas').className = 'val' + (m == null ? ' muted' : '');
+  if (m == null){ $('diff').innerHTML = '&nbsp;'; }
+  else {
+    const d = Math.round(m - line.soll), a = Math.abs(d);
+    $('diff').textContent = (d > 0 ? '+' : d < 0 ? '−' : '±') + a + ' mm';
+    $('diff').className = a <= cfg.tol1 ? 'ok' : a <= cfg.tol2 ? 'warn' : 'bad';
+  }
+  const o = side === 'L' ? line.R : line.L;
+  $('other').textContent = `${side === 'L' ? 'Rechts' : 'Links'}: ${fmt(o)}${o != null && m != null ? ` · L/R-Differenz ${Math.round(line.L - line.R)} mm` : ''}`;
+  $('prev').disabled = pos === 0; $('next').disabled = pos === total() - 1;
+  store.set('pos:' + kite, pos);
+}
+
+function go(d){ if (!N()) return; pos = Math.max(0, Math.min(total() - 1, pos + d)); render(); }
+
+function showToast(txt, undo){
+  $('toastTxt').textContent = txt;
+  $('undo').style.display = undo ? '' : 'none';
+  $('toast').classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), undo ? 6000 : 4000);
+}
+
+/* ---------- Messung ---------- */
+function onMeasure(mm){
+  if (!N()) return;
+  mm = Math.round(mm);
+  const p = pos, { line, side } = cur();
+  const old = setValue(p, mm);
+  if (navigator.vibrate) navigator.vibrate(60);
+  lastUndo = { p, old };
+  if (cfg.auto && p < total() - 1){
+    pos++;
+    if (p === N() - 1) showToast(`Linke Seite fertig ✓ – weiter mit RECHTS`, true);
+    else showToast(`${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm gespeichert`, true);
+  } else if (p === total() - 1){
+    showToast(`Fertig! ${line.name} rechts: ${fmt(mm)} mm`, true);
+  }
+  render();
+}
+
+$('undo').onclick = () => {
+  if (!lastUndo) return;
+  setValue(lastUndo.p, lastUndo.old == null ? '' : lastUndo.old);
+  pos = lastUndo.p; lastUndo = null; render();
+  $('toast').classList.remove('show');
+};
+$('del').onclick = () => {
+  if (!N()) return;
+  const { line, side } = cur();
+  if (line[side] == null) return showToast('Hier ist noch kein Wert');
+  const old = setValue(pos, ''); lastUndo = { p:pos, old };
+  showToast(`${line.name} ${side === 'L' ? 'links' : 'rechts'} gelöscht`, true); render();
+};
+$('prev').onclick = () => go(-1);
+$('next').onclick = () => go(1);
+$('manualBtn').onclick = () => {
+  const v = parseFloat($('manual').value.replace(',', '.'));
+  if (!isNaN(v)){ onMeasure(v); $('manual').value = ''; }
+};
+
+/* ---------- Bluetooth GLM 50 C ---------- */
+function log(s){ const el = $('log'); el.textContent = (new Date().toLocaleTimeString() + ' ' + s + '\n' + el.textContent).slice(0, 6000); }
+function btState(s, txt){ $('btdot').className = 'dot' + (s ? ' ' + s : ''); $('bttxt').textContent = txt; }
+
+// Bosch MT-Protokoll: Rahmen C0 <cmd> <len> <daten…> <crc8>
+const PROFILES = [
+  { name:'GLM (02a6)', svc:'02a6c0d0-0451-4000-b000-fb3210111989' },
+  { name:'GLM (MT 5301)', svc:'00005301-0000-0041-5253-534f46540000' }
+];
+const OPT_SERVICES = [...PROFILES.map(p => p.svc), 'device_information', 'battery_service'];
+let rx = [];
+function crc8(a){ let v = 0xAA; for (const b of a) for (let i = 0; i < 8; i++){ const x = (v >> 7) ^ ((b >> (7 - i)) & 1); v = (v << 1) & 0xFF; if (x) v ^= 0xA6; } return v; }
+function hex(a){ return [...a].map(x => x.toString(16).padStart(2, '0')).join(' '); }
+
+function onPacket(ev){
+  const dv = ev.target.value, b = new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength);
+  log('← ' + hex(b));
+  rx.push(...b); if (rx.length > 200) rx = rx.slice(-200);
+  // nach Messrahmen C0 55 10 06 … (20 Bytes) suchen
+  for (let i = 0; i + 20 <= rx.length; i++){
+    if (rx[i] === 0xC0 && rx[i+1] === 0x55 && rx[i+2] === 0x10){
+      const f = rx.slice(i, i + 20);
+      rx = rx.slice(i + 20); i = -1;
+      if (crc8(f.slice(0, 19)) !== f[19]) log('(Prüfsumme weicht ab)');
+      if (f[3] !== 0x06) continue;              // kein gültiger Messwert
+      const m = new DataView(new Uint8Array(f).buffer).getFloat32(7, true);
+      if (!(m > 0 && m < 100)) continue;
+      const now = Date.now();
+      if (m === lastPkt.v && now - lastPkt.t < 1500) continue; // Doppelte ignorieren
+      lastPkt = { v:m, t:now };
+      log('Messung: ' + m.toFixed(4) + ' m');
+      onMeasure(m * 1000);
+    }
+  }
+}
+
+async function connectGatt(){
+  btState('busy', 'verbinde…');
+  const server = await device.gatt.connect();
+  log('GATT verbunden');
+  let svc = null, prof = null;
+  for (const p of PROFILES){
+    try{ svc = await server.getPrimaryService(p.svc); prof = p; break; }catch(e){}
+  }
+  if (!svc){
+    try{ const all = await server.getPrimaryServices(); log('Dienste: ' + all.map(s => s.uuid).join(', ')); }catch(_){}
+    throw new Error('Kein Bosch-Dienst gefunden – falsches Gerät gewählt?');
+  }
+  log('Dienst: ' + prof.name);
+  const chars = await svc.getCharacteristics();
+  let writer = null;
+  for (const c of chars){
+    const pr = c.properties;
+    log('Merkmal ' + c.uuid.slice(0, 8) + ' ' + ['read','write','writeWithoutResponse','notify','indicate'].filter(k => pr[k]).join('/'));
+    if (pr.notify || pr.indicate){
+      c.addEventListener('characteristicvaluechanged', onPacket);
+      try{ await c.startNotifications(); }catch(e){ log('Abo fehlgeschlagen: ' + e.message); }
+    }
+    if (!writer && (pr.write || pr.writeWithoutResponse)) writer = c;
+  }
+  if (!writer) throw new Error('Kein beschreibbares Merkmal gefunden');
+  chr = writer;
+  if (writer.properties.write) await writer.writeValueWithResponse(AUTOSYNC);
+  else await writer.writeValueWithoutResponse(AUTOSYNC);
+  log('→ ' + hex(AUTOSYNC) + ' (Autosync an ' + writer.uuid.slice(0, 8) + ')');
+  btState('on', device.name || 'GLM');
+  try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){}
+}
+
+async function btConnect(all){
+  if (!navigator.bluetooth) return showToast('Kein Web Bluetooth – bitte Chrome auf Android verwenden');
+  if (device?.gatt.connected){ device.gatt.disconnect(); return; }
+  if (all) device = null;
+  try{
+    if (!device){
+      device = await navigator.bluetooth.requestDevice(all
+        ? { acceptAllDevices:true, optionalServices:OPT_SERVICES }
+        : { filters:[...PROFILES.map(p => ({ services:[p.svc] })), { namePrefix:'GLM' }, { namePrefix:'Bosch' },
+                     { namePrefix:'BOSCH' }, { namePrefix:'glm' }], optionalServices:OPT_SERVICES });
+      log('Gerät gewählt: ' + (device.name || '(ohne Namen)') + ' id=' + device.id);
+      device.addEventListener('gattserverdisconnected', async () => {
+        btState('', 'getrennt'); log('getrennt');
+        for (let i = 0; i < 3; i++){            // automatisch neu verbinden
+          await new Promise(r => setTimeout(r, 1500));
+          try{ await connectGatt(); return; }catch(e){ log('Reconnect: ' + e.message); }
+        }
+        btState('', 'Laser');
+      });
+    }
+    await connectGatt();
+  }catch(e){
+    btState('', 'Laser'); log('Fehler: ' + e.name + ': ' + e.message);
+    if (e.name !== 'NotFoundError') showToast('⚠ ' + e.message);
+    else if (!all) showToast('Kein Laser gefunden? ⚙ → „Alle Geräte anzeigen“ probieren');
+  }
+}
+$('bt').onclick = () => btConnect(false);
+$('btAll').onclick = () => { $('cfg').close(); btConnect(true); };
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && device?.gatt.connected){ try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){} }
+});
+
+/* ---------- Liste ---------- */
+function openList(){
+  if (!N()) return;
+  $('listTitle').textContent = kite;
+  let html = '<tr><th>Leine</th><th>Soll</th><th>Links</th><th>Rechts</th></tr>', g = null;
+  lines.forEach((l, i) => {
+    if (l.group !== g){ g = l.group; html += `<tr class="grp"><td colspan="4">${esc(g)}</td></tr>`; }
+    const c = (s, p) => {
+      const v = l[s], d = v == null ? null : Math.abs(v - l.soll);
+      const cls = v == null ? 'muted' : d <= cfg.tol1 ? 'ok' : d <= cfg.tol2 ? 'warn' : 'bad';
+      return `<td class="pick ${cls}${p === pos ? ' cur' : ''}" data-p="${p}">${fmt(v)}</td>`;
+    };
+    html += `<tr><td>${esc(l.name)}</td><td>${fmt(l.soll)}</td>${c('L', i)}${c('R', i + N())}</tr>`;
+  });
+  $('tbl').innerHTML = html;
+  $('list').showModal();
+  $('tbl').querySelector('.cur')?.scrollIntoView({ block:'center' });
+}
+$('tbl').onclick = e => { const p = e.target.dataset?.p; if (p != null){ pos = +p; render(); $('list').close(); } };
+$('listBtn').onclick = openList; $('name').onclick = openList;
+$('listClose').onclick = () => $('list').close();
+
+/* ---------- Einstellungen ---------- */
+function openCfg(){
+  $('cUrl').value = cfg.url; $('cKey').value = cfg.key;
+  $('cTol1').value = cfg.tol1; $('cTol2').value = cfg.tol2; $('cAuto').checked = cfg.auto;
+  $('cfg').showModal();
+}
+$('cfgBtn').onclick = openCfg;
+$('cfgCancel').onclick = () => $('cfg').close();
+$('cfgSave').onclick = () => {
+  cfg = { url:$('cUrl').value.trim(), key:$('cKey').value, tol1:+$('cTol1').value || 5,
+          tol2:+$('cTol2').value || 15, auto:$('cAuto').checked };
+  store.set('cfg', cfg); $('cfg').close(); loadKites();
+};
+$('kite').onchange = () => { kite = $('kite').value; store.set('kite', kite); loadLines(false); };
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c])); }
+
+if (!cfg.url) openCfg(); else { loadKites(); flush(); }
+</script>
+</body>
+</html>

@@ -163,15 +163,14 @@
     <div id="lbTrim">
       <label for="lbRig">Vorrichtung</label>
       <select id="lbRig">
-        <option>Trim2go</option>
-        <option>Trimmer</option>
+        <option value="Trim2go">Trim2go (je 2 Leinen auf Zug)</option>
+        <option value="Trimmer">Trimmer (alle Leinen auf Zug)</option>
       </select>
       <label for="lbMethod">Methode / Referenz</label>
       <select id="lbMethod">
-        <option>Anknüpfpunkte gleich hoch (kurzer Mixer)</option>
-        <option>A und Z am Tuch gleich hoch (langer Mixer), alle Leinen auf Zug</option>
-        <option>A und Z am Tuch gleich hoch (langer Mixer), je 2 Leinen</option>
-        <option>Nach Herstellerwerten</option>
+        <option>Anknüpfpunkte gleich (langer Mixer)</option>
+        <option>Anknüpfpunkte gleich (kurzer Mixer)</option>
+        <option>A und Z gleich am Tuch</option>
         <option>Andere (siehe Notiz)</option>
       </select>
     </div>
@@ -552,8 +551,10 @@ function openLb(){
   $('lbTitle').textContent = 'Logbuch · ' + kite;
   if (!$('lbDate').value) $('lbDate').value = today();
   $('lbLoad').value = lbPrefs.load; $('lbBoard').value = lbPrefs.board; $('lbStation').value = lbPrefs.station;
-  if (lbPrefs.method) $('lbMethod').value = lbPrefs.method;
+  $('lbMethod').value = lbPrefs.method;
+  if ($('lbMethod').selectedIndex < 0) $('lbMethod').selectedIndex = 0;
   $('lbRig').value = lbPrefs.rig;
+  if ($('lbRig').selectedIndex < 0) $('lbRig').selectedIndex = 0;
   lbSetType(lbType);
   $('lb').showModal();
   lbLoadEntries();

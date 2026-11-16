@@ -65,6 +65,18 @@
   #log{font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;max-height:40dvh;overflow:auto;color:var(--muted)}
   .hint{color:var(--muted);font-size:14px;line-height:1.4}
   details summary{color:var(--muted);cursor:pointer;font-size:14px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+  .tabs .btn.sel{background:var(--accent);border-color:var(--accent);color:#001827;font-weight:700}
+  .f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .f2 label,.f3 label{margin-top:8px}
+  dialog select{width:100%}
+  dialog textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;color:inherit;min-height:60px}
+  #lbForm input,#lbForm select{background:var(--bg)}
+  .sec{margin-top:14px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+  #lbEntries{font-size:13px;margin-top:8px}
+  #lbEntries td{text-align:left;vertical-align:top}
+  #lbEntries .t{white-space:nowrap;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -72,6 +84,7 @@
   <select id="kite" aria-label="Kite"></select>
   <button class="btn" id="bt"><span class="dot" id="btdot"></span><span id="bttxt">Laser</span></button>
   <button class="btn icon" id="listBtn" aria-label="Liste">☰</button>
+  <button class="btn icon" id="lbBtn" aria-label="Logbuch">📒</button>
   <button class="btn icon" id="cfgBtn" aria-label="Einstellungen">⚙</button>
 </header>
 
@@ -129,6 +142,81 @@
   <p class="hint">Auf einen Wert tippen, um dorthin zu springen.</p>
   <table id="tbl"></table>
   <div class="row"><button class="btn" id="listClose">Schließen</button></div>
+</dialog>
+
+<dialog id="lb">
+  <h2 id="lbTitle">Logbuch</h2>
+  <div class="tabs">
+    <button class="btn sel" id="lbTabT" type="button">✂ Trimm</button>
+    <button class="btn" id="lbTabS" type="button">🏄 Session</button>
+  </div>
+  <div id="lbForm">
+    <div class="f2">
+      <div><label for="lbDate">Datum</label><input id="lbDate" type="date"></div>
+      <div><label for="lbOffset">Versatz F/B (mm)</label><input id="lbOffset" type="number" inputmode="decimal" placeholder="+ = Front länger"></div>
+    </div>
+    <div class="f2">
+      <div><label for="lbKnot">Knoten an der Bar</label><input id="lbKnot" placeholder="z. B. 2. Knoten"></div>
+      <div id="lbLoadWrap"><label for="lbLoad">Last pro Leine (kg)</label><input id="lbLoad" type="number" inputmode="decimal"></div>
+    </div>
+
+    <div id="lbTrim">
+      <label for="lbMethod">Methode / Referenz</label>
+      <select id="lbMethod">
+        <option>Anknüpfpunkte gleich hoch (kurzer Mixer)</option>
+        <option>A und Z am Tuch gleich hoch (langer Mixer), alle Leinen auf Zug</option>
+        <option>A und Z am Tuch gleich hoch (langer Mixer), je 2 Leinen</option>
+        <option>Nach Herstellerwerten</option>
+        <option>Andere (siehe Notiz)</option>
+      </select>
+    </div>
+
+    <div id="lbSess" hidden>
+      <div class="f2">
+        <div><label for="lbFrom">Zeit von</label><input id="lbFrom" type="time"></div>
+        <div><label for="lbTo">bis</label><input id="lbTo" type="time"></div>
+      </div>
+      <label for="lbBoard">Board / Stand / Bar</label>
+      <input id="lbBoard" placeholder="z. B. Jaime SLS 136, 55 cm, L-Bar">
+
+      <div class="sec">Wind</div>
+      <div class="f2">
+        <div><label for="lbStation">Station</label>
+          <select id="lbStation">
+            <option value="segelschule-neusiedl">Segelschule Neusiedl</option>
+            <option value="zamg-neusiedl1">Neusiedl 1 (ZAMG)</option>
+            <option value="zamg-neusiedl2">Neusiedl 2 (ZAMG)</option>
+          </select></div>
+        <div><label>&nbsp;</label><button class="btn" id="lbWindBtn" type="button" style="width:100%">🌬 Von Nora holen</button></div>
+      </div>
+      <div class="f3">
+        <div><label for="lbWAvg">Ø kn</label><input id="lbWAvg" type="number" inputmode="decimal"></div>
+        <div><label for="lbWGust">Böen kn</label><input id="lbWGust" type="number" inputmode="decimal"></div>
+        <div><label for="lbWDir">Richtung °</label><input id="lbWDir" type="number" inputmode="numeric"></div>
+      </div>
+
+      <div class="sec">Ergebnis</div>
+      <div class="f2">
+        <div><label for="lbJumps">Sprünge</label><input id="lbJumps" type="number" inputmode="numeric"></div>
+        <div><label for="lbHang">Beste Hangtime (s)</label><input id="lbHang" type="number" inputmode="decimal"></div>
+      </div>
+      <div class="f2">
+        <div><label for="lbJAvg">Ø Höhe (m)</label><input id="lbJAvg" type="number" inputmode="decimal"></div>
+        <div><label for="lbJMax">Max. Höhe (m)</label><input id="lbJMax" type="number" inputmode="decimal"></div>
+      </div>
+      <label for="lbFile">Datei (FIT)</label>
+      <input id="lbFile" placeholder="z. B. 25087063622_ACTIVITY.fit">
+    </div>
+
+    <label for="lbNote">Notiz / Gefühl</label>
+    <textarea id="lbNote" placeholder="z. B. viel Zug, kurze Hangtime, harte Landungen"></textarea>
+  </div>
+  <div class="row">
+    <button class="btn" id="lbClose" type="button">Schließen</button>
+    <button class="btn primary" id="lbSave" type="button">Eintragen</button>
+  </div>
+  <div class="sec">Letzte Einträge</div>
+  <table id="lbEntries"></table>
 </dialog>
 
 <script>
@@ -434,6 +522,102 @@ $('cfgSave').onclick = () => {
   store.set('cfg', cfg); $('cfg').close(); loadKites();
 };
 $('kite').onchange = () => { kite = $('kite').value; store.set('kite', kite); loadLines(false); };
+
+/* ---------- Logbuch (Trimm & Session) ---------- */
+let lbType = 'Trimm', lbWindSrc = '';
+const lbPrefs = store.get('lbPrefs', { load:5, board:'', station:'segelschule-neusiedl', method:'' });
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const num = id => { const v = $(id).value.trim().replace(',', '.'); return v === '' ? '' : Number(v); };
+
+function lbSetType(t){
+  lbType = t;
+  $('lbTabT').classList.toggle('sel', t === 'Trimm');
+  $('lbTabS').classList.toggle('sel', t === 'Session');
+  $('lbTrim').hidden = t !== 'Trimm';
+  $('lbSess').hidden = t !== 'Session';
+  $('lbLoadWrap').style.visibility = t === 'Trimm' ? '' : 'hidden';
+}
+function lbClear(){
+  ['lbOffset','lbKnot','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
+    .forEach(id => $(id).value = '');
+  lbWindSrc = '';
+}
+function openLb(){
+  if (!kite) return showToast('Bitte zuerst einen Kite wählen');
+  $('lbTitle').textContent = 'Logbuch · ' + kite;
+  if (!$('lbDate').value) $('lbDate').value = today();
+  $('lbLoad').value = lbPrefs.load; $('lbBoard').value = lbPrefs.board; $('lbStation').value = lbPrefs.station;
+  if (lbPrefs.method) $('lbMethod').value = lbPrefs.method;
+  lbSetType(lbType);
+  $('lb').showModal();
+  lbLoadEntries();
+}
+async function lbLoadEntries(){
+  $('lbEntries').innerHTML = '<tr><td class="muted">lade…</td></tr>';
+  try{
+    const j = await api({ action:'logs', kite });
+    const rows = j.entries.slice(-8).reverse();
+    $('lbEntries').innerHTML = rows.length ? rows.map(e => {
+      const parts = e.typ === 'Session'
+        ? [e.zeit, e.wind !== '' ? `${e.wind}/${e.boeen} kn ${e.richtung}°` : '', e.spruenge !== '' ? `${e.spruenge} Sprünge, Ø ${e.hoehe_avg} m, max ${e.hoehe_max} m` : '']
+        : [e.methode, e.last !== '' ? e.last + ' kg' : ''];
+      if (e.versatz !== '') parts.push(`Versatz ${e.versatz > 0 ? '+' : ''}${e.versatz} mm`);
+      if (e.notiz) parts.push(e.notiz);
+      return `<tr><td class="t">${esc(e.datum)}<br>${e.typ === 'Session' ? '🏄' : '✂'}</td><td>${esc(parts.filter(Boolean).join(' · '))}</td></tr>`;
+    }).join('') : '<tr><td class="muted">Noch keine Einträge</td></tr>';
+  }catch(e){ $('lbEntries').innerHTML = `<tr><td class="bad">${esc(e.message)}</td></tr>`; }
+}
+$('lbWindBtn').onclick = async () => {
+  const d = $('lbDate').value, f = $('lbFrom').value, t = $('lbTo').value;
+  if (!d || !f || !t) return showToast('Bitte Datum und Zeit von/bis eintragen');
+  const from = new Date(`${d}T${f}`), to = new Date(`${d}T${t}`);
+  if (!(to > from)) return showToast('„bis“ muss nach „von“ liegen');
+  $('lbWindBtn').disabled = true; $('lbWindBtn').textContent = '⏳ lade…';
+  try{
+    const st = $('lbStation').value, q = { action:'wind', from:from.toISOString(), to:to.toISOString() };
+    const j = await api({ ...q, station:st });
+    // Richtungssensor der Segelschule zeigt ~30° zu weit östlich → Richtung von ZAMG Neusiedl 1 übernehmen
+    let dir = j.dir, src = '';
+    if (st === 'segelschule-neusiedl'){
+      try{ dir = (await api({ ...q, station:'zamg-neusiedl1' })).dir; src = ' (Richtung: ZAMG Neusiedl 1)'; }catch(e){}
+    }
+    $('lbWAvg').value = j.avg; $('lbWGust').value = j.gust; $('lbWDir').value = dir;
+    lbWindSrc = src;
+    showToast(`Wind: Ø ${j.avg} kn, Böen ${j.gust} kn, ${dir}°${src}`);
+  }catch(e){ showToast('⚠ ' + e.message); }
+  finally{ $('lbWindBtn').disabled = false; $('lbWindBtn').textContent = '🌬 Von Nora holen'; }
+};
+$('lbSave').onclick = async () => {
+  const sess = lbType === 'Session';
+  const data = {
+    datum: $('lbDate').value, typ: lbType,
+    zeit: sess && $('lbFrom').value ? `${$('lbFrom').value}–${$('lbTo').value}` : '',
+    methode: sess ? '' : $('lbMethod').value,
+    last: sess ? '' : num('lbLoad'),
+    versatz: num('lbOffset'), knoten: $('lbKnot').value.trim(),
+    board: sess ? $('lbBoard').value.trim() : '',
+    wind: sess ? num('lbWAvg') : '', boeen: sess ? num('lbWGust') : '', richtung: sess ? num('lbWDir') : '',
+    station: sess && $('lbWAvg').value ? $('lbStation').selectedOptions[0].text + lbWindSrc : '',
+    spruenge: sess ? num('lbJumps') : '', hoehe_avg: sess ? num('lbJAvg') : '', hoehe_max: sess ? num('lbJMax') : '',
+    hangtime: sess ? num('lbHang') : '', datei: sess ? $('lbFile').value.trim() : '',
+    notiz: $('lbNote').value.trim()
+  };
+  if (!data.datum) return showToast('Bitte ein Datum eintragen');
+  $('lbSave').disabled = true;
+  try{
+    await api({ action:'log', kite, data: JSON.stringify(data) });
+    Object.assign(lbPrefs, { station:$('lbStation').value, board: sess ? data.board : lbPrefs.board,
+      load: sess ? lbPrefs.load : (data.last || lbPrefs.load), method: sess ? lbPrefs.method : data.methode });
+    store.set('lbPrefs', lbPrefs);
+    showToast(`${lbType} im Blatt „${kite}“ eingetragen ✓`);
+    lbClear(); lbLoadEntries();
+  }catch(e){ showToast('⚠ ' + e.message); }
+  finally{ $('lbSave').disabled = false; }
+};
+$('lbBtn').onclick = openLb;
+$('lbTabT').onclick = () => lbSetType('Trimm');
+$('lbTabS').onclick = () => lbSetType('Session');
+$('lbClose').onclick = () => $('lb').close();
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c])); }
 

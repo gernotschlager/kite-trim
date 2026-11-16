@@ -22,7 +22,7 @@ const LB_FIELDS = [
   ['last', 'Last/Leine kg'], ['versatz', 'Versatz F/B mm (+ = Front länger)'], ['knoten', 'Knoten Bar'],
   ['board', 'Board / Stand / Bar'], ['wind', 'Wind Ø kn'], ['boeen', 'Böen kn'], ['richtung', 'Richtung °'],
   ['station', 'Station'], ['spruenge', 'Sprünge'], ['hoehe_avg', 'Ø Höhe m'], ['hoehe_max', 'Max. Höhe m'],
-  ['hangtime', 'Hangtime s'], ['datei', 'Datei'], ['notiz', 'Notiz']
+  ['hangtime', 'Hangtime s'], ['datei', 'Datei'], ['notiz', 'Notiz'], ['vorrichtung', 'Vorrichtung']
 ];
 
 function logbuchRoute_(p) {
@@ -40,9 +40,10 @@ function lbSheet_(name) {
   const need = LB_COL + LB_FIELDS.length - 1;
   if (sh.getMaxColumns() < need) sh.insertColumnsAfter(sh.getMaxColumns(), need - sh.getMaxColumns());
   const head = sh.getRange(LB_HEAD_ROW, LB_COL, 1, LB_FIELDS.length);
-  if (head.getValues()[0][0] !== LB_FIELDS[0][1]) {
+  const want = LB_FIELDS.map(f => f[1]);
+  if (head.getValues()[0].join('|') !== want.join('|')) { // fehlende/neue Überschriften ergänzen
     sh.getRange(LB_HEAD_ROW - 1, LB_COL).setValue('Trimm- & Session-Logbuch').setFontWeight('bold');
-    head.setValues([LB_FIELDS.map(f => f[1])]).setFontWeight('bold');
+    head.setValues([want]).setFontWeight('bold');
   }
   return sh;
 }

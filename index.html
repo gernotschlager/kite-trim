@@ -161,6 +161,11 @@
     </div>
 
     <div id="lbTrim">
+      <label for="lbRig">Vorrichtung</label>
+      <select id="lbRig">
+        <option>Trim2go</option>
+        <option>Trimmer</option>
+      </select>
       <label for="lbMethod">Methode / Referenz</label>
       <select id="lbMethod">
         <option>Anknüpfpunkte gleich hoch (kurzer Mixer)</option>
@@ -525,7 +530,7 @@ $('kite').onchange = () => { kite = $('kite').value; store.set('kite', kite); lo
 
 /* ---------- Logbuch (Trimm & Session) ---------- */
 let lbType = 'Trimm', lbWindSrc = '';
-const lbPrefs = store.get('lbPrefs', { load:5, board:'', station:'segelschule-neusiedl', method:'' });
+const lbPrefs = Object.assign({ load:5, board:'', station:'segelschule-neusiedl', method:'', rig:'Trim2go' }, store.get('lbPrefs', {}));
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
 const num = id => { const v = $(id).value.trim().replace(',', '.'); return v === '' ? '' : Number(v); };
 
@@ -548,6 +553,7 @@ function openLb(){
   if (!$('lbDate').value) $('lbDate').value = today();
   $('lbLoad').value = lbPrefs.load; $('lbBoard').value = lbPrefs.board; $('lbStation').value = lbPrefs.station;
   if (lbPrefs.method) $('lbMethod').value = lbPrefs.method;
+  $('lbRig').value = lbPrefs.rig;
   lbSetType(lbType);
   $('lb').showModal();
   lbLoadEntries();
@@ -560,7 +566,7 @@ async function lbLoadEntries(){
     $('lbEntries').innerHTML = rows.length ? rows.map(e => {
       const parts = e.typ === 'Session'
         ? [e.zeit, e.wind !== '' ? `${e.wind}/${e.boeen} kn ${e.richtung}°` : '', e.spruenge !== '' ? `${e.spruenge} Sprünge, Ø ${e.hoehe_avg} m, max ${e.hoehe_max} m` : '']
-        : [e.methode, e.last !== '' ? e.last + ' kg' : ''];
+        : [e.vorrichtung, e.methode, e.last !== '' ? e.last + ' kg' : ''];
       if (e.versatz !== '') parts.push(`Versatz ${e.versatz > 0 ? '+' : ''}${e.versatz} mm`);
       if (e.notiz) parts.push(e.notiz);
       return `<tr><td class="t">${esc(e.datum)}<br>${e.typ === 'Session' ? '🏄' : '✂'}</td><td>${esc(parts.filter(Boolean).join(' · '))}</td></tr>`;
@@ -600,14 +606,16 @@ $('lbSave').onclick = async () => {
     station: sess && $('lbWAvg').value ? $('lbStation').selectedOptions[0].text + lbWindSrc : '',
     spruenge: sess ? num('lbJumps') : '', hoehe_avg: sess ? num('lbJAvg') : '', hoehe_max: sess ? num('lbJMax') : '',
     hangtime: sess ? num('lbHang') : '', datei: sess ? $('lbFile').value.trim() : '',
-    notiz: $('lbNote').value.trim()
+    notiz: $('lbNote').value.trim(),
+    vorrichtung: sess ? '' : $('lbRig').value
   };
   if (!data.datum) return showToast('Bitte ein Datum eintragen');
   $('lbSave').disabled = true;
   try{
     await api({ action:'log', kite, data: JSON.stringify(data) });
     Object.assign(lbPrefs, { station:$('lbStation').value, board: sess ? data.board : lbPrefs.board,
-      load: sess ? lbPrefs.load : (data.last || lbPrefs.load), method: sess ? lbPrefs.method : data.methode });
+      load: sess ? lbPrefs.load : (data.last || lbPrefs.load), method: sess ? lbPrefs.method : data.methode,
+      rig: sess ? lbPrefs.rig : data.vorrichtung });
     store.set('lbPrefs', lbPrefs);
     showToast(`${lbType} im Blatt „${kite}“ eingetragen ✓`);
     lbClear(); lbLoadEntries();

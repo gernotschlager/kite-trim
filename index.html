@@ -77,6 +77,14 @@
   #lbEntries{font-size:13px;margin-top:8px}
   #lbEntries td{text-align:left;vertical-align:top}
   #lbEntries .t{white-space:nowrap;color:var(--muted)}
+  .chk{display:flex!important;align-items:center;gap:10px;color:var(--text)!important;font-size:15px!important;margin-top:14px!important}
+  .chk input{width:22px!important;height:22px}
+  #lbMarkTbl td,#lbMarkTbl th{padding:4px}
+  #lbMarkTbl input{text-align:right;padding:8px 6px}
+  #lbMarkTbl input.act{outline:2px solid var(--accent);border-color:var(--accent)}
+  #lbMarkTbl .d{font-size:12px;display:block;margin-top:2px}
+  #lbMarkRel{font-size:14px;margin-top:8px;line-height:1.6}
+  #lbMarkHint{font-size:13px;margin-top:6px}
 </style>
 </head>
 <body>
@@ -173,6 +181,14 @@
         <option>A und Z gleich am Tuch</option>
         <option>Andere (siehe Notiz)</option>
       </select>
+      <label class="chk"><input type="checkbox" id="lbMarkOn"> 📏 Marker-Reihe messen (Laser)</label>
+      <div id="lbMark" hidden>
+        <label for="lbMarkNames">Marker-Leinen A, B, C, Z</label>
+        <input id="lbMarkNames" placeholder="a3, b3, c3, br5">
+        <table id="lbMarkTbl"></table>
+        <div id="lbMarkHint" class="muted"></div>
+        <div id="lbMarkRel"></div>
+      </div>
     </div>
 
     <div id="lbSess" hidden>
@@ -352,6 +368,7 @@ function showToast(txt, undo){
 
 /* ---------- Messung ---------- */
 function onMeasure(mm){
+  if (mkActive()) return mkMeasure(mm);
   if (!N()) return;
   mm = Math.round(mm);
   const p = pos, { line, side } = cur();
@@ -545,6 +562,8 @@ function lbClear(){
   ['lbOffset','lbKnot','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
     .forEach(id => $(id).value = '');
   lbWindSrc = '';
+  MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el) el.value = ''; });
+  mkAct = 0; if ($('lbMarkOn').checked) mkUpdate();
 }
 function openLb(){
   if (!kite) return showToast('Bitte zuerst einen Kite wählen');
@@ -556,6 +575,9 @@ function openLb(){
   $('lbRig').value = lbPrefs.rig;
   if ($('lbRig').selectedIndex < 0) $('lbRig').selectedIndex = 0;
   lbSetType(lbType);
+  $('lbMarkNames').value = mkNamesFor(kite);
+  $('lbMark').hidden = !$('lbMarkOn').checked;
+  if ($('lbMarkOn').checked) mkBuild();
   $('lb').showModal();
   lbLoadEntries();
 }
@@ -569,6 +591,7 @@ async function lbLoadEntries(){
         ? [e.zeit, e.wind !== '' ? `${e.wind}/${e.boeen} kn ${e.richtung}°` : '', e.spruenge !== '' ? `${e.spruenge} Sprünge, Ø ${e.hoehe_avg} m, max ${e.hoehe_max} m` : '']
         : [e.vorrichtung, e.methode, e.last !== '' ? e.last + ' kg' : ''];
       if (e.versatz !== '') parts.push(`Versatz ${e.versatz > 0 ? '+' : ''}${e.versatz} mm`);
+      if (e.marker) parts.push('Marker ' + e.marker + ': ' + ['A','B','C','Z'].map(l => `${l} ${e['m_' + l + '_L'] || '–'}/${e['m_' + l + '_R'] || '–'}`).join(' '));
       if (e.notiz) parts.push(e.notiz);
       return `<tr><td class="t">${esc(e.datum)}<br>${e.typ === 'Session' ? '🏄' : '✂'}</td><td>${esc(parts.filter(Boolean).join(' · '))}</td></tr>`;
     }).join('') : '<tr><td class="muted">Noch keine Einträge</td></tr>';
@@ -610,6 +633,10 @@ $('lbSave').onclick = async () => {
     notiz: $('lbNote').value.trim(),
     vorrichtung: sess ? '' : $('lbRig').value
   };
+  if (!sess && $('lbMarkOn').checked){
+    data.marker = mkNames().join(', ');
+    MK_ORDER.forEach(id => { const v = mkVal(id); data['m_' + id] = v == null ? '' : v; });
+  }
   if (!data.datum) return showToast('Bitte ein Datum eintragen');
   $('lbSave').disabled = true;
   try{
@@ -623,6 +650,72 @@ $('lbSave').onclick = async () => {
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('lbSave').disabled = false; }
 };
+/* Marker-Reihe (A, B, C, Z links/rechts) im Trimm-Eintrag */
+const MK_LV = ['A','B','C','Z'];
+const MK_ORDER = [...MK_LV.map(l => l + '_L'), ...MK_LV.map(l => l + '_R')]; // erst links, dann rechts
+let mkAct = 0;
+const mkNamesFor = k => store.get('mkNames:' + k, 'a3, b3, c3, br5');
+function mkNames(){
+  const n = $('lbMarkNames').value.split(/[,;\s]+/).filter(Boolean);
+  return MK_LV.map((_, i) => n[i] || '');
+}
+function mkSoll(name){ const l = lines.find(x => x.name.toLowerCase() === String(name).toLowerCase()); return l ? l.soll : null; }
+function mkVal(id){ const v = $('mk_' + id).value.trim().replace(',', '.'); return v === '' ? null : Number(v); }
+function mkSign(d){ return (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(Math.round(d)); }
+function mkCls(d){ const a = Math.abs(d); return a <= cfg.tol1 ? 'ok' : a <= cfg.tol2 ? 'warn' : 'bad'; }
+function mkBuild(){
+  const names = mkNames(), keep = {};
+  MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el) keep[id] = el.value; });
+  $('lbMarkTbl').innerHTML = '<tr><th style="text-align:left">Leine</th><th>Soll</th><th>Links</th><th>Rechts</th></tr>' +
+    MK_LV.map((lv, i) => `<tr><td style="text-align:left">${lv} · ${esc(names[i] || '?')}</td><td class="muted">${fmt(mkSoll(names[i]))}</td>` +
+      ['L','R'].map(sd => `<td><input id="mk_${lv}_${sd}" data-id="${lv}_${sd}" type="number" inputmode="decimal"><span class="d" id="mkd_${lv}_${sd}"></span></td>`).join('') + '</tr>').join('');
+  MK_ORDER.forEach(id => { if (keep[id] != null) $('mk_' + id).value = keep[id]; });
+  $('lbMarkTbl').querySelectorAll('input').forEach(el => {
+    el.onfocus = () => { mkAct = MK_ORDER.indexOf(el.dataset.id); mkUpdate(); };
+    el.oninput = mkUpdate;
+  });
+  mkUpdate();
+}
+function mkUpdate(){
+  const names = mkNames();
+  MK_ORDER.forEach((id, k) => { const el = $('mk_' + id); if (el) el.classList.toggle('act', k === mkAct); });
+  // Ist − Soll je Feld
+  MK_LV.forEach((lv, i) => ['L','R'].forEach(sd => {
+    const v = mkVal(lv + '_' + sd), so = mkSoll(names[i]), el = $('mkd_' + lv + '_' + sd);
+    if (v == null || so == null){ el.textContent = ''; return; }
+    const d = v - so; el.textContent = mkSign(d); el.className = 'd ' + mkCls(d);
+  }));
+  // B, C, Z gegenüber A (jeweils als Abweichung vom Soll)
+  const rel = ['L','R'].map(sd => {
+    const a = mkVal('A_' + sd), sa = mkSoll(names[0]);
+    if (a == null || sa == null) return '';
+    const parts = MK_LV.slice(1).map((lv, j) => {
+      const v = mkVal(lv + '_' + sd), so = mkSoll(names[j + 1]);
+      if (v == null || so == null) return '';
+      const d = (v - so) - (a - sa);
+      return `<span class="${mkCls(d)}">${lv} ${mkSign(d)}</span>`;
+    }).filter(Boolean);
+    return parts.length ? `<b>${sd === 'L' ? 'Links' : 'Rechts'}</b> gegenüber A: ${parts.join(' · ')} mm` : '';
+  }).filter(Boolean);
+  $('lbMarkRel').innerHTML = rel.join('<br>');
+  const id = MK_ORDER[mkAct];
+  $('lbMarkHint').textContent = id
+    ? `Nächster Laserwert → ${names[MK_LV.indexOf(id[0])] || id[0]} ${id.endsWith('L') ? 'links' : 'rechts'} (Feld antippen zum Wechseln)`
+    : 'Alle Marker-Werte erfasst ✓';
+}
+function mkMeasure(mm){
+  if (mkAct >= MK_ORDER.length) mkAct = 0;
+  const id = MK_ORDER[mkAct];
+  $('mk_' + id).value = Math.round(mm);
+  if (navigator.vibrate) navigator.vibrate(60);
+  mkAct++;
+  if (mkAct === MK_LV.length) showToast('Marker links fertig ✓ – weiter mit RECHTS');
+  mkUpdate();
+}
+const mkActive = () => $('lb').open && lbType === 'Trimm' && $('lbMarkOn').checked;
+$('lbMarkOn').onchange = () => { $('lbMark').hidden = !$('lbMarkOn').checked; if ($('lbMarkOn').checked){ mkAct = 0; mkBuild(); } };
+$('lbMarkNames').onchange = () => { store.set('mkNames:' + kite, $('lbMarkNames').value); mkBuild(); };
+
 $('lbBtn').onclick = openLb;
 $('lbTabT').onclick = () => lbSetType('Trimm');
 $('lbTabS').onclick = () => lbSetType('Session');

@@ -22,7 +22,10 @@ const LB_FIELDS = [
   ['last', 'Last/Leine kg'], ['versatz', 'Versatz F/B mm (+ = Front länger)'], ['knoten', 'Knoten Bar'],
   ['board', 'Board / Stand / Bar'], ['wind', 'Wind Ø kn'], ['boeen', 'Böen kn'], ['richtung', 'Richtung °'],
   ['station', 'Station'], ['spruenge', 'Sprünge'], ['hoehe_avg', 'Ø Höhe m'], ['hoehe_max', 'Max. Höhe m'],
-  ['hangtime', 'Hangtime s'], ['datei', 'Datei'], ['notiz', 'Notiz'], ['vorrichtung', 'Vorrichtung']
+  ['hangtime', 'Hangtime s'], ['datei', 'Datei'], ['notiz', 'Notiz'], ['vorrichtung', 'Vorrichtung'],
+  ['marker', 'Marker-Leinen A,B,C,Z'],
+  ['m_A_L', 'Marker A L'], ['m_A_R', 'Marker A R'], ['m_B_L', 'Marker B L'], ['m_B_R', 'Marker B R'],
+  ['m_C_L', 'Marker C L'], ['m_C_R', 'Marker C R'], ['m_Z_L', 'Marker Z L'], ['m_Z_R', 'Marker Z R']
 ];
 
 function logbuchRoute_(p) {

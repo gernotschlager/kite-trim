@@ -28,6 +28,7 @@
   main{flex:1;display:flex;flex-direction:column;padding:12px;gap:12px}
   .side{display:flex;justify-content:space-between;align-items:center;font-weight:800;letter-spacing:.08em}
   .side .tag{padding:6px 14px;border-radius:999px;font-size:20px}
+  #sideTag{cursor:pointer;user-select:none}
   .tag.L{background:var(--left);color:#001827} .tag.R{background:var(--right);color:#2a1000}
   .progress{color:var(--muted);font-size:15px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:center}
@@ -98,7 +99,7 @@
 
 <main>
   <div class="side">
-    <span class="tag L" id="sideTag">LINKS</span>
+    <span class="tag L" id="sideTag" title="Seite wechseln">LINKS ⇄</span>
     <span class="progress" id="progress">–</span>
   </div>
 
@@ -158,14 +159,19 @@
     <button class="btn sel" id="lbTabT" type="button">✂ Trimm</button>
     <button class="btn" id="lbTabS" type="button">🏄 Session</button>
   </div>
+  <div style="display:flex;gap:8px;align-items:center;margin:4px 0 2px">
+    <button class="btn" id="lbBt" type="button" style="display:flex;align-items:center;gap:6px"><span class="dot" id="lbBtDot"></span><span id="lbBtTxt">Laser</span></button>
+    <span class="hint" id="lbDraftInfo"></span>
+  </div>
   <div id="lbForm">
     <div class="f2">
       <div><label for="lbDate">Datum</label><input id="lbDate" type="date"></div>
-      <div><label for="lbOffset">Versatz F/B (mm)</label><input id="lbOffset" type="number" inputmode="decimal" placeholder="+ = Front länger"></div>
-    </div>
-    <div class="f2">
       <div><label for="lbKnot">Knoten an der Bar</label><input id="lbKnot" placeholder="z. B. 2. Knoten"></div>
-      <div id="lbLoadWrap"><label for="lbLoad">Last pro Leine (kg)</label><input id="lbLoad" type="number" inputmode="decimal"></div>
+    </div>
+    <div class="f3">
+      <div><label for="lbOffset">Versatz L (mm)</label><input id="lbOffset" type="number" inputmode="decimal" placeholder="+ = Front"></div>
+      <div><label for="lbOffsetR">Versatz R (mm)</label><input id="lbOffsetR" type="number" inputmode="decimal" placeholder="+ = Front"></div>
+      <div id="lbLoadWrap"><label for="lbLoad">Last/Leine kg</label><input id="lbLoad" type="number" inputmode="decimal"></div>
     </div>
 
     <div id="lbTrim">
@@ -232,6 +238,7 @@
     <textarea id="lbNote" placeholder="z. B. viel Zug, kurze Hangtime, harte Landungen"></textarea>
   </div>
   <div class="row">
+    <button class="btn" id="lbDiscard" type="button" style="margin-right:auto;color:var(--bad)">Verwerfen</button>
     <button class="btn" id="lbClose" type="button">Schließen</button>
     <button class="btn primary" id="lbSave" type="button">Eintragen</button>
   </div>
@@ -335,7 +342,7 @@ function fmt(v){ return v == null ? '–' : String(Math.round(v)); }
 function render(){
   if (!N()){ $('name').textContent = '–'; return; }
   const { line, side } = cur();
-  $('sideTag').textContent = side === 'L' ? 'LINKS' : 'RECHTS';
+  $('sideTag').textContent = side === 'L' ? 'LINKS ⇄' : 'RECHTS ⇄';
   $('sideTag').className = 'tag ' + side;
   const done = lines.reduce((a, l) => a + (l.L != null) + (l.R != null), 0);
   $('progress').textContent = `${(pos % N()) + 1}/${N()} · gesamt ${done}/${total()}`;
@@ -357,6 +364,9 @@ function render(){
   store.set('pos:' + kite, pos);
 }
 
+function switchSide(){ if (!N()) return; pos = pos < N() ? pos + N() : pos - N(); render();
+  showToast(`Gewechselt auf ${pos < N() ? 'LINKS' : 'RECHTS'} · ${cur().line.name}`); }
+$('sideTag').onclick = switchSide;
 function go(d){ if (!N()) return; pos = Math.max(0, Math.min(total() - 1, pos + d)); render(); }
 
 function showToast(txt, undo){
@@ -375,12 +385,20 @@ function onMeasure(mm){
   const old = setValue(p, mm);
   if (navigator.vibrate) navigator.vibrate(60);
   lastUndo = { p, old };
-  if (cfg.auto && p < total() - 1){
-    pos++;
-    if (p === N() - 1) showToast(`Linke Seite fertig ✓ – weiter mit RECHTS`, true);
-    else showToast(`${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm gespeichert`, true);
-  } else if (p === total() - 1){
-    showToast(`Fertig! ${line.name} rechts: ${fmt(mm)} mm`, true);
+  const allDone = lines.every(l => l.L != null && l.R != null);
+  if (allDone){
+    showToast(`Fertig! ${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm`, true);
+  } else if (cfg.auto){
+    const sideEnd = p % N() === N() - 1;
+    if (sideEnd){                       // Seite fertig → erste leere Leine der anderen Seite
+      const base = side === 'L' ? N() : 0;
+      let q = base; for (let i = 0; i < N(); i++) if (lines[i][side === 'L' ? 'R' : 'L'] == null){ q = base + i; break; }
+      pos = q;
+      showToast(`${side === 'L' ? 'Linke' : 'Rechte'} Seite fertig ✓ – weiter mit ${side === 'L' ? 'RECHTS' : 'LINKS'}`, true);
+    } else {
+      pos = p + 1;
+      showToast(`${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm gespeichert`, true);
+    }
   }
   render();
 }
@@ -407,7 +425,11 @@ $('manualBtn').onclick = () => {
 
 /* ---------- Bluetooth GLM 50 C ---------- */
 function log(s){ const el = $('log'); el.textContent = (new Date().toLocaleTimeString() + ' ' + s + '\n' + el.textContent).slice(0, 6000); }
-function btState(s, txt){ $('btdot').className = 'dot' + (s ? ' ' + s : ''); $('bttxt').textContent = txt; }
+function btState(s, txt){
+  ['btdot','lbBtDot'].forEach(id => { const el = $(id); if (el) el.className = 'dot' + (s ? ' ' + s : ''); });
+  ['bttxt','lbBtTxt'].forEach(id => { const el = $(id); if (el) el.textContent = txt; });
+}
+let btManualOff = false, btRetrying = false;
 
 // Bosch MT-Protokoll: Rahmen C0 <cmd> <len> <daten…> <crc8>
 const PROFILES = [
@@ -474,9 +496,27 @@ async function connectGatt(){
   try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){}
 }
 
+// Laser schaltet sich nach einigen Minuten ab → bis zu 10 Minuten lang alle 3 s neu versuchen
+async function btAutoReconnect(){
+  log('getrennt');
+  if (btManualOff || btRetrying) { btState('', 'Laser'); return; }
+  btRetrying = true;
+  showToast('Laser getrennt – einfach wieder einschalten, die App verbindet sich selbst');
+  const until = Date.now() + 10 * 60 * 1000;
+  try{
+    while (Date.now() < until && !btManualOff && !device?.gatt.connected){
+      btState('busy', 'suche Laser…');
+      try{ await connectGatt(); showToast('Laser wieder verbunden ✓'); if (navigator.vibrate) navigator.vibrate([60, 80, 60]); return; }
+      catch(e){ log('Reconnect: ' + e.message); try{ device.gatt.disconnect(); }catch(_){} }
+      await new Promise(r => setTimeout(r, 3000));
+    }
+    if (!device?.gatt.connected) btState('', 'Laser');
+  } finally { btRetrying = false; }
+}
 async function btConnect(all){
   if (!navigator.bluetooth) return showToast('Kein Web Bluetooth – bitte Chrome auf Android verwenden');
-  if (device?.gatt.connected){ device.gatt.disconnect(); return; }
+  if (device?.gatt.connected){ btManualOff = true; device.gatt.disconnect(); return; }
+  btManualOff = false;
   if (all) device = null;
   try{
     if (!device){
@@ -485,14 +525,7 @@ async function btConnect(all){
         : { filters:[...PROFILES.map(p => ({ services:[p.svc] })), { namePrefix:'GLM' }, { namePrefix:'Bosch' },
                      { namePrefix:'BOSCH' }, { namePrefix:'glm' }], optionalServices:OPT_SERVICES });
       log('Gerät gewählt: ' + (device.name || '(ohne Namen)') + ' id=' + device.id);
-      device.addEventListener('gattserverdisconnected', async () => {
-        btState('', 'getrennt'); log('getrennt');
-        for (let i = 0; i < 3; i++){            // automatisch neu verbinden
-          await new Promise(r => setTimeout(r, 1500));
-          try{ await connectGatt(); return; }catch(e){ log('Reconnect: ' + e.message); }
-        }
-        btState('', 'Laser');
-      });
+      device.addEventListener('gattserverdisconnected', btAutoReconnect);
     }
     await connectGatt();
   }catch(e){
@@ -559,7 +592,7 @@ function lbSetType(t){
   $('lbLoadWrap').style.visibility = t === 'Trimm' ? '' : 'hidden';
 }
 function lbClear(){
-  ['lbOffset','lbKnot','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
+  ['lbOffset','lbOffsetR','lbKnot','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
     .forEach(id => $(id).value = '');
   lbWindSrc = '';
   MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el) el.value = ''; });
@@ -579,6 +612,8 @@ function openLb(){
   $('lbMark').hidden = !$('lbMarkOn').checked;
   if ($('lbMarkOn').checked) mkBuild();
   $('lb').showModal();
+  if (lbDraftRestore()) showToast('Angefangener Eintrag wiederhergestellt');
+  btState(device?.gatt.connected ? 'on' : (btRetrying ? 'busy' : ''), device?.gatt.connected ? (device.name || 'GLM') : (btRetrying ? 'suche Laser…' : 'Laser'));
   lbLoadEntries();
 }
 async function lbLoadEntries(){
@@ -590,7 +625,7 @@ async function lbLoadEntries(){
       const parts = e.typ === 'Session'
         ? [e.zeit, e.wind !== '' ? `${e.wind}/${e.boeen} kn ${e.richtung}°` : '', e.spruenge !== '' ? `${e.spruenge} Sprünge, Ø ${e.hoehe_avg} m, max ${e.hoehe_max} m` : '']
         : [e.vorrichtung, e.methode, e.last !== '' ? e.last + ' kg' : ''];
-      if (e.versatz !== '') parts.push(`Versatz ${e.versatz > 0 ? '+' : ''}${e.versatz} mm`);
+      if (e.versatz !== '' && e.versatz != null) parts.push(`Versatz ${typeof e.versatz === 'number' && e.versatz > 0 ? '+' : ''}${e.versatz} mm`);
       if (e.marker) parts.push('Marker ' + e.marker + ': ' + ['A','B','C','Z'].map(l => `${l} ${e['m_' + l + '_L'] || '–'}/${e['m_' + l + '_R'] || '–'}`).join(' '));
       if (e.notiz) parts.push(e.notiz);
       return `<tr><td class="t">${esc(e.datum)}<br>${e.typ === 'Session' ? '🏄' : '✂'}</td><td>${esc(parts.filter(Boolean).join(' · '))}</td></tr>`;
@@ -617,6 +652,14 @@ $('lbWindBtn').onclick = async () => {
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('lbWindBtn').disabled = false; $('lbWindBtn').textContent = '🌬 Von Nora holen'; }
 };
+// Versatz links/rechts → eine Spalte, z. B. "L 27 / R 28" (+ = Front länger)
+function lbOffsetText(){
+  const f = v => (v > 0 ? '+' : '') + v;
+  const l = num('lbOffset'), r = num('lbOffsetR'), parts = [];
+  if (l !== '') parts.push('L ' + f(l));
+  if (r !== '') parts.push('R ' + f(r));
+  return parts.join(' / ');
+}
 $('lbSave').onclick = async () => {
   const sess = lbType === 'Session';
   const data = {
@@ -624,7 +667,7 @@ $('lbSave').onclick = async () => {
     zeit: sess && $('lbFrom').value ? `${$('lbFrom').value}–${$('lbTo').value}` : '',
     methode: sess ? '' : $('lbMethod').value,
     last: sess ? '' : num('lbLoad'),
-    versatz: num('lbOffset'), knoten: $('lbKnot').value.trim(),
+    versatz: lbOffsetText(), knoten: $('lbKnot').value.trim(),
     board: sess ? $('lbBoard').value.trim() : '',
     wind: sess ? num('lbWAvg') : '', boeen: sess ? num('lbWGust') : '', richtung: sess ? num('lbWDir') : '',
     station: sess && $('lbWAvg').value ? $('lbStation').selectedOptions[0].text + lbWindSrc : '',
@@ -646,10 +689,52 @@ $('lbSave').onclick = async () => {
       rig: sess ? lbPrefs.rig : data.vorrichtung });
     store.set('lbPrefs', lbPrefs);
     showToast(`${lbType} im Blatt „${kite}“ eingetragen ✓`);
-    lbClear(); lbLoadEntries();
+    lbClear(); lbDraftClear(); lbLoadEntries();
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('lbSave').disabled = false; }
 };
+/* Entwurf: angefangenen Eintrag am Handy zwischenspeichern (übersteht Schließen, Neuladen, Laser-Abbruch) */
+const LB_FIELDS = ['lbDate','lbOffset','lbOffsetR','lbKnot','lbLoad','lbRig','lbMethod','lbFrom','lbTo','lbBoard','lbStation',
+  'lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote','lbMarkNames'];
+const draftKey = () => 'lbDraft:' + kite;
+function lbDraftSave(){
+  if (!kite || !$('lb').open) return;
+  const d = { type: lbType, markOn: $('lbMarkOn').checked, mkAct, windSrc: lbWindSrc, f:{}, mk:{} };
+  LB_FIELDS.forEach(id => d.f[id] = $(id).value);
+  MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el) d.mk[id] = el.value; });
+  store.set(draftKey(), d);
+  lbDraftInfo(d);
+}
+function lbDraftInfo(d){
+  const n = d ? Object.values(d.mk || {}).filter(v => v !== '').length : 0;
+  $('lbDraftInfo').textContent = d && d.markOn && n ? `Entwurf gespeichert · ${n}/8 Marker` : '';
+}
+function lbDraftRestore(){
+  const d = store.get(draftKey(), null);
+  if (!d) { lbDraftInfo(null); return false; }
+  LB_FIELDS.forEach(id => { if (d.f && d.f[id] != null) $(id).value = d.f[id]; });
+  lbSetType(d.type || 'Trimm');
+  lbWindSrc = d.windSrc || '';
+  $('lbMarkOn').checked = !!d.markOn;
+  $('lbMark').hidden = !d.markOn;
+  if (d.markOn){
+    mkBuild();
+    MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el && d.mk && d.mk[id] != null) el.value = d.mk[id]; });
+    mkAct = Math.min(d.mkAct || 0, MK_ORDER.length); mkUpdate();
+  }
+  lbDraftInfo(d);
+  return true;
+}
+function lbDraftClear(){ try{ localStorage.removeItem(draftKey()); }catch(e){} lbDraftInfo(null); }
+$('lbForm').addEventListener('input', lbDraftSave);
+$('lbForm').addEventListener('change', lbDraftSave);
+$('lbBt').onclick = () => { if (device?.gatt.connected) showToast('Laser ist verbunden ✓'); else btConnect(false); };
+$('lbDiscard').onclick = () => {
+  if (!confirmDiscard) { confirmDiscard = true; showToast('Nochmal tippen zum Verwerfen'); setTimeout(() => confirmDiscard = false, 3000); return; }
+  confirmDiscard = false; lbClear(); lbDraftClear(); $('lbDate').value = today(); showToast('Eintrag verworfen');
+};
+let confirmDiscard = false;
+
 /* Marker-Reihe (A, B, C, Z links/rechts) im Trimm-Eintrag */
 const MK_LV = ['A','B','C','Z'];
 const MK_ORDER = [...MK_LV.map(l => l + '_L'), ...MK_LV.map(l => l + '_R')]; // erst links, dann rechts
@@ -666,12 +751,17 @@ function mkCls(d){ const a = Math.abs(d); return a <= cfg.tol1 ? 'ok' : a <= cfg
 function mkBuild(){
   const names = mkNames(), keep = {};
   MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el) keep[id] = el.value; });
-  $('lbMarkTbl').innerHTML = '<tr><th style="text-align:left">Leine</th><th>Soll</th><th>Links</th><th>Rechts</th></tr>' +
+  $('lbMarkTbl').innerHTML = '<tr><th style="text-align:left">Leine</th><th>Soll</th><th class="mkSide" data-sd="L" style="cursor:pointer">Links ⇄</th><th class="mkSide" data-sd="R" style="cursor:pointer">Rechts ⇄</th></tr>' +
     MK_LV.map((lv, i) => `<tr><td style="text-align:left">${lv} · ${esc(names[i] || '?')}</td><td class="muted">${fmt(mkSoll(names[i]))}</td>` +
       ['L','R'].map(sd => `<td><input id="mk_${lv}_${sd}" data-id="${lv}_${sd}" type="number" inputmode="decimal"><span class="d" id="mkd_${lv}_${sd}"></span></td>`).join('') + '</tr>').join('');
   MK_ORDER.forEach(id => { if (keep[id] != null) $('mk_' + id).value = keep[id]; });
+  $('lbMarkTbl').querySelectorAll('.mkSide').forEach(th => th.onclick = () => {
+    const sd = th.dataset.sd, j = MK_ORDER.findIndex(x => x.endsWith(sd) && mkVal(x) == null);
+    mkAct = j >= 0 ? j : MK_ORDER.indexOf('A_' + sd); mkUpdate(); lbDraftSave();
+    showToast(`Marker: weiter mit ${sd === 'L' ? 'LINKS' : 'RECHTS'}`);
+  });
   $('lbMarkTbl').querySelectorAll('input').forEach(el => {
-    el.onfocus = () => { mkAct = MK_ORDER.indexOf(el.dataset.id); mkUpdate(); };
+    el.onfocus = () => { mkAct = MK_ORDER.indexOf(el.dataset.id); mkUpdate(); lbDraftSave(); };
     el.oninput = mkUpdate;
   });
   mkUpdate();
@@ -704,21 +794,29 @@ function mkUpdate(){
     : 'Alle Marker-Werte erfasst ✓';
 }
 function mkMeasure(mm){
-  if (mkAct >= MK_ORDER.length) mkAct = 0;
-  const id = MK_ORDER[mkAct];
+  const empty = k => mkVal(MK_ORDER[k]) == null;
+  if (mkAct >= MK_ORDER.length){            // alles voll oder Ende → erstes leeres Feld suchen
+    mkAct = MK_ORDER.findIndex((_, k) => empty(k));
+    if (mkAct < 0) return showToast('Alle Marker erfasst – zum Überschreiben ein Feld antippen');
+  }
+  const k = mkAct, id = MK_ORDER[k], sd = id.slice(-1);
   $('mk_' + id).value = Math.round(mm);
   if (navigator.vibrate) navigator.vibrate(60);
-  mkAct++;
-  if (mkAct === MK_LV.length) showToast('Marker links fertig ✓ – weiter mit RECHTS');
-  mkUpdate();
+  // nächstes leeres Feld: zuerst dieselbe Seite weiter, dann die andere Seite
+  const sameSide = MK_ORDER.map((x, j) => j).filter(j => MK_ORDER[j].endsWith(sd) && j > k && empty(j));
+  const other = MK_ORDER.map((x, j) => j).filter(j => !MK_ORDER[j].endsWith(sd) && empty(j));
+  const sideDone = MK_ORDER.every((x, j) => !x.endsWith(sd) || !empty(j));
+  mkAct = sameSide.length ? sameSide[0] : other.length ? other[0] : MK_ORDER.length;
+  if (sideDone && other.length) showToast(`Marker ${sd === 'L' ? 'links' : 'rechts'} fertig ✓ – weiter mit ${sd === 'L' ? 'RECHTS' : 'LINKS'}`);
+  mkUpdate(); lbDraftSave();
 }
 const mkActive = () => $('lb').open && lbType === 'Trimm' && $('lbMarkOn').checked;
-$('lbMarkOn').onchange = () => { $('lbMark').hidden = !$('lbMarkOn').checked; if ($('lbMarkOn').checked){ mkAct = 0; mkBuild(); } };
+$('lbMarkOn').onchange = () => { $('lbMark').hidden = !$('lbMarkOn').checked; if ($('lbMarkOn').checked){ mkAct = 0; mkBuild(); } lbDraftSave(); };
 $('lbMarkNames').onchange = () => { store.set('mkNames:' + kite, $('lbMarkNames').value); mkBuild(); };
 
 $('lbBtn').onclick = openLb;
-$('lbTabT').onclick = () => lbSetType('Trimm');
-$('lbTabS').onclick = () => lbSetType('Session');
+$('lbTabT').onclick = () => { lbSetType('Trimm'); lbDraftSave(); };
+$('lbTabS').onclick = () => { lbSetType('Session'); lbDraftSave(); };
 $('lbClose').onclick = () => $('lb').close();
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c])); }

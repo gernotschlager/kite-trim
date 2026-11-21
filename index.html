@@ -166,6 +166,7 @@
     <select id="cmpSel"><option value="">– kein Vergleich –</option></select>
     <label class="chk" style="margin-top:6px!important"><input type="checkbox" id="cmpOnly"> Nur die gesicherte Messreihe anzeigen</label>
   </div>
+  <p class="hint" id="listTime" style="margin:4px 0;color:var(--text)"></p>
   <p class="hint" id="listHint">Auf einen Wert tippen, um dorthin zu springen.</p>
   <table id="tbl"></table>
   <div class="sec">Messreihe sichern</div>
@@ -178,7 +179,7 @@
     <button class="btn" id="arNew" type="button" style="color:var(--bad);margin-right:auto">🆕 Neue Messreihe</button>
     <button class="btn" id="listClose" type="button">Schließen</button>
   </div>
-  <p class="hint" style="font-size:13px">„Sichern“ kopiert alle aktuellen Werte ins Blatt „Messarchiv“. „Neue Messreihe“ sichert zuerst und leert dann alle Felder dieses Kites.</p>
+  <p class="hint" style="font-size:13px">Die Messzeit zählt ab „Neue Messreihe“; Lücken über 5 min gelten als Pause. „Sichern“ kopiert alle aktuellen Werte samt Messzeit ins Blatt „Messarchiv“. „Neue Messreihe“ sichert zuerst und leert dann alle Felder dieses Kites.</p>
 </dialog>
 
 <dialog id="lb">
@@ -346,7 +347,7 @@ async function loadLines(jumpToFirstEmpty){
     const j = await api({ action:'lines', kite });
     lines = j.lines;
     // noch nicht gesendete Werte lokal drüberlegen
-    queue.filter(x => x.kite === kite).forEach(x => {
+    queue.filter(x => x.kite === kite && x.type !== 'mlog').forEach(x => {
       const l = lines.find(l => l.row === x.row); if (l) l[x.side] = x.value === '' ? null : Number(x.value);
     });
     const saved = store.get('pos:' + kite, null);
@@ -370,6 +371,7 @@ function setValue(p, value){ // value: Zahl oder '' zum Löschen
   l[side] = value === '' ? null : value;
   queue = queue.filter(x => !(x.kite === kite && x.row === l.row && x.side === side));
   queue.push({ kite, row:l.row, name:l.name, side, value: value === '' ? '' : String(value) });
+  queue.push({ type:'mlog', kite, name:l.name, side, value: value === '' ? '' : String(value), ts: new Date().toISOString() });
   store.set('queue', queue);
   flush();
   return old;
@@ -382,10 +384,15 @@ async function flush(){
     while (queue.length){
       const x = queue[0];
       try{
-        await api({ action:'set', kite:x.kite, row:x.row, name:x.name, side:x.side, value:x.value });
+        if (x.type === 'mlog'){
+          try{ await api({ action:'mlog', kite:x.kite, name:x.name, side:x.side, value:x.value, ts:x.ts }); }
+          catch(e){ if (!/Unbekannte Aktion/.test(e.message)) throw e; } // altes Skript ohne Protokoll → überspringen
+        } else {
+          await api({ action:'set', kite:x.kite, row:x.row, name:x.name, side:x.side, value:x.value });
+        }
         queue.shift(); store.set('queue', queue);
       }catch(e){
-        $('queue').textContent = `⏳ ${queue.length} Wert(e) noch nicht in der Tabelle – ${e.message}`;
+        $('queue').textContent = `⏳ ${queue.filter(q => q.type !== 'mlog').length || 1} Wert(e) noch nicht in der Tabelle – ${e.message}`;
         setTimeout(() => { flushing = false; flush(); }, 5000);
         return;
       }
@@ -616,7 +623,7 @@ function cmpVal(name, side){
 async function arLoadList(){
   try{ arList = (await api({ action:'arch_list', kite })).series || []; }catch(e){ arList = []; }
   $('cmpSel').innerHTML = '<option value="">– kein Vergleich –</option>' + arList.map(x =>
-    `<option value="${esc(x.id)}">${esc(x.datum)} · ${esc(x.label || 'ohne Bezeichnung')} (${x.gemessen}/${x.n})</option>`).join('');
+    `<option value="${esc(x.id)}">${esc(x.datum)} · ${esc(x.label || 'ohne Bezeichnung')} (${x.gemessen}/${x.n})${x.messzeit !== '' && x.messzeit != null ? ' · ' + hm(+x.messzeit) : ''}</option>`).join('');
   $('cmpSel').value = cmp ? cmp.id : '';
 }
 async function cmpSet(id, quiet){
@@ -637,6 +644,7 @@ async function cmpRestore(){
 function deltaHtml(cur, old){
   if (cur == null || old == null) return old != null && cur == null ? `<span class="dd muted">vorher ${fmt(old)}</span>` : '';
   const d = Math.round(cur - old), a = Math.abs(d);
+  if (!a) return ''; // unverändert → nichts anzeigen, damit die Liste ruhig bleibt
   const cls = a <= cfg.tol1 ? 'ok' : a <= cfg.tol2 ? 'warn' : 'bad';
   return `<span class="dd ${cls}">Δ ${d > 0 ? '+' : d < 0 ? '−' : '±'}${a}</span>`;
 }
@@ -665,7 +673,20 @@ async function openList(){
   listRender();
   $('list').showModal();
   $('tbl').querySelector('.cur')?.scrollIntoView({ block:'center' });
-  await arLoadList();
+  await Promise.all([arLoadList(), timeLoad()]);
+}
+/* Zeiterfassung der aktuellen Messreihe */
+const hm = min => min >= 60 ? `${Math.floor(min / 60)} h ${min % 60} min` : `${min} min`;
+const clock = iso => { try{ return new Date(iso).toLocaleTimeString('de-AT', { hour:'2-digit', minute:'2-digit' }); }catch(e){ return ''; } };
+async function timeLoad(){
+  $('listTime').textContent = '';
+  try{
+    const t = await api({ action:'mlog_stats', kite });
+    $('listTime').textContent = !t.n ? '⏱ Für diese Messreihe gibt es noch keine Zeitdaten.'
+      : `⏱ ${clock(t.start)}–${clock(t.end)} · Messzeit ${hm(t.activeMin)}` +
+        (t.pauses ? ` (gesamt ${hm(t.totalMin)}, ${t.pauses} Pause${t.pauses > 1 ? 'n' : ''})` : '') +
+        ` · ${t.n} Messungen` + (t.secPerPoint ? ` · Ø ${t.secPerPoint} s pro Messpunkt` : '');
+  }catch(e){ /* altes Skript ohne Zeiterfassung */ }
 }
 $('cmpSel').onchange = () => cmpSet($('cmpSel').value);
 $('cmpOnly').onchange = listRender;
@@ -675,7 +696,7 @@ $('arSave').onclick = async () => {
   try{
     const j = await api({ action:'arch_save', kite, label: $('arLabel').value.trim(), datum: $('arDate').value });
     showToast(`Messreihe gesichert (${j.n} Leinen) ✓`); $('arLabel').value = '';
-    await arLoadList();
+    await arLoadList(); timeLoad();
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('arSave').disabled = false; }
 };
@@ -691,7 +712,7 @@ $('arNew').onclick = async () => {
     await arLoadList();
     if (j.saved){ await cmpSet(j.saved.id, true); showToast('Gesichert und geleert ✓ – Vergleich mit der gesicherten Reihe ist aktiv'); }
     else showToast('Felder geleert (es gab nichts zu sichern)');
-    listRender();
+    listRender(); timeLoad();
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('arNew').disabled = false; }
 };

@@ -234,6 +234,13 @@
       </table>
       <div class="rel" id="lbLoopRel"></div>
 
+      <div class="sec">Performance Tuner (Knotenleiter Z-Main)</div>
+      <div class="f2">
+        <div><label for="lbTunerL">Links</label><select id="lbTunerL"><option value="">–</option><option value="kurz">kurz</option><option value="mittel">mittel (Standard)</option><option value="lang">lang</option></select></div>
+        <div><label for="lbTunerR">Rechts</label><select id="lbTunerR"><option value="">–</option><option value="kurz">kurz</option><option value="mittel">mittel (Standard)</option><option value="lang">lang</option></select></div>
+      </div>
+      <div class="hint" style="font-size:13px">Ein Knoten ≈ 20 mm an der Z-Ebene. Die Z-Längen im Leinenplan entsprechen dem kurzen Knoten.</div>
+
       <div class="sec">Bar</div>
       <label for="lbBarW">Bar-Breite</label>
       <select id="lbBarW"><option value="">–</option><option>S</option><option>M</option><option>L</option></select>
@@ -456,20 +463,23 @@ function onMeasure(mm){
   const old = setValue(p, mm);
   if (navigator.vibrate) navigator.vibrate(60);
   lastUndo = { p, old };
-  const allDone = lines.every(l => l.L != null && l.R != null);
-  if (allDone){
-    showToast(`Fertig! ${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm`, true);
-  } else if (cfg.auto){
+  const saved = `${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm gespeichert`;
+  if (cfg.auto){
     const sideEnd = p % N() === N() - 1;
-    if (sideEnd){                       // Seite fertig → erste leere Leine der anderen Seite
-      const base = side === 'L' ? N() : 0;
-      let q = base; for (let i = 0; i < N(); i++) if (lines[i][side === 'L' ? 'R' : 'L'] == null){ q = base + i; break; }
-      pos = q;
-      showToast(`${side === 'L' ? 'Linke' : 'Rechte'} Seite fertig ✓ – weiter mit ${side === 'L' ? 'RECHTS' : 'LINKS'}`, true);
+    if (sideEnd){
+      // Seite fertig → andere Seite: erste leere Leine; ist alles befüllt (Nachmessen),
+      // dann an den Anfang derselben Gruppe auf der anderen Seite (z. B. br12 links → br1 rechts)
+      const other = side === 'L' ? 'R' : 'L', base = side === 'L' ? N() : 0;
+      let i = lines.findIndex(l => l[other] == null);
+      if (i < 0) i = lines.findIndex(l => l.group === line.group);
+      pos = base + Math.max(0, i);
+      showToast(`${side === 'L' ? 'Linke' : 'Rechte'} Seite fertig ✓ – weiter mit ${side === 'L' ? 'RECHTS' : 'LINKS'} ${lines[pos % N()].name}`, true);
     } else {
       pos = p + 1;
-      showToast(`${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm gespeichert`, true);
+      showToast(saved, true);
     }
+  } else {
+    showToast(saved, true);
   }
   render();
 }
@@ -750,7 +760,7 @@ function lbSetType(t){
   $('lbLoadWrap').style.visibility = t === 'Trimm' ? '' : 'hidden';
 }
 function lbClear(){
-  ['lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbKnot','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
+  ['lbTunerL','lbTunerR','lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbKnot','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
     .forEach(id => $(id).value = '');
   lbWindSrc = '';
   lbPhotos = { versatz:[], tuch:[] }; phRender(); lzTarget = null; lzMark(); lbRelUpdate();
@@ -788,6 +798,7 @@ async function lbLoadEntries(){
       if (e.marker) parts.push('Marker ' + e.marker + ': ' + ['A','B','C','Z'].map(l => `${l} ${e['m_' + l + '_L'] || '–'}/${e['m_' + l + '_R'] || '–'}`).join(' '));
       if ([e.schl_B_L, e.schl_B_R, e.schl_C_L, e.schl_C_R].some(v => v)) parts.push(`Schlaufen B ${e.schl_B_L || '–'}/${e.schl_B_R || '–'} C ${e.schl_C_L || '–'}/${e.schl_C_R || '–'}`);
       if (e.bar_breite || [e.front_L, e.front_R, e.back_L, e.back_R].some(v => v)) parts.push(`Bar ${e.bar_breite || ''} F ${e.front_L || '–'}/${e.front_R || '–'} B ${e.back_L || '–'}/${e.back_R || '–'}`.replace('Bar  ', 'Bar '));
+      if (e.tuner_L || e.tuner_R) parts.push(`Tuner ${e.tuner_L || '–'}/${e.tuner_R || '–'}`);
       if (e.foto_versatz || e.foto_tuch) parts.push('📷 ' + [e.foto_versatz && 'Versatz', e.foto_tuch && 'Tuch'].filter(Boolean).join(', '));
       if (e.notiz) parts.push(e.notiz);
       return `<tr><td class="t">${esc(e.datum)}<br>${e.typ === 'Session' ? '🏄' : '✂'}</td><td>${esc(parts.filter(Boolean).join(' · '))}</td></tr>`;
@@ -844,7 +855,8 @@ $('lbSave').onclick = async () => {
     front_L: sess ? '' : num('lbFrontL'), front_R: sess ? '' : num('lbFrontR'),
     back_L: sess ? '' : num('lbBackL'), back_R: sess ? '' : num('lbBackR'),
     foto_versatz: sess ? [] : lbPhotos.versatz.map(x => x.url).filter(Boolean),
-    foto_tuch: sess ? [] : lbPhotos.tuch.map(x => x.url).filter(Boolean)
+    foto_tuch: sess ? [] : lbPhotos.tuch.map(x => x.url).filter(Boolean),
+    tuner_L: sess ? '' : $('lbTunerL').value, tuner_R: sess ? '' : $('lbTunerR').value
   };
   if (!sess && [...lbPhotos.versatz, ...lbPhotos.tuch].some(x => !x.url)) return showToast('Fotos werden noch hochgeladen – bitte kurz warten');
   if (!sess && $('lbMarkOn').checked){
@@ -865,7 +877,7 @@ $('lbSave').onclick = async () => {
   finally{ $('lbSave').disabled = false; }
 };
 /* Entwurf: angefangenen Eintrag am Handy zwischenspeichern (übersteht Schließen, Neuladen, Laser-Abbruch) */
-const LB_FIELDS = ['lbDate','lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbKnot','lbLoad','lbRig','lbMethod','lbFrom','lbTo','lbBoard','lbStation',
+const LB_FIELDS = ['lbDate','lbTunerL','lbTunerR','lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbKnot','lbLoad','lbRig','lbMethod','lbFrom','lbTo','lbBoard','lbStation',
   'lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote','lbMarkNames'];
 const draftKey = () => 'lbDraft:' + kite;
 function lbDraftSave(){

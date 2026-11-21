@@ -94,6 +94,10 @@
   .grid4 th,.grid4 td{padding:4px;border:0} .grid4 input{text-align:right;padding:8px 6px}
   input.lz.act{outline:2px solid var(--accent);border-color:var(--accent)}
   .rel{font-size:13px;margin-top:4px;line-height:1.5}
+  .dd{display:block;font-size:11px;font-weight:600;line-height:1.2}
+  .arbar{display:grid;gap:4px;margin-bottom:6px}
+  .arbar select{width:100%}
+  #cmpLine{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -120,6 +124,7 @@
     </div>
     <div id="diff">&nbsp;</div>
     <div class="other" id="other">&nbsp;</div>
+    <div class="other" id="cmpLine" hidden></div>
   </div>
 
   <div class="nav">
@@ -156,9 +161,24 @@
 
 <dialog id="list">
   <h2 id="listTitle">Übersicht</h2>
-  <p class="hint">Auf einen Wert tippen, um dorthin zu springen.</p>
+  <div class="arbar">
+    <label for="cmpSel">Vergleich mit gesicherter Messreihe</label>
+    <select id="cmpSel"><option value="">– kein Vergleich –</option></select>
+    <label class="chk" style="margin-top:6px!important"><input type="checkbox" id="cmpOnly"> Nur die gesicherte Messreihe anzeigen</label>
+  </div>
+  <p class="hint" id="listHint">Auf einen Wert tippen, um dorthin zu springen.</p>
   <table id="tbl"></table>
-  <div class="row"><button class="btn" id="listClose">Schließen</button></div>
+  <div class="sec">Messreihe sichern</div>
+  <div class="f2">
+    <div><label for="arLabel">Bezeichnung</label><input id="arLabel" placeholder="z. B. vor Korrektur Z-Ebene"></div>
+    <div><label for="arDate">Messdatum</label><input id="arDate" type="date"></div>
+  </div>
+  <div class="row" style="flex-wrap:wrap">
+    <button class="btn" id="arSave" type="button">📦 Sichern</button>
+    <button class="btn" id="arNew" type="button" style="color:var(--bad);margin-right:auto">🆕 Neue Messreihe</button>
+    <button class="btn" id="listClose" type="button">Schließen</button>
+  </div>
+  <p class="hint" style="font-size:13px">„Sichern“ kopiert alle aktuellen Werte ins Blatt „Messarchiv“. „Neue Messreihe“ sichert zuerst und leert dann alle Felder dieses Kites.</p>
 </dialog>
 
 <dialog id="lb">
@@ -332,6 +352,7 @@ async function loadLines(jumpToFirstEmpty){
     const saved = store.get('pos:' + kite, null);
     pos = jumpToFirstEmpty ? firstEmpty() : Math.min(saved ?? 0, total() - 1);
     render();
+    await cmpRestore();
   }catch(e){ showToast('⚠ ' + e.message); }
 }
 
@@ -396,6 +417,9 @@ function render(){
   }
   const o = side === 'L' ? line.R : line.L;
   $('other').textContent = `${side === 'L' ? 'Rechts' : 'Links'}: ${fmt(o)}${o != null && m != null ? ` · L/R-Differenz ${Math.round(line.L - line.R)} mm` : ''}`;
+  const cv = cmpVal(line.name, side);
+  $('cmpLine').hidden = !cmp;
+  if (cmp) $('cmpLine').textContent = `Vergleich ${cmp.datum}: ${fmt(cv)}${cv != null && m != null ? ` · Δ ${(m - cv) > 0 ? '+' : ''}${Math.round(m - cv)} mm` : ''}`;
   $('prev').disabled = pos === 0; $('next').disabled = pos === total() - 1;
   store.set('pos:' + kite, pos);
 }
@@ -532,7 +556,7 @@ async function connectGatt(){
   if (writer.properties.write) await writer.writeValueWithResponse(AUTOSYNC);
   else await writer.writeValueWithoutResponse(AUTOSYNC);
   log('→ ' + hex(AUTOSYNC) + ' (Autosync an ' + writer.uuid.slice(0, 8) + ')');
-  btState('on', device.name || 'GLM');
+  btState('on', 'Laser');
   try{ wakeLock = await navigator.wakeLock?.request('screen'); }catch(e){}
 }
 
@@ -581,23 +605,96 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 /* ---------- Liste ---------- */
-function openList(){
-  if (!N()) return;
-  $('listTitle').textContent = kite;
+/* ---------- Messarchiv: sichern, neue Messreihe, vergleichen ---------- */
+let arList = [], cmp = null; // cmp = { id, label, datum, map: { leine: {L, R, offset} } }
+const cmpKey = () => 'cmp:' + kite;
+function cmpVal(name, side){
+  if (!cmp) return null;
+  const a = cmp.map[name]; if (!a || a[side] == null) return null;
+  return a[side] + (a.offset || 0); // auf Rohwert zurückrechnen, wie die aktuellen Werte
+}
+async function arLoadList(){
+  try{ arList = (await api({ action:'arch_list', kite })).series || []; }catch(e){ arList = []; }
+  $('cmpSel').innerHTML = '<option value="">– kein Vergleich –</option>' + arList.map(x =>
+    `<option value="${esc(x.id)}">${esc(x.datum)} · ${esc(x.label || 'ohne Bezeichnung')} (${x.gemessen}/${x.n})</option>`).join('');
+  $('cmpSel').value = cmp ? cmp.id : '';
+}
+async function cmpSet(id, quiet){
+  if (!id){ cmp = null; store.set(cmpKey(), ''); render(); if ($('list').open) listRender(); return; }
+  try{
+    const j = await api({ action:'arch_get', id });
+    const map = {}; j.lines.forEach(l => map[l.name] = l);
+    const x = arList.find(s => s.id === id) || {};
+    cmp = { id, label: x.label || '', datum: x.datum || id.slice(0, 10), map };
+    store.set(cmpKey(), id);
+  }catch(e){ cmp = null; if (!quiet) showToast('⚠ ' + e.message); }
+  render(); if ($('list').open) listRender();
+}
+async function cmpRestore(){
+  cmp = null; const id = store.get(cmpKey(), '');
+  if (id){ await arLoadList(); if (arList.some(x => x.id === id)) await cmpSet(id, true); }
+}
+function deltaHtml(cur, old){
+  if (cur == null || old == null) return old != null && cur == null ? `<span class="dd muted">vorher ${fmt(old)}</span>` : '';
+  const d = Math.round(cur - old), a = Math.abs(d);
+  const cls = a <= cfg.tol1 ? 'ok' : a <= cfg.tol2 ? 'warn' : 'bad';
+  return `<span class="dd ${cls}">Δ ${d > 0 ? '+' : d < 0 ? '−' : '±'}${a}</span>`;
+}
+function listRender(){
+  const only = cmp && $('cmpOnly').checked;
+  $('listHint').textContent = only ? `Gesicherte Messreihe vom ${cmp.datum} (nur ansehen).`
+    : cmp ? `Δ = aktuell − ${cmp.datum}. Auf einen Wert tippen, um dorthin zu springen.` : 'Auf einen Wert tippen, um dorthin zu springen.';
   let html = '<tr><th>Leine</th><th>Soll</th><th>Links</th><th>Rechts</th></tr>', g = null;
   lines.forEach((l, i) => {
     if (l.group !== g){ g = l.group; html += `<tr class="grp"><td colspan="4">${esc(g)}</td></tr>`; }
     const c = (s, p) => {
-      const v = l[s], d = v == null ? null : Math.abs(v - l.soll);
+      const old = cmpVal(l.name, s);
+      const v = only ? old : l[s], d = v == null ? null : Math.abs(v - l.soll);
       const cls = v == null ? 'muted' : d <= cfg.tol1 ? 'ok' : d <= cfg.tol2 ? 'warn' : 'bad';
-      return `<td class="pick ${cls}${p === pos ? ' cur' : ''}" data-p="${p}">${fmt(v)}</td>`;
+      if (only) return `<td class="${cls}">${fmt(v)}</td>`;
+      return `<td class="pick ${cls}${p === pos ? ' cur' : ''}" data-p="${p}">${fmt(v)}${cmp ? deltaHtml(l[s], old) : ''}</td>`;
     };
     html += `<tr><td>${esc(l.name)}</td><td>${fmt(l.soll)}</td>${c('L', i)}${c('R', i + N())}</tr>`;
   });
   $('tbl').innerHTML = html;
+}
+async function openList(){
+  if (!N()) return;
+  $('listTitle').textContent = kite;
+  if (!$('arDate').value) $('arDate').value = today();
+  listRender();
   $('list').showModal();
   $('tbl').querySelector('.cur')?.scrollIntoView({ block:'center' });
+  await arLoadList();
 }
+$('cmpSel').onchange = () => cmpSet($('cmpSel').value);
+$('cmpOnly').onchange = listRender;
+$('arSave').onclick = async () => {
+  if (queue.length) return showToast('Es werden noch Werte übertragen – bitte kurz warten');
+  $('arSave').disabled = true;
+  try{
+    const j = await api({ action:'arch_save', kite, label: $('arLabel').value.trim(), datum: $('arDate').value });
+    showToast(`Messreihe gesichert (${j.n} Leinen) ✓`); $('arLabel').value = '';
+    await arLoadList();
+  }catch(e){ showToast('⚠ ' + e.message); }
+  finally{ $('arSave').disabled = false; }
+};
+let arNewArmed = false;
+$('arNew').onclick = async () => {
+  if (queue.length) return showToast('Es werden noch Werte übertragen – bitte kurz warten');
+  if (!arNewArmed){ arNewArmed = true; showToast(`Nochmal tippen: aktuelle Werte von „${kite}“ sichern und alle Felder leeren`); setTimeout(() => arNewArmed = false, 4000); return; }
+  arNewArmed = false; $('arNew').disabled = true;
+  try{
+    const j = await api({ action:'new_series', kite, confirm:'1', label: $('arLabel').value.trim() || 'automatisch vor neuer Messreihe', datum: $('arDate').value });
+    $('arLabel').value = '';
+    await loadLines(true);
+    await arLoadList();
+    if (j.saved){ await cmpSet(j.saved.id, true); showToast('Gesichert und geleert ✓ – Vergleich mit der gesicherten Reihe ist aktiv'); }
+    else showToast('Felder geleert (es gab nichts zu sichern)');
+    listRender();
+  }catch(e){ showToast('⚠ ' + e.message); }
+  finally{ $('arNew').disabled = false; }
+};
 $('tbl').onclick = e => { const p = e.target.dataset?.p; if (p != null){ pos = +p; render(); $('list').close(); } };
 $('listBtn').onclick = openList; $('name').onclick = openList;
 $('listClose').onclick = () => $('list').close();

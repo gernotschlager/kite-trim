@@ -104,15 +104,18 @@
   #kdlg .kfam>summary{font-size:16px;font-weight:700;color:var(--text);padding:6px 0;list-style:none}
   #kdlg .kfam>summary::-webkit-details-marker{display:none}
   #kdlg .kfam>summary::before{content:'▸ ';color:var(--muted)} #kdlg .kfam[open]>summary::before{content:'▾ '}
-  #kdlg .krow{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;margin:6px 0}
-  #kdlg .kmod{color:var(--muted);font-size:14px;font-weight:600}
+  #kdlg .krow{margin:6px 0 12px}
+  #kdlg .kmod{color:var(--muted);font-size:13px;font-weight:600;margin-bottom:5px}
   #kdlg .ksz{display:flex;flex-wrap:wrap;gap:6px}
-  .kc{min-width:46px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-variant-numeric:tabular-nums;cursor:pointer;position:relative}
-  .kc.has{border-color:var(--muted)}
-  .kc.new{border-style:dashed;color:var(--muted)}
+  #kfams .ksz{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+  #kfams .kc{min-width:0}
+  .kc{flex:0 0 44px;padding:8px 0;text-align:center;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-variant-numeric:tabular-nums;cursor:pointer;position:relative}
+  .kc.has{border-color:#5b6576;background:var(--panel)}
+  .kc.new{border-style:dashed;border-color:#3a4250;background:transparent;color:#6f7988}
   .kc.cur{background:var(--accent);border-color:var(--accent);color:#001827;font-weight:700}
   .kc .st{position:absolute;top:-6px;right:-5px;font-size:12px;color:var(--warn)}
-  #kfav .kc{padding:9px 12px}
+  #kfav .kc{flex:0 0 auto;padding:9px 12px}
+  .kc.mini{flex:none;display:inline-block;min-width:0;padding:1px 6px;font-size:12px;cursor:default;vertical-align:1px}
   #kdlg.edit .kc{outline:1px dashed var(--warn);outline-offset:1px}
   .ksec{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin:6px 0}
 </style>
@@ -164,7 +167,7 @@
     <h3 style="margin:0">Kite wählen</h3>
     <div style="display:flex;gap:6px"><button class="btn" id="kEdit" type="button">☆ Favoriten</button><button class="btn" id="kClose" type="button">✕</button></div>
   </div>
-  <div class="hint" id="kHint" style="margin:6px 0 4px">Durchgezogen = Messblatt vorhanden · gestrichelt = nur Leinenplan (Messblatt wird beim Antippen angelegt)</div>
+  <div class="hint" id="kHint" style="margin:6px 0 10px;font-size:13px"></div>
   <div class="ksec">★ Favoriten</div>
   <div class="ksz" id="kfav"></div>
   <div id="kfams" style="margin-top:10px"></div>
@@ -414,7 +417,7 @@ async function loadKites(){
 }
 function kiteLabel(){
   const k = catalog.find(x => x.sheet === kite);
-  $('kiteTxt').textContent = k ? k.name + ' m²' : (kite || 'Kite wählen');
+  $('kiteTxt').textContent = k ? k.name : (kite || 'Kite wählen');
 }
 function kChip(k){
   const cls = ['kc', k.sheet ? 'has' : 'new', k.sheet && k.sheet === kite ? 'cur' : ''].join(' ');
@@ -458,11 +461,12 @@ async function kPick(name){
   kite = k.sheet; store.set('kite', kite); kiteLabel(); $('kdlg').close();
   loadLines(false);
 }
-$('kiteBtn').onclick = () => { $('kdlg').classList.remove('edit'); $('kEdit').textContent = '☆ Favoriten'; kRender(); $('kdlg').showModal(); };
+const K_LEG = '<span class="kc has mini">10</span> Messblatt vorhanden · <span class="kc new mini">12</span> nur Leinenplan – 2× tippen legt das Messblatt an';
+$('kiteBtn').onclick = () => { $('kdlg').classList.remove('edit'); $('kEdit').textContent = '☆ Favoriten'; $('kHint').innerHTML = K_LEG; kRender(); $('kdlg').showModal(); };
 $('kClose').onclick = () => $('kdlg').close();
 $('kEdit').onclick = () => { const on = $('kdlg').classList.toggle('edit');
   $('kEdit').textContent = on ? '✓ Fertig' : '☆ Favoriten';
-  $('kHint').textContent = on ? 'Kites antippen, um sie als Favorit zu markieren oder zu entfernen.' : 'Durchgezogen = Messblatt vorhanden · gestrichelt = nur Leinenplan (Messblatt wird beim Antippen angelegt)'; };
+  if (on) $('kHint').textContent = 'Kites antippen, um sie als Favorit zu markieren oder zu entfernen.'; else $('kHint').innerHTML = K_LEG; };
 $('kdlg').addEventListener('click', e => { const b = e.target.closest('.kc'); if (b) kPick(b.dataset.k); });
 
 async function loadLines(jumpToFirstEmpty){

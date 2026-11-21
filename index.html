@@ -150,6 +150,9 @@
   <input id="cKey" type="password">
   <label for="cTol">Toleranz grün / gelb (mm)</label>
   <div style="display:flex;gap:8px"><input id="cTol1" type="number" inputmode="numeric"><input id="cTol2" type="number" inputmode="numeric"></div>
+  <label for="cOff">Laser-Offset Zielscheibe (mm)</label>
+  <input id="cOff" type="number" inputmode="decimal">
+  <div class="hint" style="font-size:13px">Wird von jeder Lasermessung der Leinen automatisch abgezogen. Händisch eingetippte Werte bleiben unverändert.</div>
   <label><input type="checkbox" id="cAuto" style="width:auto"> Nach Messung automatisch weiter</label>
   <button class="btn" id="btAll" style="width:100%;margin-top:14px">🔍 Laser suchen – alle Geräte anzeigen</button>
   <details style="margin-top:12px"><summary>Bluetooth-Rohdaten</summary><div id="log"></div></details>
@@ -195,15 +198,18 @@
   <div id="lbForm">
     <div class="f2">
       <div><label for="lbDate">Datum</label><input id="lbDate" type="date"></div>
-      <div><label for="lbKnot">Knoten an der Bar</label><input id="lbKnot" placeholder="z. B. 2. Knoten"></div>
+      <div id="lbLoadWrap"><label for="lbLoad">Last/Leine kg</label><input id="lbLoad" type="number" inputmode="decimal"></div>
     </div>
-    <div class="f3">
+    <div class="f2">
       <div><label for="lbOffset">Versatz L (mm)</label><input id="lbOffset" type="number" inputmode="decimal" placeholder="+ = Front"></div>
       <div><label for="lbOffsetR">Versatz R (mm)</label><input id="lbOffsetR" type="number" inputmode="decimal" placeholder="+ = Front"></div>
-      <div id="lbLoadWrap"><label for="lbLoad">Last/Leine kg</label><input id="lbLoad" type="number" inputmode="decimal"></div>
     </div>
 
     <div id="lbTrim">
+      <div class="f2">
+        <div><label for="lbSerial">Seriennummer Kite</label><input id="lbSerial" placeholder="vom Etikett am Kite" autocapitalize="characters"></div>
+        <div class="ph" data-cat="etikett" style="align-self:end"><button class="btn" type="button">📷 Etikett</button><span class="phList"></span><input type="file" accept="image/*" multiple hidden></div>
+      </div>
       <div class="ph" data-cat="versatz"><button class="btn" type="button">📷 Fotos Versatz</button><span class="phList"></span><input type="file" accept="image/*" multiple hidden></div>
       <label for="lbRig">Vorrichtung</label>
       <select id="lbRig">
@@ -217,6 +223,14 @@
         <option>A und Z gleich am Tuch</option>
         <option>Andere (siehe Notiz)</option>
       </select>
+
+      <div class="sec">Performance Tuner (Knotenleiter Z-Main)</div>
+      <div class="f2">
+        <div><label for="lbTunerL">Links</label><select id="lbTunerL"><option value="">–</option><option value="oben">Oben</option><option value="mitte">Mitte (Standard)</option><option value="unten">Unten</option></select></div>
+        <div><label for="lbTunerR">Rechts</label><select id="lbTunerR"><option value="">–</option><option value="oben">Oben</option><option value="mitte">Mitte (Standard)</option><option value="unten">Unten</option></select></div>
+      </div>
+      <div class="hint" style="font-size:13px">Flysurfer-Standard: Mitte. Oben (Richtung Tuch) = Z ~20 mm länger, Unten = Z ~20 mm kürzer (= Leinenplan).</div>
+
       <label class="chk"><input type="checkbox" id="lbMarkOn"> 📏 Marker-Reihe messen (Laser)</label>
       <div id="lbMark" hidden>
         <label for="lbMarkNames">Marker-Leinen A, B, C, Z</label>
@@ -227,29 +241,38 @@
       </div>
       <div class="ph" data-cat="tuch"><button class="btn" type="button">📷 Fotos am Tuch (A, B, C, Z)</button><span class="phList"></span><input type="file" accept="image/*" multiple hidden></div>
 
-      <div class="sec">Trimmschlaufen (Messlehre)</div>
-      <table class="grid4"><tr><th></th><th>Links mm</th><th>Rechts mm</th></tr>
-        <tr><td>B</td><td><input id="lbLoopBL" type="number" inputmode="decimal"></td><td><input id="lbLoopBR" type="number" inputmode="decimal"></td></tr>
-        <tr><td>C</td><td><input id="lbLoopCL" type="number" inputmode="decimal"></td><td><input id="lbLoopCR" type="number" inputmode="decimal"></td></tr>
-      </table>
-      <div class="rel" id="lbLoopRel"></div>
-
-      <div class="sec">Performance Tuner (Knotenleiter Z-Main)</div>
-      <div class="f2">
-        <div><label for="lbTunerL">Links</label><select id="lbTunerL"><option value="">–</option><option value="kurz">kurz</option><option value="mittel">mittel (Standard)</option><option value="lang">lang</option></select></div>
-        <div><label for="lbTunerR">Rechts</label><select id="lbTunerR"><option value="">–</option><option value="kurz">kurz</option><option value="mittel">mittel (Standard)</option><option value="lang">lang</option></select></div>
+      <label class="chk"><input type="checkbox" id="lbLoopOn" data-sec="lbLoopBox"> 🔁 Trimmschlaufen messen (Messlehre)</label>
+      <div id="lbLoopBox" hidden>
+        <table class="grid4"><tr><th></th><th>Links mm</th><th>Rechts mm</th></tr>
+          <tr><td>B</td><td><input id="lbLoopBL" type="number" inputmode="decimal"></td><td><input id="lbLoopBR" type="number" inputmode="decimal"></td></tr>
+          <tr><td>C</td><td><input id="lbLoopCL" type="number" inputmode="decimal"></td><td><input id="lbLoopCR" type="number" inputmode="decimal"></td></tr>
+        </table>
+        <div class="rel" id="lbLoopRel"></div>
       </div>
-      <div class="hint" style="font-size:13px">Ein Knoten ≈ 20 mm an der Z-Ebene. Die Z-Längen im Leinenplan entsprechen dem kurzen Knoten.</div>
 
-      <div class="sec">Bar</div>
-      <label for="lbBarW">Bar-Breite</label>
-      <select id="lbBarW"><option value="">–</option><option>S</option><option>M</option><option>L</option></select>
-      <table class="grid4" style="margin-top:6px"><tr><th></th><th>Links mm</th><th>Rechts mm</th></tr>
-        <tr><td>Frontline</td><td><input id="lbFrontL" class="lz" type="number" inputmode="decimal"></td><td><input id="lbFrontR" class="lz" type="number" inputmode="decimal"></td></tr>
-        <tr><td>Backline</td><td><input id="lbBackL" class="lz" type="number" inputmode="decimal"></td><td><input id="lbBackR" class="lz" type="number" inputmode="decimal"></td></tr>
-      </table>
-      <div class="rel" id="lbBarRel"></div>
-      <div class="hint" style="font-size:13px">Tipp: Front-/Backline-Feld antippen, dann misst der Laser direkt hinein.</div>
+      <label class="chk"><input type="checkbox" id="lbPulOn" data-sec="lbPulBox"> 🧵 Pulleylines messen (unter Zug)</label>
+      <div id="lbPulBox" hidden>
+        <table class="grid4"><tr><th></th><th>Links mm</th><th>Rechts mm</th></tr>
+          <tr><td>B</td><td><input id="lbPulBL" class="lz" type="number" inputmode="decimal"></td><td><input id="lbPulBR" class="lz" type="number" inputmode="decimal"></td></tr>
+          <tr><td>C</td><td><input id="lbPulCL" class="lz" type="number" inputmode="decimal"></td><td><input id="lbPulCR" class="lz" type="number" inputmode="decimal"></td></tr>
+        </table>
+        <div class="rel" id="lbPulRel"></div>
+        <div class="hint" style="font-size:13px">Neu (Ersatzsatz, unter Zug): B 1190 · C 990 mm. Kürzer = geschrumpft.</div>
+      </div>
+
+      <label class="chk"><input type="checkbox" id="lbBarOn" data-sec="lbBarBox"> 🎛 Bar (Knoten, Breite, Front-/Backline)</label>
+      <div id="lbBarBox" hidden>
+        <div class="f2">
+          <div><label for="lbKnot">Knoten an der Bar</label><input id="lbKnot" placeholder="z. B. 2. Knoten"></div>
+          <div><label for="lbBarW">Bar-Breite</label><select id="lbBarW"><option value="">–</option><option>S</option><option>M</option><option>L</option></select></div>
+        </div>
+        <table class="grid4" style="margin-top:6px"><tr><th></th><th>Links mm</th><th>Rechts mm</th></tr>
+          <tr><td>Frontline</td><td><input id="lbFrontL" class="lz" type="number" inputmode="decimal"></td><td><input id="lbFrontR" class="lz" type="number" inputmode="decimal"></td></tr>
+          <tr><td>Backline</td><td><input id="lbBackL" class="lz" type="number" inputmode="decimal"></td><td><input id="lbBackR" class="lz" type="number" inputmode="decimal"></td></tr>
+        </table>
+        <div class="rel" id="lbBarRel"></div>
+        <div class="hint" style="font-size:13px">Tipp: Front-/Backline- oder Pulleyline-Feld antippen, dann misst der Laser direkt hinein.</div>
+      </div>
     </div>
 
     <div id="lbSess" hidden>
@@ -257,6 +280,8 @@
         <div><label for="lbFrom">Zeit von</label><input id="lbFrom" type="time"></div>
         <div><label for="lbTo">bis</label><input id="lbTo" type="time"></div>
       </div>
+      <label for="lbKnotS">Knoten an der Bar</label>
+      <input id="lbKnotS" placeholder="z. B. 2. Knoten">
       <label for="lbBoard">Board / Stand / Bar</label>
       <input id="lbBoard" placeholder="z. B. Jaime SLS 136, 55 cm, L-Bar">
 
@@ -312,7 +337,8 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 };
 
-let cfg = store.get('cfg', { url:'', key:'', tol1:5, tol2:15, auto:true });
+let cfg = store.get('cfg', { url:'', key:'', tol1:5, tol2:15, auto:true, offset:18 });
+if (cfg.offset == null) cfg.offset = 18; // Laser-Offset Zielscheibe → Einhängepunkt (mm)
 let kites = [], lines = [], kite = store.get('kite', ''), pos = 0;
 let queue = store.get('queue', []);
 let lastUndo = null, toastTimer = null;
@@ -451,19 +477,20 @@ function showToast(txt, undo){
 }
 
 /* ---------- Messung ---------- */
-function onMeasure(mm){
+function onMeasure(mm, laser){
   if ($('lb').open){
     if (lzActive()) return lzMeasure(mm);
     if (mkActive()) return mkMeasure(mm);
-    return showToast('Logbuch offen: erst ein Feld antippen (Marker oder Front-/Backline)');
+    return showToast('Logbuch offen: erst ein Feld antippen (Marker, Pulleyline oder Front-/Backline)');
   }
   if (!N()) return;
-  mm = Math.round(mm);
+  const off = laser ? (cfg.offset || 0) : 0;
+  mm = Math.round(mm - off);
   const p = pos, { line, side } = cur();
   const old = setValue(p, mm);
   if (navigator.vibrate) navigator.vibrate(60);
   lastUndo = { p, old };
-  const saved = `${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm gespeichert`;
+  const saved = `${line.name} ${side === 'L' ? 'links' : 'rechts'}: ${fmt(mm)} mm gespeichert${off ? ` (−${off} Offset)` : ''}`;
   if (cfg.auto){
     const sideEnd = p % N() === N() - 1;
     if (sideEnd){
@@ -539,7 +566,7 @@ function onPacket(ev){
       if (m === lastPkt.v && now - lastPkt.t < 1500) continue; // Doppelte ignorieren
       lastPkt = { v:m, t:now };
       log('Messung: ' + m.toFixed(4) + ' m');
-      onMeasure(m * 1000);
+      onMeasure(m * 1000, true);
     }
   }
 }
@@ -628,7 +655,7 @@ const cmpKey = () => 'cmp:' + kite;
 function cmpVal(name, side){
   if (!cmp) return null;
   const a = cmp.map[name]; if (!a || a[side] == null) return null;
-  return a[side] + (a.offset || 0); // auf Rohwert zurückrechnen, wie die aktuellen Werte
+  return a[side] - ((cfg.offset || 0) - (a.offset || 0)); // auf heutige Basis (Offset abgezogen) umrechnen
 }
 async function arLoadList(){
   try{ arList = (await api({ action:'arch_list', kite })).series || []; }catch(e){ arList = []; }
@@ -704,7 +731,7 @@ $('arSave').onclick = async () => {
   if (queue.length) return showToast('Es werden noch Werte übertragen – bitte kurz warten');
   $('arSave').disabled = true;
   try{
-    const j = await api({ action:'arch_save', kite, label: $('arLabel').value.trim(), datum: $('arDate').value });
+    const j = await api({ action:'arch_save', kite, offset: cfg.offset, label: $('arLabel').value.trim(), datum: $('arDate').value });
     showToast(`Messreihe gesichert (${j.n} Leinen) ✓`); $('arLabel').value = '';
     await arLoadList(); timeLoad();
   }catch(e){ showToast('⚠ ' + e.message); }
@@ -716,7 +743,7 @@ $('arNew').onclick = async () => {
   if (!arNewArmed){ arNewArmed = true; showToast(`Nochmal tippen: aktuelle Werte von „${kite}“ sichern und alle Felder leeren`); setTimeout(() => arNewArmed = false, 4000); return; }
   arNewArmed = false; $('arNew').disabled = true;
   try{
-    const j = await api({ action:'new_series', kite, confirm:'1', label: $('arLabel').value.trim() || 'automatisch vor neuer Messreihe', datum: $('arDate').value });
+    const j = await api({ action:'new_series', kite, offset: cfg.offset, confirm:'1', label: $('arLabel').value.trim() || 'automatisch vor neuer Messreihe', datum: $('arDate').value });
     $('arLabel').value = '';
     await loadLines(true);
     await arLoadList();
@@ -733,14 +760,15 @@ $('listClose').onclick = () => $('list').close();
 /* ---------- Einstellungen ---------- */
 function openCfg(){
   $('cUrl').value = cfg.url; $('cKey').value = cfg.key;
-  $('cTol1').value = cfg.tol1; $('cTol2').value = cfg.tol2; $('cAuto').checked = cfg.auto;
+  $('cTol1').value = cfg.tol1; $('cTol2').value = cfg.tol2; $('cAuto').checked = cfg.auto; $('cOff').value = cfg.offset;
   $('cfg').showModal();
 }
 $('cfgBtn').onclick = openCfg;
 $('cfgCancel').onclick = () => $('cfg').close();
 $('cfgSave').onclick = () => {
   cfg = { url:$('cUrl').value.trim(), key:$('cKey').value, tol1:+$('cTol1').value || 5,
-          tol2:+$('cTol2').value || 15, auto:$('cAuto').checked };
+          tol2:+$('cTol2').value || 15, auto:$('cAuto').checked,
+          offset: $('cOff').value.trim() === '' ? 18 : +$('cOff').value.replace(',', '.') };
   store.set('cfg', cfg); $('cfg').close(); loadKites();
 };
 $('kite').onchange = () => { kite = $('kite').value; store.set('kite', kite); loadLines(false); };
@@ -760,10 +788,10 @@ function lbSetType(t){
   $('lbLoadWrap').style.visibility = t === 'Trimm' ? '' : 'hidden';
 }
 function lbClear(){
-  ['lbTunerL','lbTunerR','lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbKnot','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
+  ['lbTunerL','lbTunerR','lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbPulBL','lbPulBR','lbPulCL','lbPulCR','lbKnot','lbKnotS','lbFrom','lbTo','lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote']
     .forEach(id => $(id).value = '');
   lbWindSrc = '';
-  lbPhotos = { versatz:[], tuch:[] }; phRender(); lzTarget = null; lzMark(); lbRelUpdate();
+  lbPhotos = { versatz:[], tuch:[], etikett:[] }; phRender(); lzTarget = null; lzMark(); lbRelUpdate();
   MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el) el.value = ''; });
   mkAct = 0; if ($('lbMarkOn').checked) mkUpdate();
 }
@@ -778,6 +806,9 @@ function openLb(){
   if ($('lbRig').selectedIndex < 0) $('lbRig').selectedIndex = 0;
   lbSetType(lbType);
   $('lbMarkNames').value = mkNamesFor(kite);
+  $('lbSerial').value = store.get('serial:' + kite, '');
+  SEC_CHK.forEach(id => { $(id).checked = !!(lbPrefs.secs || {})[id]; });
+  secApply();
   $('lbMark').hidden = !$('lbMarkOn').checked;
   if ($('lbMarkOn').checked) mkBuild();
   $('lb').showModal();
@@ -799,7 +830,9 @@ async function lbLoadEntries(){
       if ([e.schl_B_L, e.schl_B_R, e.schl_C_L, e.schl_C_R].some(v => v)) parts.push(`Schlaufen B ${e.schl_B_L || '–'}/${e.schl_B_R || '–'} C ${e.schl_C_L || '–'}/${e.schl_C_R || '–'}`);
       if (e.bar_breite || [e.front_L, e.front_R, e.back_L, e.back_R].some(v => v)) parts.push(`Bar ${e.bar_breite || ''} F ${e.front_L || '–'}/${e.front_R || '–'} B ${e.back_L || '–'}/${e.back_R || '–'}`.replace('Bar  ', 'Bar '));
       if (e.tuner_L || e.tuner_R) parts.push(`Tuner ${e.tuner_L || '–'}/${e.tuner_R || '–'}`);
-      if (e.foto_versatz || e.foto_tuch) parts.push('📷 ' + [e.foto_versatz && 'Versatz', e.foto_tuch && 'Tuch'].filter(Boolean).join(', '));
+      if ([e.pulley_B_L, e.pulley_B_R, e.pulley_C_L, e.pulley_C_R].some(v => v)) parts.push(`Pulleylines B ${e.pulley_B_L || '–'}/${e.pulley_B_R || '–'} C ${e.pulley_C_L || '–'}/${e.pulley_C_R || '–'}`);
+      if (e.seriennr) parts.push('SN ' + e.seriennr);
+      if (e.foto_versatz || e.foto_tuch || e.foto_etikett) parts.push('📷 ' + [e.foto_versatz && 'Versatz', e.foto_tuch && 'Tuch', e.foto_etikett && 'Etikett'].filter(Boolean).join(', '));
       if (e.notiz) parts.push(e.notiz);
       return `<tr><td class="t">${esc(e.datum)}<br>${e.typ === 'Session' ? '🏄' : '✂'}</td><td>${esc(parts.filter(Boolean).join(' · '))}</td></tr>`;
     }).join('') : '<tr><td class="muted">Noch keine Einträge</td></tr>';
@@ -835,12 +868,13 @@ function lbOffsetText(){
 }
 $('lbSave').onclick = async () => {
   const sess = lbType === 'Session';
+  const loop = !sess && secOn('lbLoopOn'), pul = !sess && secOn('lbPulOn'), bar = !sess && secOn('lbBarOn');
   const data = {
     datum: $('lbDate').value, typ: lbType,
     zeit: sess && $('lbFrom').value ? `${$('lbFrom').value}–${$('lbTo').value}` : '',
     methode: sess ? '' : $('lbMethod').value,
     last: sess ? '' : num('lbLoad'),
-    versatz: lbOffsetText(), knoten: $('lbKnot').value.trim(),
+    versatz: lbOffsetText(), knoten: sess ? $('lbKnotS').value.trim() : (secOn('lbBarOn') ? $('lbKnot').value.trim() : ''),
     board: sess ? $('lbBoard').value.trim() : '',
     wind: sess ? num('lbWAvg') : '', boeen: sess ? num('lbWGust') : '', richtung: sess ? num('lbWDir') : '',
     station: sess && $('lbWAvg').value ? $('lbStation').selectedOptions[0].text + lbWindSrc : '',
@@ -849,16 +883,20 @@ $('lbSave').onclick = async () => {
     notiz: $('lbNote').value.trim(),
     vorrichtung: sess ? '' : $('lbRig').value,
     versatz_l: num('lbOffset'), versatz_r: num('lbOffsetR'),
-    schl_B_L: sess ? '' : num('lbLoopBL'), schl_C_L: sess ? '' : num('lbLoopCL'),
-    schl_B_R: sess ? '' : num('lbLoopBR'), schl_C_R: sess ? '' : num('lbLoopCR'),
-    bar_breite: sess ? '' : $('lbBarW').value,
-    front_L: sess ? '' : num('lbFrontL'), front_R: sess ? '' : num('lbFrontR'),
-    back_L: sess ? '' : num('lbBackL'), back_R: sess ? '' : num('lbBackR'),
+    schl_B_L: loop ? num('lbLoopBL') : '', schl_C_L: loop ? num('lbLoopCL') : '',
+    schl_B_R: loop ? num('lbLoopBR') : '', schl_C_R: loop ? num('lbLoopCR') : '',
+    bar_breite: bar ? $('lbBarW').value : '',
+    front_L: bar ? num('lbFrontL') : '', front_R: bar ? num('lbFrontR') : '',
+    back_L: bar ? num('lbBackL') : '', back_R: bar ? num('lbBackR') : '',
     foto_versatz: sess ? [] : lbPhotos.versatz.map(x => x.url).filter(Boolean),
     foto_tuch: sess ? [] : lbPhotos.tuch.map(x => x.url).filter(Boolean),
-    tuner_L: sess ? '' : $('lbTunerL').value, tuner_R: sess ? '' : $('lbTunerR').value
+    seriennr: sess ? '' : $('lbSerial').value.trim(),
+    foto_etikett: sess ? [] : lbPhotos.etikett.map(x => x.url).filter(Boolean),
+    tuner_L: sess ? '' : $('lbTunerL').value, tuner_R: sess ? '' : $('lbTunerR').value,
+    pulley_B_L: pul ? num('lbPulBL') : '', pulley_C_L: pul ? num('lbPulCL') : '',
+    pulley_B_R: pul ? num('lbPulBR') : '', pulley_C_R: pul ? num('lbPulCR') : ''
   };
-  if (!sess && [...lbPhotos.versatz, ...lbPhotos.tuch].some(x => !x.url)) return showToast('Fotos werden noch hochgeladen – bitte kurz warten');
+  if (!sess && [...lbPhotos.versatz, ...lbPhotos.tuch, ...lbPhotos.etikett].some(x => !x.url)) return showToast('Fotos werden noch hochgeladen – bitte kurz warten');
   if (!sess && $('lbMarkOn').checked){
     data.marker = mkNames().join(', ');
     MK_ORDER.forEach(id => { const v = mkVal(id); data['m_' + id] = v == null ? '' : v; });
@@ -871,19 +909,20 @@ $('lbSave').onclick = async () => {
       load: sess ? lbPrefs.load : (data.last || lbPrefs.load), method: sess ? lbPrefs.method : data.methode,
       rig: sess ? lbPrefs.rig : data.vorrichtung });
     store.set('lbPrefs', lbPrefs);
+    if (data.seriennr) store.set('serial:' + kite, data.seriennr);
     showToast(`${lbType} im Blatt „${kite}“ eingetragen ✓`);
     lbClear(); lbDraftClear(); lbLoadEntries();
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('lbSave').disabled = false; }
 };
 /* Entwurf: angefangenen Eintrag am Handy zwischenspeichern (übersteht Schließen, Neuladen, Laser-Abbruch) */
-const LB_FIELDS = ['lbDate','lbTunerL','lbTunerR','lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbKnot','lbLoad','lbRig','lbMethod','lbFrom','lbTo','lbBoard','lbStation',
-  'lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote','lbMarkNames'];
+const LB_FIELDS = ['lbDate','lbTunerL','lbTunerR','lbOffset','lbOffsetR','lbLoopBL','lbLoopBR','lbLoopCL','lbLoopCR','lbBarW','lbFrontL','lbFrontR','lbBackL','lbBackR','lbPulBL','lbPulBR','lbPulCL','lbPulCR','lbKnot','lbKnotS','lbLoad','lbRig','lbMethod','lbFrom','lbTo','lbBoard','lbStation',
+  'lbWAvg','lbWGust','lbWDir','lbJumps','lbHang','lbJAvg','lbJMax','lbFile','lbNote','lbMarkNames','lbSerial'];
 const draftKey = () => 'lbDraft:' + kite;
 function lbDraftSave(){
   if (!kite || !$('lb').open) return;
-  const d = { type: lbType, markOn: $('lbMarkOn').checked, mkAct, windSrc: lbWindSrc, f:{}, mk:{},
-    photos: { versatz: lbPhotos.versatz.filter(x => x.url), tuch: lbPhotos.tuch.filter(x => x.url) } };
+  const d = { type: lbType, markOn: $('lbMarkOn').checked, secs: Object.fromEntries(SEC_CHK.map(k => [k, $(k).checked])), mkAct, windSrc: lbWindSrc, f:{}, mk:{},
+    photos: { versatz: lbPhotos.versatz.filter(x => x.url), tuch: lbPhotos.tuch.filter(x => x.url), etikett: lbPhotos.etikett.filter(x => x.url) } };
   LB_FIELDS.forEach(id => d.f[id] = $(id).value);
   MK_ORDER.forEach(id => { const el = $('mk_' + id); if (el) d.mk[id] = el.value; });
   store.set(draftKey(), d);
@@ -892,7 +931,7 @@ function lbDraftSave(){
 function lbDraftInfo(d){
   if (!d){ $('lbDraftInfo').textContent = ''; return; }
   const n = Object.values(d.mk || {}).filter(v => v !== '').length;
-  const ph = d.photos ? d.photos.versatz.length + d.photos.tuch.length : 0;
+  const ph = d.photos ? d.photos.versatz.length + d.photos.tuch.length + (d.photos.etikett || []).length : 0;
   $('lbDraftInfo').textContent = 'Entwurf gespeichert' + (d.markOn && n ? ` · ${n}/8 Marker` : '') + (ph ? ` · ${ph} Foto(s)` : '');
 }
 function lbDraftRestore(){
@@ -900,8 +939,9 @@ function lbDraftRestore(){
   if (!d) { lbDraftInfo(null); return false; }
   LB_FIELDS.forEach(id => { if (d.f && d.f[id] != null) $(id).value = d.f[id]; });
   lbSetType(d.type || 'Trimm');
+  if (d.secs){ SEC_CHK.forEach(k => { $(k).checked = !!d.secs[k]; }); secApply(); }
   lbWindSrc = d.windSrc || '';
-  lbPhotos = { versatz: (d.photos && d.photos.versatz) || [], tuch: (d.photos && d.photos.tuch) || [] }; phRender(); lbRelUpdate();
+  lbPhotos = { versatz: (d.photos && d.photos.versatz) || [], tuch: (d.photos && d.photos.tuch) || [], etikett: (d.photos && d.photos.etikett) || [] }; phRender(); lbRelUpdate();
   $('lbMarkOn').checked = !!d.markOn;
   $('lbMark').hidden = !d.markOn;
   if (d.markOn){
@@ -923,7 +963,7 @@ $('lbDiscard').onclick = () => {
 let confirmDiscard = false;
 
 /* Fotos: verkleinern (max. 1600 px), nach Google Drive hochladen, Link merken */
-let lbPhotos = { versatz:[], tuch:[] };
+let lbPhotos = { versatz:[], tuch:[], etikett:[] };
 async function shrinkImage(file){
   const img = await createImageBitmap(file);
   const k = Math.min(1, 1600 / Math.max(img.width, img.height));
@@ -963,8 +1003,24 @@ document.querySelectorAll('.ph').forEach(w => {
   };
 });
 
-/* Laser direkt in Front-/Backline-Felder */
-const LZ_ORDER = ['lbFrontL','lbFrontR','lbBackL','lbBackR'];
+/* Aufklappbare optionale Bereiche (Trimmschlaufen, Pulleylines, Bar) */
+const SEC_CHK = ['lbLoopOn','lbPulOn','lbBarOn'];
+const secOn = id => $(id).checked;
+function secApply(){
+  SEC_CHK.forEach(id => { const box = $($(id).dataset.sec); box.hidden = !$(id).checked; });
+  if (lzTarget && $(lzTarget).closest('[hidden]')){ lzTarget = null; lzMark(); }
+}
+SEC_CHK.forEach(id => $(id).addEventListener('change', () => {
+  secApply();
+  lbPrefs.secs = Object.fromEntries(SEC_CHK.map(k => [k, $(k).checked])); store.set('lbPrefs', lbPrefs);
+  lbDraftSave();
+}));
+
+/* Laser direkt in Front-/Backline- und Pulleyline-Felder */
+const LZ_ORDER = ['lbFrontL','lbFrontR','lbBackL','lbBackR','lbPulBL','lbPulCL','lbPulBR','lbPulCR'];
+const LZ_NAME = { lbFrontL:'Frontline links', lbFrontR:'Frontline rechts', lbBackL:'Backline links', lbBackR:'Backline rechts',
+  lbPulBL:'Pulleyline B links', lbPulCL:'Pulleyline C links', lbPulBR:'Pulleyline B rechts', lbPulCR:'Pulleyline C rechts' };
+const lzGroup = id => id.startsWith('lbPul') ? 'pul' : 'bar';
 let lzTarget = null;
 const lzActive = () => $('lb').open && lbType === 'Trimm' && !!lzTarget;
 function lzMark(){ LZ_ORDER.forEach(id => $(id).classList.toggle('act', id === lzTarget)); }
@@ -973,8 +1029,8 @@ function lzMeasure(mm){
   $(lzTarget).value = Math.round(mm);
   if (navigator.vibrate) navigator.vibrate(60);
   const k = LZ_ORDER.indexOf(lzTarget);
-  const next = LZ_ORDER.slice(k + 1).find(id => $(id).value === '');
-  showToast(`${lzTarget.replace('lb','').replace('L',' links').replace('R',' rechts')}: ${Math.round(mm)} mm`);
+  const next = LZ_ORDER.slice(k + 1).find(id => lzGroup(id) === lzGroup(lzTarget) && $(id).value === '');
+  showToast(`${LZ_NAME[lzTarget]}: ${Math.round(mm)} mm`);
   lzTarget = next || null; lzMark(); lbRelUpdate(); lbDraftSave();
 }
 
@@ -984,6 +1040,10 @@ function lbRelUpdate(){
   const s = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v);
   const loop = [['B', d('lbLoopBL','lbLoopBR')], ['C', d('lbLoopCL','lbLoopCR')]].filter(x => x[1] != null);
   $('lbLoopRel').innerHTML = loop.length ? 'L − R: ' + loop.map(([n, v]) => `<span class="${mkCls(v)}">${n} ${s(v)} mm</span>`).join(' · ') : '';
+  const pul = [['B', d('lbPulBL','lbPulBR')], ['C', d('lbPulCL','lbPulCR')]].filter(x => x[1] != null);
+  const neu = { B:1190, C:990 }, sh = ['B','C'].flatMap(l => ['L','R'].map(sd => [l + ' ' + sd, num('lbPul' + l + sd), neu[l]])).filter(x => x[1] !== '');
+  $('lbPulRel').innerHTML = (pul.length ? 'L − R: ' + pul.map(([n, v]) => `<span class="${mkCls(v)}">${n} ${s(v)} mm</span>`).join(' · ') + '<br>' : '')
+    + (sh.length ? 'gegen neu: ' + sh.map(([n, v, r]) => `${n} ${s(Math.round((v - r) * 10) / 10)}`).join(' · ') + ' mm' : '');
   const bar = [['Front', d('lbFrontL','lbFrontR')], ['Back', d('lbBackL','lbBackR')]].filter(x => x[1] != null);
   $('lbBarRel').innerHTML = bar.length ? 'L − R: ' + bar.map(([n, v]) => `<span class="${mkCls(v)}">${n} ${s(v)} mm</span>`).join(' · ') : '';
 }

@@ -98,11 +98,28 @@
   .arbar{display:grid;gap:4px;margin-bottom:6px}
   .arbar select{width:100%}
   #cmpLine{color:var(--accent)}
+  #kiteBtn{flex:1;min-width:0;text-align:left;display:flex;align-items:center;gap:6px;font-weight:600}
+  #kiteBtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  #kdlg .kfam{border-top:1px solid var(--line);padding:8px 0}
+  #kdlg .kfam>summary{font-size:16px;font-weight:700;color:var(--text);padding:6px 0;list-style:none}
+  #kdlg .kfam>summary::-webkit-details-marker{display:none}
+  #kdlg .kfam>summary::before{content:'▸ ';color:var(--muted)} #kdlg .kfam[open]>summary::before{content:'▾ '}
+  #kdlg .krow{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:center;margin:6px 0}
+  #kdlg .kmod{color:var(--muted);font-size:14px;font-weight:600}
+  #kdlg .ksz{display:flex;flex-wrap:wrap;gap:6px}
+  .kc{min-width:46px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-variant-numeric:tabular-nums;cursor:pointer;position:relative}
+  .kc.has{border-color:var(--muted)}
+  .kc.new{border-style:dashed;color:var(--muted)}
+  .kc.cur{background:var(--accent);border-color:var(--accent);color:#001827;font-weight:700}
+  .kc .st{position:absolute;top:-6px;right:-5px;font-size:12px;color:var(--warn)}
+  #kfav .kc{padding:9px 12px}
+  #kdlg.edit .kc{outline:1px dashed var(--warn);outline-offset:1px}
+  .ksec{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin:6px 0}
 </style>
 </head>
 <body>
 <header>
-  <select id="kite" aria-label="Kite"></select>
+  <button class="btn" id="kiteBtn" aria-label="Kite wählen"><span id="kiteTxt">Kite wählen</span>▾</button>
   <button class="btn" id="bt"><span class="dot" id="btdot"></span><span id="bttxt">Laser</span></button>
   <button class="btn icon" id="listBtn" aria-label="Liste">☰</button>
   <button class="btn icon" id="lbBtn" aria-label="Logbuch">📒</button>
@@ -141,6 +158,17 @@
 </main>
 
 <div id="toast"><span id="toastTxt"></span><button class="btn" id="undo">Rückgängig</button></div>
+
+<dialog id="kdlg">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+    <h3 style="margin:0">Kite wählen</h3>
+    <div style="display:flex;gap:6px"><button class="btn" id="kEdit" type="button">☆ Favoriten</button><button class="btn" id="kClose" type="button">✕</button></div>
+  </div>
+  <div class="hint" id="kHint" style="margin:6px 0 4px">Durchgezogen = Messblatt vorhanden · gestrichelt = nur Leinenplan (Messblatt wird beim Antippen angelegt)</div>
+  <div class="ksec">★ Favoriten</div>
+  <div class="ksz" id="kfav"></div>
+  <div id="kfams" style="margin-top:10px"></div>
+</dialog>
 
 <dialog id="cfg">
   <h2>Einstellungen</h2>
@@ -363,16 +391,79 @@ async function apiPost(body){
   return j;
 }
 
+/* Kite-Auswahl: Katalog (Leinenpläne + Messblätter), Familien, Favoriten */
+let catalog = [];
+let favs = store.get('favs', ['Sonic5 7','Sonic5 10','Sonic5 12','Sonic5 15','Sonic4 10','Soul3 10']);
+const famOf = m => (m.match(/^[A-Za-zÄÖÜäöü]+/) || [m])[0];
+const FAM_ORDER = ['Sonic','Soul','VMG','Supersonic','Peak','Hybrid','Fox'];
+const sizeNum = s => parseFloat(String(s).replace(',', '.')) || 0;
+function catFromSheets(names){
+  return names.map(sh => { const n = sh.replace(/m²$/,'').trim(), m = n.match(/^(.*?)\s*([\d.,]+)$/);
+    return { name:n, model:m ? m[1] : n, size:m ? m[2] : '', sheet:sh, lib:false }; });
+}
 async function loadKites(){
   try{
-    const j = await api({ action:'kites' });
-    kites = j.kites;
-    $('kite').innerHTML = kites.map(k => `<option>${esc(k)}</option>`).join('');
+    let j = null;
+    try{ j = await api({ action:'catalog' }); }catch(e){ if (!/Unbekannte Aktion|unknown|Blatt nicht gefunden/i.test(e.message)) throw e; }
+    catalog = j && j.kites ? j.kites : catFromSheets((await api({ action:'kites' })).kites);
+    kites = catalog.filter(k => k.sheet).map(k => k.sheet);
     if (!kites.includes(kite)) kite = kites[0] || '';
-    $('kite').value = kite;
+    kiteLabel();
     await loadLines(true);
   }catch(e){ showToast('⚠ ' + e.message); }
 }
+function kiteLabel(){
+  const k = catalog.find(x => x.sheet === kite);
+  $('kiteTxt').textContent = k ? k.name + ' m²' : (kite || 'Kite wählen');
+}
+function kChip(k){
+  const cls = ['kc', k.sheet ? 'has' : 'new', k.sheet && k.sheet === kite ? 'cur' : ''].join(' ');
+  return `<button type="button" class="${cls}" data-k="${esc(k.name)}">${esc(k.size || k.name)}${favs.includes(k.name) ? '<span class="st">★</span>' : ''}</button>`;
+}
+function kRender(){
+  const fav = favs.map(n => catalog.find(k => k.name === n)).filter(Boolean);
+  $('kfav').innerHTML = fav.length ? fav.map(k => kChip(k).replace(`>${esc(k.size)}<`, `>${esc(k.name)}<`)).join('')
+    : '<span class="hint">Noch keine – oben „☆ Favoriten“ tippen und Kites markieren.</span>';
+  const fams = {};
+  catalog.forEach(k => { const f = famOf(k.model); ((fams[f] = fams[f] || {})[k.model] = fams[f][k.model] || []).push(k); });
+  const fo = Object.keys(fams).sort((a,b) => ((FAM_ORDER.indexOf(a)+99)%99) - ((FAM_ORDER.indexOf(b)+99)%99) || a.localeCompare(b));
+  const curK = catalog.find(x => x.sheet === kite);
+  const open = store.get('kOpen', {});
+  $('kfams').innerHTML = fo.map(f => {
+    const models = Object.keys(fams[f]).sort((a,b) => b.localeCompare(a, 'de', { numeric:true }));
+    const isOpen = open[f] ?? (curK && famOf(curK.model) === f);
+    return `<details class="kfam" data-f="${esc(f)}"${isOpen ? ' open' : ''}><summary>${esc(f)} <span class="muted" style="font-weight:400;font-size:13px">· ${models.length} Modell${models.length > 1 ? 'e' : ''}</span></summary>` +
+      models.map(m => `<div class="krow"><div class="kmod">${esc(m)}</div><div class="ksz">${fams[f][m].sort((a,b) => sizeNum(a.size) - sizeNum(b.size)).map(kChip).join('')}</div></div>`).join('') +
+      `</details>`;
+  }).join('');
+  $('kfams').querySelectorAll('details').forEach(d => d.addEventListener('toggle', () => {
+    const o = store.get('kOpen', {}); o[d.dataset.f] = d.open; store.set('kOpen', o); }));
+}
+async function kPick(name){
+  const k = catalog.find(x => x.name === name); if (!k) return;
+  if ($('kdlg').classList.contains('edit')){
+    favs = favs.includes(name) ? favs.filter(n => n !== name) : [...favs, name];
+    store.set('favs', favs); kRender(); return;
+  }
+  if (!k.sheet){
+    const b = $('kdlg').querySelector(`[data-k="${CSS.escape(name)}"]`);
+    if (!b.dataset.confirm){ b.dataset.confirm = '1'; b.textContent = 'anlegen?'; showToast(`Nochmal tippen: Messblatt „${name} m²“ anlegen`); return; }
+    try{
+      showToast('Messblatt wird angelegt …');
+      const j = await api({ action:'kite_new', name });
+      k.sheet = j.sheet; kites.push(j.sheet);
+      showToast(`✓ Messblatt „${j.sheet}“ angelegt`);
+    }catch(e){ showToast('⚠ ' + e.message); return; }
+  }
+  kite = k.sheet; store.set('kite', kite); kiteLabel(); $('kdlg').close();
+  loadLines(false);
+}
+$('kiteBtn').onclick = () => { $('kdlg').classList.remove('edit'); $('kEdit').textContent = '☆ Favoriten'; kRender(); $('kdlg').showModal(); };
+$('kClose').onclick = () => $('kdlg').close();
+$('kEdit').onclick = () => { const on = $('kdlg').classList.toggle('edit');
+  $('kEdit').textContent = on ? '✓ Fertig' : '☆ Favoriten';
+  $('kHint').textContent = on ? 'Kites antippen, um sie als Favorit zu markieren oder zu entfernen.' : 'Durchgezogen = Messblatt vorhanden · gestrichelt = nur Leinenplan (Messblatt wird beim Antippen angelegt)'; };
+$('kdlg').addEventListener('click', e => { const b = e.target.closest('.kc'); if (b) kPick(b.dataset.k); });
 
 async function loadLines(jumpToFirstEmpty){
   if (!kite) return;
@@ -771,7 +862,6 @@ $('cfgSave').onclick = () => {
           offset: $('cOff').value.trim() === '' ? 18 : +$('cOff').value.replace(',', '.') };
   store.set('cfg', cfg); $('cfg').close(); loadKites();
 };
-$('kite').onchange = () => { kite = $('kite').value; store.set('kite', kite); loadLines(false); };
 
 /* ---------- Logbuch (Trimm & Session) ---------- */
 let lbType = 'Trimm', lbWindSrc = '';

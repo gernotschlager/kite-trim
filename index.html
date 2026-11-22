@@ -40,6 +40,9 @@
   .kfbar b{font-size:34px;line-height:1}
   .kfbar .tag{font-size:18px;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:800}
   #kfInfo{color:var(--muted);font-size:15px;flex:1;min-width:0}
+  .kfnav{display:flex;gap:8px;align-items:center}
+  .kfnav input{flex:1;min-width:0}
+  .kfnav .btn{min-width:56px}
   #kmapBig{flex:1;min-height:0;width:100%;height:100%}
   .kmap .lbl2{font-size:15px;font-weight:600;fill:var(--text);pointer-events:none}
   .kmap .lbl2.cur{font-size:18px;font-weight:800}
@@ -72,6 +75,7 @@
     border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:none;align-items:center;gap:10px;
     box-shadow:0 8px 30px rgba(0,0,0,.5)}
   #toast.show{display:flex} #toast span{flex:1}
+  #kfull:not([hidden]) ~ #toast, body:has(#kfull:not([hidden])) #toast{z-index:80;bottom:calc(64px + env(safe-area-inset-bottom))}
   #queue{font-size:13px;color:var(--warn);text-align:center;min-height:1em}
   dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(560px,94vw);max-height:90dvh}
   dialog::backdrop{background:rgba(0,0,0,.6)}
@@ -194,6 +198,12 @@
     <button class="btn" id="kfClose" type="button" aria-label="Schließen">✕</button>
   </div>
   <svg id="kmapBig" class="kmap" viewBox="0 0 1000 440" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Kite-Skizze groß"></svg>
+  <div class="kfnav">
+    <button class="btn" id="kfPrev" type="button">◀</button>
+    <input id="kfManual" type="number" inputmode="decimal" placeholder="Wert manuell (mm)" enterkeyhint="done">
+    <button class="btn" id="kfManualBtn" type="button">Eintragen</button>
+    <button class="btn" id="kfNext" type="button">▶</button>
+  </div>
 </div>
 
 <dialog id="kdlg">
@@ -757,10 +767,15 @@ $('del').onclick = () => {
 };
 $('prev').onclick = () => go(-1);
 $('next').onclick = () => go(1);
-$('manualBtn').onclick = () => {
-  const v = parseFloat($('manual').value.replace(',', '.'));
-  if (!isNaN(v)){ onMeasure(v); $('manual').value = ''; }
-};
+function manualEnter(id){
+  const v = parseFloat($(id).value.replace(',', '.'));
+  if (!isNaN(v)){ onMeasure(v); $(id).value = ''; }
+}
+$('manualBtn').onclick = () => manualEnter('manual');
+$('kfManualBtn').onclick = () => manualEnter('kfManual');
+$('kfManual').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); manualEnter('kfManual'); } });
+$('kfPrev').onclick = () => go(-1);
+$('kfNext').onclick = () => go(1);
 
 /* ---------- Bluetooth GLM 50 C ---------- */
 function log(s){ const el = $('log'); el.textContent = (new Date().toLocaleTimeString() + ' ' + s + '\n' + el.textContent).slice(0, 6000); }

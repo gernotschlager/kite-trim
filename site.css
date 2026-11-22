@@ -1,0 +1,56 @@
+:root{
+  --paper:#f3f5f6; --sheet:#ffffff; --ink:#0f2131; --ink-2:#4a5a68; --rule:#d6dde2;
+  --accent:#e8661c; --accent-ink:#b44a0c; --left:#1f6fb2;
+  --f-display:"Barlow Condensed","Inter Display",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,sans-serif;
+  --f-word:"Space Grotesk","Inter Display",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0b141c; --sheet:#111d27; --ink:#e7edf2; --ink-2:#9aabb8; --rule:#24333f;
+  --accent:#ff7a2e; --accent-ink:#ff9a5c; --left:#5aa7e8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0b141c; --sheet:#111d27; --ink:#e7edf2; --ink-2:#9aabb8; --rule:#24333f;
+  --accent:#ff7a2e; --accent-ink:#ff9a5c; --left:#5aa7e8; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6}
+a{color:var(--accent-ink)}
+a:hover{color:var(--ink)}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;line-height:1.1;margin:0;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+
+/* Kopf */
+.top{border-top:4px solid var(--accent);background:var(--sheet);border-bottom:1px solid var(--rule)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.brand svg{width:40px;height:40px;flex:none}
+.wm{display:flex;align-items:baseline;font-family:var(--f-word);font-size:26px;letter-spacing:-.02em;line-height:1}
+.wm b{font-weight:700}.wm span{font-weight:400;color:var(--ink-2)}
+.wm i{display:inline-block;width:6px;height:6px;background:var(--accent);margin-left:3px}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav a{font-family:var(--f-display);font-weight:600;font-size:17px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-decoration:none;padding:10px 12px;border-radius:6px;min-height:44px;display:inline-flex;align-items:center}
+.nav a:hover,.nav a[aria-current="page"]{color:var(--ink);background:var(--paper)}
+
+/* Allgemein */
+.lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--ink-2);font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 22px;border-radius:8px;font-family:var(--f-display);font-weight:600;font-size:19px;letter-spacing:.04em;text-decoration:none;border:2px solid var(--ink);color:var(--ink)}
+.btn:hover{background:var(--ink);color:var(--sheet)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a0b02}
+.btn.primary:hover{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:28px}
+@media (max-width:600px){.sheet{padding:20px}}
+section{padding:48px 0}
+.secthead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.secthead h2{font-size:clamp(26px,3.6vw,36px)}
+
+.foot{border-top:1px solid var(--rule);padding:28px 0 40px;color:var(--ink-2);font-size:14px}
+.foot .wrap{display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap}
+
+.tag{display:inline-block;font-family:var(--f-display);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:13px;border:1.5px solid var(--accent);color:var(--accent-ink);border-radius:4px;padding:2px 10px}
+.todo{background:rgba(232,102,28,.12);color:var(--ink);border-radius:3px;padding:0 4px;font-size:.92em}
+.ph{aspect-ratio:4/3;border:1.5px dashed var(--rule);border-radius:6px;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;background:var(--paper);color:var(--ink-2);font-family:var(--f-display);letter-spacing:.1em;text-transform:uppercase;font-size:13px;font-weight:600;text-align:center;padding:12px}
+.ph svg{width:56px;height:auto}
+@media (max-width:560px){.top .wrap{gap:4px}.nav{width:100%;justify-content:space-between;margin:0 -6px}.nav a{padding:8px 6px;font-size:15px}}

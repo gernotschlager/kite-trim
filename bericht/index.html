@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+<title>Musterbericht Sonic5 10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Space+Grotesk:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Technisches Datenblatt wie die Messberichte Sonic4/Sonic5 – ergänzt um Vorher/Nachher, Trimm-Logbuch und Fotodokumentation */
+:root{
+  --paper:#f3f5f6; --sheet:#ffffff; --ink:#0f2131; --ink-2:#4a5a68; --rule:#d6dde2; --grid:#e6ebee;
+  --accent:#e8661c; --left:#1f6fb2; --right:#e8661c; --pre:#9aa7b2;
+  --ok:#1f8a5b; --warn:#c98a0b; --bad:#c23a2b; --band:rgba(31,111,178,.08);
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0b141c; --sheet:#111d27; --ink:#e7edf2; --ink-2:#9aabb8; --rule:#24333f; --grid:#1b2833; --pre:#5d6d7a;
+  --accent:#ff7a2e; --left:#5aa7e8; --right:#ff8a42; --ok:#3cc487; --warn:#e3b13c; --bad:#ef6a5b; --band:rgba(90,167,232,.10); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0b141c; --sheet:#111d27; --ink:#e7edf2; --ink-2:#9aabb8; --rule:#24333f; --grid:#1b2833; --pre:#5d6d7a;
+  --accent:#ff7a2e; --left:#5aa7e8; --right:#ff8a42; --ok:#3cc487; --warn:#e3b13c; --bad:#ef6a5b; --band:rgba(90,167,232,.10); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.12em;font-size:12.5px;color:var(--ink-2);font-weight:600}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:24px}
+@media (max-width:600px){.sheet{padding:18px}}
+.muster{display:inline-block;font-family:var(--f-display);font-weight:700;letter-spacing:.2em;color:var(--bad);border:2px solid var(--bad);border-radius:3px;padding:1px 10px;font-size:14px;transform:rotate(-3deg)}
+.note{border-left:4px solid var(--bad);padding:10px 14px;background:color-mix(in srgb,var(--bad) 7%,transparent);font-size:14px}
+
+.head{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;border-top:4px solid var(--accent)}
+.head .mark{width:64px;height:64px}
+.brand{display:flex;flex-direction:column;align-items:center;gap:4px}
+.wm{display:flex;align-items:baseline;font-family:'Space Grotesk','Inter Display','Inter',sans-serif;font-size:19px;letter-spacing:-.02em;line-height:1;color:var(--ink)}
+.wm b{font-weight:700}.wm span{font-weight:400;color:var(--ink-2)}
+.wm i{display:inline-block;width:4px;height:4px;background:var(--accent);margin-left:2px}
+.head h1{font-size:clamp(28px,4.4vw,44px);line-height:1}
+.head .sub{color:var(--ink-2);margin-top:6px}
+.docno{text-align:right;display:flex;flex-direction:column;gap:2px;align-items:flex-end}
+.docno .mono{font-size:13px}
+@media (max-width:700px){.head{grid-template-columns:auto 1fr}.docno{grid-column:1/-1;text-align:left;align-items:flex-start;flex-direction:row;flex-wrap:wrap;gap:4px 16px}}
+.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--rule);margin-top:20px}
+.meta div{padding:12px 14px 4px 0;border-bottom:1px solid var(--rule)}
+.meta .v{font-weight:500}
+@media (max-width:640px){.meta{grid-template-columns:repeat(2,1fr)}}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.kpi{background:var(--sheet);padding:18px 20px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .n{font-family:var(--f-display);font-size:40px;font-weight:600;line-height:1}
+.kpi .n small{font-size:18px;color:var(--ink-2);font-weight:500;margin-left:3px}
+.kpi .was{font-family:var(--f-mono);font-size:13px;color:var(--ink-2)}
+.kpi .d{color:var(--ink-2);font-size:13.5px}
+@media (max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+
+table.t{width:100%;border-collapse:collapse;font-size:14.5px}
+.t th,.t td{padding:9px 12px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+.t th:first-child,.t td:first-child{text-align:left}
+.t thead th{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;font-size:12.5px;color:var(--ink-2);font-weight:600}
+.t .grp td{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;font-size:13px;color:var(--accent);font-weight:600;padding-top:16px;border-bottom:1px solid var(--accent)}
+.t td.pre{color:var(--ink-2)}
+.t td.l{text-align:left;white-space:normal}
+.scroll{overflow-x:auto}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)}
+.dotL,.dotR,.dotP{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:6px}
+.dotL{background:var(--left)} .dotR{background:var(--right)} .dotP{border:1.5px solid var(--pre)}
+.arrow{color:var(--ink-2);margin:0 4px}
+
+.secthead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.secthead h2{font-size:26px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--f-mono);font-size:11px;fill:var(--ink-2)}
+.chart .ax{stroke:var(--rule);stroke-width:1}
+.chart .gr{stroke:var(--grid);stroke-width:1}
+.chart .zero{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;opacity:.55}
+.chart .band{fill:var(--band)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:860px){.charts{grid-template-columns:1fr}}
+.cnote{font-size:13px;color:var(--ink-2);margin-top:6px}
+
+.findings{display:grid;gap:0}
+.find{display:grid;grid-template-columns:120px 1fr;gap:16px;padding:16px 0;border-top:1px solid var(--rule)}
+.find .chip{align-self:start;justify-self:start}
+.find:first-child{border-top:0;padding-top:4px}
+.find h3{font-size:19px;margin-bottom:4px}
+.find p{margin:0;max-width:70ch}
+@media (max-width:600px){.find{grid-template-columns:1fr;gap:6px}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.two p,.two li{max-width:66ch}
+.two>div{min-width:0}
+#time td{white-space:normal}
+ul.tight{margin:6px 0 0;padding-left:18px}
+ol.steps{margin:6px 0 0;padding-left:20px}
+ol.steps li{margin-bottom:6px;max-width:72ch}
+
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:760px){.photos{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:440px){.photos{grid-template-columns:1fr}}
+.photos figure{margin:0;display:flex;flex-direction:column;gap:6px}
+.photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:3px;border:1px solid var(--rule);display:block}
+.photos figcaption{font-size:13px;color:var(--ink-2)}
+.photos .ph-lbl{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:var(--accent);font-weight:600}
+.label-ph{aspect-ratio:4/3;border:1.5px dashed var(--rule);border-radius:3px;display:flex;align-items:center;justify-content:center;background:var(--paper)}
+.tuner{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:center}
+@media (max-width:760px){.tuner{grid-template-columns:1fr}}
+.tuner svg text{font-family:var(--f-mono);font-size:12px;fill:var(--ink-2)}
+.foot{font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--rule);padding-top:14px}
+.topnav{max-width:1080px;margin:0 auto 12px;font-family:var(--f-display);font-weight:600;letter-spacing:.04em}.topnav a{color:var(--ink-2);text-decoration:none}.topnav a:hover{color:var(--ink)}
+@media print{.topnav{display:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="logoA" viewBox="0 0 64 64">
+      <path d="M6 30 C18 10 46 10 58 30" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+      <path d="M14 27 L32 54 M24 20 L32 54 M40 20 L32 54 M50 27 L32 54" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+      <path d="M32 54 L32 30" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="32" cy="27" r="3.4" fill="var(--accent)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<nav class="topnav"><a href="../">← trimwerk.app</a></nav>
+<div class="wrap">
+
+  <header class="sheet head">
+    <div class="brand"><svg class="mark" style="color:var(--ink)" aria-hidden="true"><use href="#logoA"/></svg><div class="wm" role="img" aria-label="trimwerk"><b>trim</b><span>werk</span><i></i></div></div>
+    <div>
+      <div class="lbl">Leinenvermessung · Trimm · Protokoll</div>
+      <h1>Flysurfer Sonic5 · 10 m²</h1>
+      <div class="sub">Eingangsmessung, Trimm und Ausgangsmessung aller Waageleinen, links und rechts, gegen den Herstellerleinenplan.</div>
+    </div>
+    <div class="docno">
+      <span class="muster">MUSTER</span>
+      <span class="mono">MB-MUSTER-S5-10</span>
+      <span class="mono">21.11.2026</span>
+    </div>
+    <div class="meta" style="grid-column:1/-1">
+      <div><div class="lbl">Seriennummer</div><div class="v mono">S5-10-XXXXXX</div></div>
+      <div><div class="lbl">Auftrag</div><div class="v">Messung + Trimm (Vorher/Nachher)</div></div>
+      <div><div class="lbl">Zustand bei Eingang</div><div class="v">gebraucht, ca. 90 Flugstunden</div></div>
+      <div><div class="lbl">Referenz</div><div class="v">Leinenplan Sonic5 10</div></div>
+      <div><div class="lbl">Messmittel</div><div class="v">Laser Bosch GLM 50 C, Trimmstand</div></div>
+      <div><div class="lbl">Messpunkte</div><div class="v mono">2 × 94 (47 Leinen × L/R)</div></div>
+    </div>
+  </header>
+
+  <div class="note"><b>Musterbericht.</b> Aufbau und Inhalte entsprechen einem echten Auftrag. Die Messwerte sind <b>simuliert</b> (realistische Größenordnungen aus den Messungen vom 20./21.11.2026), die Fotos werden noch ergänzt.</div>
+
+  <section class="kpis" id="kpis" aria-label="Kennzahlen"></section>
+
+  <section class="sheet">
+    <div class="secthead"><h2>Ebenen im Überblick</h2><span class="lbl">Abweichung Ist − Soll in mm · vorher → nachher</span></div>
+    <div class="scroll"><table class="t" id="levels"></table></div>
+    <p class="cnote">Ziel des Trimms: B- und C-Ebene auf das Niveau der A-Ebene bringen und beide Seiten angleichen. Die A-Ebene wird nicht getrimmt (sie ist die Referenz); ihre Verkürzung zeigt den Alterungszustand der Leinen. Die Z-Ebene liegt in Tuner-Standardstellung (Mitte) planmäßig rund 20 mm über dem Leinenplan.</p>
+  </section>
+
+  <section class="sheet">
+    <div class="secthead">
+      <h2>Abweichung je Leine</h2>
+      <div class="legend"><span><span class="dotP"></span>vorher (Ø L/R)</span><span><span class="dotL"></span>nachher links</span><span><span class="dotR"></span>nachher rechts</span><span>– – Soll (0 mm)</span></div>
+    </div>
+    <div class="charts" id="charts"></div>
+  </section>
+
+  <section class="sheet">
+    <div class="secthead"><h2>Symmetrie links / rechts</h2><span class="lbl">Differenz links − rechts in mm</span></div>
+    <div id="sym"></div>
+    <p class="cnote">Balken: nachher (grün ≤ 5 mm, gelb ≤ 10 mm, rot darüber). Graue Striche: vorher. Ein positiver Wert bedeutet: die linke Leine ist länger.</p>
+  </section>
+
+  <section class="sheet">
+    <div class="secthead"><h2>Trimm-Logbuch</h2><span class="lbl">Einträge aus der Kite-Trim-App</span></div>
+    <div class="scroll"><table class="t" id="logbook"></table></div>
+    <p class="cnote">Pulleylines unter Zug gemessen; Referenz neue Pulleyline: B 1190 mm, C 990 mm. Trimmschlaufen: Schlaufenlänge mit der Messlehre; Mixer 2:1 (Ring 2 cm verschieben → Ebene 1 cm).</p>
+  </section>
+
+  <section class="sheet tuner">
+    <div>
+      <div class="secthead"><h2>Performance Tuner</h2></div>
+      <p style="margin:0 0 8px">Knotenleiter in der C-Pulleyline, an der die Z-Main eingehängt ist. Ein Knoten verändert die Z-Ebene um rund 20 mm (gemessen 18,2 mm Knotenabstand).</p>
+      <ul class="tight">
+        <li><b>Oben</b> (Richtung Kite): Z länger, weichere Steuer-/Haltekräfte, weniger Backstall – laut Hersteller für den oberen Windbereich.</li>
+        <li><b>Mitte</b>: Herstellerstandard, ausgeglichen.</li>
+        <li><b>Unten</b> (Richtung Bar): Z kürzer, härtere Kräfte, reaktiver.</li>
+      </ul>
+      <p class="cnote">Bei Eingang stand der Tuner rechts auf <b>Oben</b>, links auf <b>Mitte</b> → Z-Ebene rechts rund 18 mm länger. Nach dem Trimm beidseitig Mitte.</p>
+    </div>
+    <svg viewBox="0 0 420 200" role="img" aria-label="Schema Performance Tuner: Stellung vorher und nachher">
+      <text x="10" y="18">Kite ↑</text><text x="10" y="196">Bar ↓</text>
+      <g transform="translate(110,0)">
+        <text x="0" y="18" style="font-family:var(--f-display);font-size:14px;fill:var(--ink)">vorher L / R</text>
+        <line x1="40" y1="30" x2="40" y2="180" stroke="var(--ink-2)" stroke-width="3"/>
+        <circle cx="40" cy="70" r="7" fill="var(--sheet)" stroke="var(--ink-2)" stroke-width="2.5"/>
+        <circle cx="40" cy="105" r="7" fill="var(--sheet)" stroke="var(--ink-2)" stroke-width="2.5"/>
+        <circle cx="40" cy="140" r="7" fill="var(--sheet)" stroke="var(--ink-2)" stroke-width="2.5"/>
+        <path d="M40 112 L8 128" stroke="var(--left)" stroke-width="3.5" stroke-linecap="round"/><text x="0" y="146" style="fill:var(--left)">L</text>
+        <path d="M40 77 L72 93" stroke="var(--right)" stroke-width="3.5" stroke-linecap="round"/><text x="74" y="104" style="fill:var(--right)">R</text>
+      </g>
+      <g transform="translate(270,0)">
+        <text x="0" y="18" style="font-family:var(--f-display);font-size:14px;fill:var(--ink)">nachher L / R</text>
+        <line x1="40" y1="30" x2="40" y2="180" stroke="var(--ink-2)" stroke-width="3"/>
+        <circle cx="40" cy="70" r="7" fill="var(--sheet)" stroke="var(--ink-2)" stroke-width="2.5"/>
+        <circle cx="40" cy="105" r="7" fill="var(--sheet)" stroke="var(--ink-2)" stroke-width="2.5"/>
+        <circle cx="40" cy="140" r="7" fill="var(--sheet)" stroke="var(--ink-2)" stroke-width="2.5"/>
+        <path d="M40 112 L8 128" stroke="var(--left)" stroke-width="3.5" stroke-linecap="round"/><text x="0" y="146" style="fill:var(--left)">L</text>
+        <path d="M40 112 L72 128" stroke="var(--right)" stroke-width="3.5" stroke-linecap="round"/><text x="74" y="146" style="fill:var(--right)">R</text>
+      </g>
+      <text x="60" y="74">Oben</text><text x="60" y="109">Mitte</text><text x="60" y="144">Unten</text>
+    </svg>
+  </section>
+
+  <section class="sheet">
+    <div class="secthead"><h2>Befunde &amp; durchgeführte Arbeiten</h2></div>
+    <div class="findings">
+      <div class="find"><span class="chip bad">Behoben</span><div><h3>Performance Tuner asymmetrisch</h3>
+        <p>Rechts stand die Z-Main auf dem oberen Knoten, links auf dem mittleren. Dadurch war die rechte Z-Ebene im Mittel rund 18 mm länger als die linke. Beide Seiten auf Mitte (Herstellerstandard) gestellt; die Z-Differenz links − rechts liegt jetzt bei 0 mm.</p></div></div>
+      <div class="find"><span class="chip bad">Behoben</span><div><h3>Pulleylines geschrumpft</h3>
+        <p>B-Pulleylines rund 20 mm, C-Pulleylines rund 40 mm kürzer als neu (unter Zug gemessen). Gegen neue Pulleylines (Ersatzteilsatz) getauscht, Performance Tuner der neuen C-Pulleyline auf Mitte.</p></div></div>
+      <div class="find"><span class="chip warn">Getrimmt</span><div><h3>B- und C-Ebene zu kurz</h3>
+        <p>Vorher lag B rund 52 mm und C rund 66 mm unter Soll, also deutlich kürzer als die A-Ebene (−29 mm). Trimmschlaufen an beiden Seiten verlängert; nachher liegen A, B und C auf gleichem Niveau (−28 bis −31 mm).</p></div></div>
+      <div class="find"><span class="chip warn">Ausgeglichen</span><div><h3>Versatz Front/Back an der Bar</h3>
+        <p>Bei Eingang war die Front-Seite gegenüber der Back-Seite rund 30 mm länger (links +31, rechts +27 mm). Ausgleich über die Knotenleiter der Bar (2. → 3. Knoten); Restversatz 0–1 mm.</p></div></div>
+      <div class="find"><span class="chip ok">Unauffällig</span><div><h3>A-Ebene und Gleichmäßigkeit</h3>
+        <p>Die A-Ebene ist gleichmäßig um rund 29 mm verkürzt, typisch für das Alter. Links im Mittel 3 mm kürzer als rechts, innerhalb der Toleranz. Einzelne Ausreißer von vorher (c3 links, b10 rechts) sind nach dem Trimm im Rahmen. Bei weiterer Verkürzung um rund 20 mm ist ein Leinentausch zu empfehlen.</p></div></div>
+    </div>
+  </section>
+
+  <section class="sheet two">
+    <div>
+      <div class="secthead"><h2>Ablauf</h2></div>
+      <ol class="steps">
+        <li>Eingang: Seriennummer und Etikett fotografiert, Zustand dokumentiert.</li>
+        <li>Eingangsmessung aller 47 Leinen links/rechts im Trimm-Zustand (beide Mains eingehängt, alle Leinen unter 5 kg Last).</li>
+        <li>Performance Tuner und Pulleylines geprüft, Pulleylines unter Zug gemessen und getauscht.</li>
+        <li>Trimmschlaufen B und C an beiden Seiten eingestellt, Kontrolle am Trimmstand.</li>
+        <li>Versatz Front/Back an der Bar ausgeglichen.</li>
+        <li>Ausgangsmessung aller Leinen, Vergleich mit der Eingangsmessung (Messarchiv der App).</li>
+      </ol>
+    </div>
+    <div>
+      <div class="secthead"><h2>Zeitaufwand</h2></div>
+      <table class="t" id="time"></table>
+      <p class="cnote">Automatisch erfasst über das Messprotokoll der App; Lücken über 5 min zählen als Pause.</p>
+    </div>
+  </section>
+
+  <section class="sheet">
+    <div class="secthead"><h2>Fotodokumentation</h2><span class="lbl">Fotos folgen</span></div>
+    <div class="photos">
+      <figure><div class="label-ph"><svg viewBox="0 0 200 120" width="70%" aria-hidden="true"><rect x="20" y="20" width="160" height="80" rx="6" fill="none" stroke="var(--ink-2)" stroke-width="2"/><path d="M36 44h90M36 60h128M36 76h70" stroke="var(--ink-2)" stroke-width="5" stroke-linecap="round" opacity=".5"/></svg></div>
+        <figcaption><span class="ph-lbl">Etikett</span><br>Seriennummer-Etikett am Kite (im Muster ohne Foto).</figcaption></figure>
+      <figure><div class="label-ph" style="flex-direction:column;gap:6px"><svg viewBox="0 0 200 120" width="46%" aria-hidden="true"><rect x="40" y="30" width="120" height="74" rx="10" fill="none" stroke="var(--ink-2)" stroke-width="3"/><rect x="80" y="18" width="40" height="14" rx="3" fill="none" stroke="var(--ink-2)" stroke-width="3"/><circle cx="100" cy="67" r="20" fill="none" stroke="var(--ink-2)" stroke-width="3"/></svg><span class="ph-lbl">Foto folgt</span></div><figcaption><span class="ph-lbl">Messaufbau</span><br>Laser im Halter, Zielscheibe am Leinenende (Offset 18 mm).</figcaption></figure>
+      <figure><div class="label-ph" style="flex-direction:column;gap:6px"><svg viewBox="0 0 200 120" width="46%" aria-hidden="true"><rect x="40" y="30" width="120" height="74" rx="10" fill="none" stroke="var(--ink-2)" stroke-width="3"/><rect x="80" y="18" width="40" height="14" rx="3" fill="none" stroke="var(--ink-2)" stroke-width="3"/><circle cx="100" cy="67" r="20" fill="none" stroke="var(--ink-2)" stroke-width="3"/></svg><span class="ph-lbl">Foto folgt</span></div><figcaption><span class="ph-lbl">Versatz</span><br>Front-/Back-Main unter 5 kg, Versatz am Stahlmaßstab.</figcaption></figure>
+      <figure><div class="label-ph" style="flex-direction:column;gap:6px"><svg viewBox="0 0 200 120" width="46%" aria-hidden="true"><rect x="40" y="30" width="120" height="74" rx="10" fill="none" stroke="var(--ink-2)" stroke-width="3"/><rect x="80" y="18" width="40" height="14" rx="3" fill="none" stroke="var(--ink-2)" stroke-width="3"/><circle cx="100" cy="67" r="20" fill="none" stroke="var(--ink-2)" stroke-width="3"/></svg><span class="ph-lbl">Foto folgt</span></div><figcaption><span class="ph-lbl">Trimmschlaufe</span><br>Camber-Trim-Ring auf der B-/C-Main, Rolle in der Schlaufe.</figcaption></figure>
+      <figure><div class="label-ph" style="flex-direction:column;gap:6px"><svg viewBox="0 0 200 120" width="46%" aria-hidden="true"><rect x="40" y="30" width="120" height="74" rx="10" fill="none" stroke="var(--ink-2)" stroke-width="3"/><rect x="80" y="18" width="40" height="14" rx="3" fill="none" stroke="var(--ink-2)" stroke-width="3"/><circle cx="100" cy="67" r="20" fill="none" stroke="var(--ink-2)" stroke-width="3"/></svg><span class="ph-lbl">Foto folgt</span></div><figcaption><span class="ph-lbl">Performance Tuner</span><br>Knotenleiter in der C-Pulleyline mit eingehängter Z-Main.</figcaption></figure>
+      <figure><div class="label-ph" style="flex-direction:column;gap:6px"><svg viewBox="0 0 200 120" width="46%" aria-hidden="true"><rect x="40" y="30" width="120" height="74" rx="10" fill="none" stroke="var(--ink-2)" stroke-width="3"/><rect x="80" y="18" width="40" height="14" rx="3" fill="none" stroke="var(--ink-2)" stroke-width="3"/><circle cx="100" cy="67" r="20" fill="none" stroke="var(--ink-2)" stroke-width="3"/></svg><span class="ph-lbl">Foto folgt</span></div><figcaption><span class="ph-lbl">Pulleyline</span><br>Längenkontrolle der Pulleyline unter Zug am Maßband.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sheet two">
+    <div>
+      <div class="secthead"><h2>Methodik</h2></div>
+      <ul class="tight">
+        <li>A- und Z-Leinen: Strecke vom Anknüpfpunkt der Front- bzw. Back-Main bis zum Leinenende am Tuch (ohne Line-Connector).</li>
+        <li>B- und C-Leinen: Strecke ab der Umlenkrolle des Mixers, also B- bzw. C-Main samt Trimmschlaufe plus Kaskade.</li>
+        <li>Soll-Werte: Summe der Teilstücke laut Leinenplan; b12/c12 ohne bm5/cm5. Z-Soll gilt für den unteren Tuner-Knoten.</li>
+        <li>Zielscheiben-Offset 18 mm wird von der App automatisch abgezogen. Einhängepunkte am Trimmstand Ø 6 mm.</li>
+        <li>Wiederholgenauigkeit des Messaufbaus: ±2 mm. Laser gegen Stahlmaßband: Übereinstimmung 0–9 mm.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="secthead"><h2>Bewertungsmaßstab</h2></div>
+      <ul class="tight">
+        <li><b>Symmetrie:</b> |links − rechts| ≤ 5 mm sehr gut, ≤ 10 mm gut, darüber prüfen.</li>
+        <li><b>Ebenenabgleich:</b> B und C weichen im Mittel höchstens 5 mm von A ab.</li>
+        <li><b>Gleichmäßigkeit:</b> Abweichung einer Leine vom Mittel ihrer Ebene ≤ 5 mm unauffällig, ≤ 10 mm beobachten.</li>
+        <li><b>Pulleylines:</b> mehr als 1,5 % kürzer als neu (B ≈ 18 mm, C ≈ 15 mm) → Tausch empfohlen.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Messdaten erfasst mit der Kite-Trim-App · Werte in mm, gerundet · <b>Musterbericht mit simulierten Werten</b></span>
+    <span class="mono">MB-MUSTER-S5-10</span>
+  </footer>
+</div>
+
+<script>
+// [Leine, Soll, vorher L, vorher R, nachher L, nachher R] – Offset bereits abgezogen
+const DATA = {"A":[["a1",6196,6164,6168,6163,6168],["a2",6100,6072,6071,6071,6072],["a3",5853,5819,5822,5818,5821],["a4",5787,5757,5761,5756,5761],["a5",5502,5472,5474,5472,5474],["a6",5389,5358,5358,5357,5359],["a7",5093,5064,5065,5065,5065],["a8",5013,4980,4985,4979,4986],["a9",4713,4686,4686,4685,4687],["a10",4616,4583,4588,4584,4587],["a11",4455,4427,4430,4427,4430]],"B":[["b1",4929,4878,4877,4903,4901],["b2",4832,4779,4782,4805,4805],["b3",4584,4530,4531,4553,4552],["b4",4518,4462,4465,4487,4487],["b5",4235,4184,4185,4207,4207],["b6",4123,4072,4073,4095,4095],["b7",3832,3777,3777,3802,3802],["b8",3755,3700,3701,3726,3727],["b9",3472,3421,3422,3442,3445],["b10",3375,3326,3333,3345,3344],["b11",3219,3166,3166,3188,3188],["b12",3103,3046,3047,3072,3071]],"C":[["c1",5387,5323,5322,5358,5358],["c2",5290,5222,5224,5262,5261],["c3",5042,4963,4973,5014,5014],["c4",4976,4912,4911,4947,4948],["c5",4690,4627,4628,4661,4660],["c6",4579,4514,4516,4549,4551],["c7",4289,4226,4227,4263,4261],["c8",4210,4143,4142,4179,4179],["c9",3917,3853,3852,3892,3892],["c10",3821,3752,3753,3791,3792],["c11",3666,3603,3602,3640,3637],["c12",3546,3482,3482,3519,3518]],"Z":[["br1",6397,6388,6408,6411,6411],["br2",6135,6129,6144,6144,6147],["br3",5953,5943,5964,5967,5966],["br4",5737,5726,5743,5751,5751],["br5",5480,5472,5492,5492,5493],["br6",5262,5250,5269,5273,5272],["br7",5044,5036,5054,5058,5056],["br8",4929,4922,4940,4940,4941],["br9",4738,4724,4745,4749,4749],["br10",4570,4560,4578,4583,4581],["br11",4477,4466,4484,4490,4490],["br12",4459,4452,4468,4471,4471]]};
+const NAMES = {A:"A-Ebene",B:"B-Ebene",C:"C-Ebene",Z:"Z-Ebene (Steuer)"};
+const mean = a => a.reduce((s,x)=>s+x,0)/a.length;
+const r0 = x => Math.round(x);
+const sg = x => { const v=r0(x); return (v>0?"+":v<0?"−":"±")+Math.abs(v); };
+const lv = {};
+for (const k in DATA){
+  const rows = DATA[k].map(([n,s,pl,pr,nl,nr])=>({n,s,pl:pl-s,pr:pr-s,nl:nl-s,nr:nr-s,plr:pl-pr,nlr:nl-nr}));
+  const st = (a,b) => { const all=rows.flatMap(x=>[x[a],x[b]]); return {mL:mean(rows.map(x=>x[a])), mR:mean(rows.map(x=>x[b])), m:mean(all), spread:Math.max(...all)-Math.min(...all)}; };
+  lv[k] = {rows, pre:st('pl','pr'), post:st('nl','nr'),
+    preLR:Math.max(...rows.map(x=>Math.abs(x.plr))), postLR:Math.max(...rows.map(x=>Math.abs(x.nlr))),
+    preMLR:mean(rows.map(x=>x.plr)), postMLR:mean(rows.map(x=>x.nlr))};
+}
+const rowsAll = Object.values(lv).flatMap(v=>v.rows);
+const pct = key => Math.round(rowsAll.filter(x=>Math.abs(x[key])<=5).length/rowsAll.length*100);
+const lvGap = w => Math.max(...['B','C'].map(k=>Math.abs(lv[k][w].m-lv.A[w].m)));
+const zLR = w => Math.abs(lv.Z[w==='pre'?'preMLR':'postMLR']);
+
+const kpi = (l,n,u,was,d) => `<div class="kpi"><span class="lbl">${l}</span><span class="n mono">${n}<small>${u}</small></span><span class="was">vorher ${was}</span><span class="d">${d}</span></div>`;
+document.getElementById('kpis').innerHTML =
+  kpi("Symmetrie", pct('nlr'), "%", pct('plr')+" %", "Leinenpaare innerhalb ±5 mm") +
+  kpi("Ebenenabgleich", r0(lvGap('post')), "mm", r0(lvGap('pre'))+" mm", "größter Abstand B/C zur A-Ebene") +
+  kpi("Z links − rechts", sg(lv.Z.postMLR), "mm", sg(lv.Z.preMLR)+" mm", "mittlere Seitendifferenz der Steuerebene") +
+  kpi("A-Ebene vs. Plan", sg(lv.A.post.m), "mm", sg(lv.A.pre.m)+" mm", "Alterungszustand (nicht getrimmt)");
+
+const chip = (m,ok,warn,t) => m<=ok?`<span class="chip ok">${t[0]}</span>`:m<=warn?`<span class="chip warn">${t[1]}</span>`:`<span class="chip bad">${t[2]}</span>`;
+document.getElementById('levels').innerHTML =
+  `<thead><tr><th>Ebene</th><th>Ø vorher</th><th>Ø nachher</th><th>Ø L − R vorher</th><th>Ø L − R nachher</th><th>max |L − R| nachher</th><th>Bewertung</th></tr></thead><tbody>`+
+  Object.keys(lv).map(k=>{const v=lv[k];
+    const gap = k==='A'?0:k==='Z'?Math.abs(v.post.m-20-lv.A.post.m)*0:Math.abs(v.post.m-lv.A.post.m);
+    return `<tr><td><b>${NAMES[k]}</b></td><td class="mono pre">${sg(v.pre.m)}</td><td class="mono"><b>${sg(v.post.m)}</b></td><td class="mono pre">${sg(v.preMLR)}</td><td class="mono">${sg(v.postMLR)}</td><td class="mono">${v.postLR}</td><td>${chip(Math.max(v.postLR,gap),5,10,['sehr gut','gut','prüfen'])}</td></tr>`}).join('')+`</tbody>`;
+
+function chart(k){
+  const v = lv[k], rows = v.rows, W = 520, H = 230, pl = 44, pr = 12, pt = 14, pb = 34;
+  const vals = rows.flatMap(x=>[x.nl,x.nr,(x.pl+x.pr)/2]).concat([0]);
+  const lo = Math.floor((Math.min(...vals)-6)/10)*10, hi = Math.ceil((Math.max(...vals)+6)/10)*10;
+  const step = (hi-lo)>80?20:10;
+  const y = d => pt + (hi-d)/(hi-lo)*(H-pt-pb);
+  const x = i => pl + (i+0.5)*(W-pl-pr)/rows.length;
+  let g = '';
+  for (let t=Math.ceil(lo/step)*step;t<=hi;t+=step){ g += `<line class="gr" x1="${pl}" x2="${W-pr}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`; }
+  const m = v.post.m;
+  g += `<rect class="band" x="${pl}" width="${W-pl-pr}" y="${y(m+5)}" height="${y(m-5)-y(m+5)}"/>`;
+  g += `<line class="zero" x1="${pl}" x2="${W-pr}" y1="${y(0)}" y2="${y(0)}"/>`;
+  const path = f => rows.map((r,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(f(r)).toFixed(1)}`).join(' ');
+  g += `<path d="${path(r=>(r.pl+r.pr)/2)}" fill="none" stroke="var(--pre)" stroke-width="1.4" stroke-dasharray="3 3"/>`;
+  rows.forEach((r,i)=>{
+    g += `<circle cx="${x(i)}" cy="${y((r.pl+r.pr)/2)}" r="3.6" fill="var(--sheet)" stroke="var(--pre)" stroke-width="1.5"><title>${r.n} vorher: L ${sg(r.pl)} / R ${sg(r.pr)} mm</title></circle>`;
+    g += `<circle cx="${x(i)-2.5}" cy="${y(r.nl)}" r="3.8" fill="var(--left)"><title>${r.n} nachher links: ${sg(r.nl)} mm</title></circle>`;
+    g += `<circle cx="${x(i)+2.5}" cy="${y(r.nr)}" r="3.8" fill="var(--right)"><title>${r.n} nachher rechts: ${sg(r.nr)} mm</title></circle>`;
+    g += `<text x="${x(i)}" y="${H-pb+16}" text-anchor="middle">${r.n}</text>`;
+  });
+  g += `<line class="ax" x1="${pl}" x2="${pl}" y1="${pt}" y2="${H-pb}"/>`;
+  return `<figure style="margin:0;min-width:0"><div class="secthead" style="margin:0 0 2px"><h3 style="font-size:19px">${NAMES[k]}</h3><span class="mono" style="font-size:13px;color:var(--ink-2)">Ø ${sg(v.pre.m)} → <b style="color:var(--ink)">${sg(v.post.m)}</b> mm</span></div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${NAMES[k]}: Abweichung je Leine vorher und nachher">${g}</svg></figure>`;
+}
+document.getElementById('charts').innerHTML = Object.keys(lv).map(chart).join('');
+
+(function(){
+  const rows = rowsAll, W=1000, H=210, pl=40, pr=10, pt=12, pb=30, lim=24;
+  const bw = (W-pl-pr)/rows.length;
+  const y = d => pt + (lim-d)/(2*lim)*(H-pt-pb);
+  let g='';
+  [-20,-10,-5,0,5,10,20].forEach(t=>{ g+=`<line class="${t?'gr':'zero'}" x1="${pl}" x2="${W-pr}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`; });
+  g += `<rect class="band" x="${pl}" width="${W-pl-pr}" y="${y(5)}" height="${y(-5)-y(5)}"/>`;
+  rows.forEach((r,i)=>{
+    const v=Math.max(-lim,Math.min(lim,r.nlr)), a=Math.abs(r.nlr);
+    const col = a<=5?'var(--ok)':a<=10?'var(--warn)':'var(--bad)';
+    const top = Math.min(y(v),y(0)), h = Math.max(1.5,Math.abs(y(v)-y(0)));
+    g += `<rect x="${pl+i*bw+2}" y="${top}" width="${bw-4}" height="${h}" fill="${col}"><title>${r.n}: L − R nachher ${sg(r.nlr)} mm, vorher ${sg(r.plr)} mm</title></rect>`;
+    const pv = Math.max(-lim,Math.min(lim,r.plr));
+    g += `<line x1="${pl+i*bw+1}" x2="${pl+(i+1)*bw-1}" y1="${y(pv)}" y2="${y(pv)}" stroke="var(--pre)" stroke-width="2"/>`;
+    if (/^(a1|b1|c1|br1)$/.test(r.n)) g += `<text x="${pl+i*bw+bw/2}" y="${H-pb+18}" text-anchor="start">${r.n==='br1'?'Z':r.n[0].toUpperCase()}</text><line class="ax" x1="${pl+i*bw}" x2="${pl+i*bw}" y1="${pt}" y2="${H-pb+6}"/>`;
+  });
+  document.getElementById('sym').innerHTML = `<div class="scroll"><svg class="chart" viewBox="0 0 ${W} ${H}" style="min-width:640px" role="img" aria-label="Differenz links minus rechts je Leine, vorher und nachher">${g}</svg></div>`;
+})();
+
+// Trimm-Logbuch: [Bezeichnung, vorher, nachher]
+const mk = (n,w) => { for (const k in DATA){ const r=DATA[k].find(x=>x[0]===n); if (r) return w==='pre'?`${r[2]} / ${r[3]}`:`${r[4]} / ${r[5]}`; } return '–'; };
+const LOG = [
+  ['grp','Allgemein'],
+  ['Datum','21.11.2026 · 09:10','21.11.2026 · 11:40'],
+  ['Seriennummer','S5-10-XXXXXX · 📷 Etikett','S5-10-XXXXXX'],
+  ['Vorrichtung','Trimmer (alle Leinen auf Zug)','Trimmer (alle Leinen auf Zug)'],
+  ['Methode / Referenz','Anknüpfpunkte gleich (langer Mixer)','Anknüpfpunkte gleich (langer Mixer)'],
+  ['Last je Leine','5 kg','5 kg'],
+  ['Versatz Front/Back L / R','+31 / +27 mm · 📷','+1 / 0 mm · 📷'],
+  ['grp','Performance Tuner'],
+  ['Stellung L / R','Mitte / <b>Oben</b>','Mitte / Mitte'],
+  ['grp','Marker-Reihe (Laser, L / R in mm)'],
+  ['a3', mk('a3','pre'), mk('a3','post')],
+  ['b3', mk('b3','pre'), mk('b3','post')],
+  ['c3', mk('c3','pre'), mk('c3','post')],
+  ['br5', mk('br5','pre'), mk('br5','post')],
+  ['grp','Trimmschlaufen (Messlehre, L / R in mm)'],
+  ['B','52 / 50','75 / 74'],
+  ['C','48 / 47','86 / 85'],
+  ['grp','Pulleylines (unter Zug, L / R in mm)'],
+  ['B (neu 1190)','1171 / 1168 · −19 / −22','1190 / 1191 · neu'],
+  ['C (neu 990)','952 / 949 · −38 / −41','990 / 990 · neu'],
+  ['grp','Bar'],
+  ['Knoten an der Bar','2. Knoten','3. Knoten'],
+  ['Bar-Breite','M','M'],
+  ['Frontline L / R','21 984 / 21 993 mm','unverändert'],
+  ['Backline L / R','22 006 / 22 004 mm','unverändert'],
+  ['grp','Notiz'],
+  ['','Tuner rechts oben vorgefunden, Pulleylines deutlich geschrumpft.','Pulleylines getauscht, Schlaufen B/C verlängert, Bar-Knoten angepasst.']
+];
+document.getElementById('logbook').innerHTML = `<thead><tr><th>Feld</th><th>Eingang (vorher)</th><th>Ausgang (nachher)</th></tr></thead><tbody>` +
+  LOG.map(r => r[0]==='grp' ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` :
+    `<tr><td>${r[0]}</td><td class="mono pre l" style="text-align:right">${r[1]}</td><td class="mono l" style="text-align:right">${r[2]}</td></tr>`).join('') + `</tbody>`;
+
+document.getElementById('time').innerHTML = `<tbody>` + [
+  ['Eingangsmessung (94 Punkte)','46 min · Ø 29 s'],
+  ['Pulleylines tauschen','25 min'],
+  ['Trimm Schlaufen + Bar','35 min'],
+  ['Ausgangsmessung (94 Punkte)','39 min · Ø 25 s'],
+  ['<b>Gesamt</b>','<b>2 h 25 min</b>']
+].map(([a,b])=>`<tr><td>${a}</td><td class="mono">${b}</td></tr>`).join('') + `</tbody>`;
+</script>

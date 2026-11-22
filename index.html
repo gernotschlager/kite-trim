@@ -31,15 +31,28 @@
   #sideTag{cursor:pointer;user-select:none}
   .tag.L{background:var(--left);color:#001827} .tag.R{background:var(--right);color:#2a1000}
   .progress{color:var(--muted);font-size:15px}
+  .kwrap{position:relative}
+  .kexp{position:absolute;bottom:6px;width:40px;height:40px;padding:0;font-size:20px;opacity:.85}
+  .kwrap[data-side=L] .kexp{left:6px} .kwrap[data-side=R] .kexp{right:6px}
+  #kfull{position:fixed;inset:0;z-index:60;background:var(--bg);display:flex;flex-direction:column;padding:8px 10px;gap:6px}
+  #kfull[hidden]{display:none}
+  .kfbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .kfbar b{font-size:34px;line-height:1}
+  .kfbar .tag{font-size:18px;padding:6px 14px;border-radius:999px;cursor:pointer;font-weight:800}
+  #kfInfo{color:var(--muted);font-size:15px;flex:1;min-width:0}
+  #kmapBig{flex:1;min-height:0;width:100%;height:100%}
+  .kmap .lbl2{font-size:15px;font-weight:600;fill:var(--text);pointer-events:none}
+  .kmap .lbl2.cur{font-size:18px;font-weight:800}
+  .kmap .hit{fill:transparent;stroke:none;cursor:pointer}
   #kmap{width:100%;height:auto;display:block;background:var(--panel);border:1px solid var(--line);border-radius:18px;touch-action:manipulation}
-  #kmap .out{fill:rgba(255,255,255,.03);stroke:var(--line);stroke-width:1.5}
-  #kmap .pt{fill:var(--bg);stroke:#5b6576;stroke-width:1.5;cursor:pointer}
-  #kmap .pt.done{fill:#5b6576;stroke:#5b6576}
-  #kmap .pt.L.cur,#kmap .ray.L{fill:var(--left);stroke:var(--left)}
-  #kmap .pt.R.cur,#kmap .ray.R{fill:var(--right);stroke:var(--right)}
-  #kmap .ray{fill:none;stroke-width:2;stroke-dasharray:5 4;opacity:.8}
-  #kmap .halo{fill:none;stroke-width:2;opacity:.45}
-  #kmap text{font-size:11px;fill:var(--muted);font-weight:700}
+  .kmap .out{fill:rgba(255,255,255,.03);stroke:var(--line);stroke-width:1.5}
+  .kmap .pt{fill:var(--bg);stroke:#5b6576;stroke-width:1.5;cursor:pointer}
+  .kmap .pt.done{fill:#5b6576;stroke:#5b6576}
+  .kmap .pt.L.cur,.kmap .ray.L{fill:var(--left);stroke:var(--left)}
+  .kmap .pt.R.cur,.kmap .ray.R{fill:var(--right);stroke:var(--right)}
+  .kmap .ray{fill:none;stroke-width:2;stroke-dasharray:5 4;opacity:.8}
+  .kmap .halo{fill:none;stroke-width:2;opacity:.45}
+  .kmap text{font-size:11px;fill:var(--muted);font-weight:700}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:center}
   #group{color:var(--muted);font-size:15px;min-height:1.2em}
   #name{font-size:min(28vw,140px);font-weight:800;line-height:1;margin:6px 0 4px;letter-spacing:-.02em;cursor:pointer}
@@ -144,7 +157,7 @@
     <span class="progress" id="progress">–</span>
   </div>
 
-  <svg id="kmap" viewBox="0 0 360 132" role="img" aria-label="Kite-Skizze: aktuelle Leine"></svg>
+  <div class="kwrap" id="kwrap"><svg id="kmap" class="kmap" viewBox="0 0 360 132" role="img" aria-label="Kite-Skizze: aktuelle Leine"></svg><button class="btn kexp" id="kExp" type="button" aria-label="Skizze vergrößern">⤢</button></div>
 
   <div class="card">
     <div id="group">&nbsp;</div>
@@ -172,6 +185,16 @@
 </main>
 
 <div id="toast"><span id="toastTxt"></span><button class="btn" id="undo">Rückgängig</button></div>
+
+<div id="kfull" hidden>
+  <div class="kfbar">
+    <span class="tag L" id="kfSide">LINKS ⇄</span>
+    <b id="kfName">–</b>
+    <span id="kfInfo"></span>
+    <button class="btn" id="kfClose" type="button" aria-label="Schließen">✕</button>
+  </div>
+  <svg id="kmapBig" class="kmap" viewBox="0 0 1000 440" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Kite-Skizze groß"></svg>
+</div>
 
 <dialog id="kdlg">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
@@ -580,43 +603,73 @@ const lvlOf = l => { const g = String(l.group || '').trim().toUpperCase(), n = S
   const c = (g[0] || n[0] || 'A').toUpperCase(); return 'ABC'.includes(c) ? c : 'A'; };
 const LVL_DEPTH = { A:.14, B:.40, C:.64, Z:.90 };
 function drawMap(line, side){
-  const svg = $('kmap');
-  if (cfg.map === false || !N()){ svg.style.display = 'none'; return; }
-  svg.style.display = '';
-  const W = 360, cx = side === 'L' ? 336 : 24, span = 300, dir = side === 'L' ? -1 : 1;
-  const le = t => 10 + 46 * Math.pow(t, 2.3), chord = t => 84 * (1 - .62 * Math.pow(t, 2.2));
+  const small = $('kmap');
+  $('kwrap').style.display = (cfg.map === false || !N()) ? 'none' : '';
+  $('kwrap').dataset.side = side;
+  if (N() && cfg.map !== false) small.innerHTML = mapSVG(line, side, false);
+  if (!$('kfull').hidden && N()){
+    $('kmapBig').innerHTML = mapSVG(line, side, true);
+    $('kfSide').textContent = side === 'L' ? 'LINKS ⇄' : 'RECHTS ⇄'; $('kfSide').className = 'tag ' + side;
+    $('kfName').textContent = line.name;
+    const m = line[side], d = m == null ? null : Math.round(m - line.soll);
+    $('kfInfo').innerHTML = `${esc(line.group || '')} · Soll ${fmt(line.soll)} · Gemessen ${fmt(m)}` +
+      (d == null ? '' : ` · <span class="${Math.abs(d) <= cfg.tol1 ? 'ok' : Math.abs(d) <= cfg.tol2 ? 'warn' : 'bad'}">${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d)} mm</span>`);
+  }
+}
+function mapSVG(line, side, big){
+  const W = big ? 1000 : 360, H = big ? 440 : 132, dir = side === 'L' ? -1 : 1;
+  const cx = side === 'L' ? W - (big ? 40 : 24) : (big ? 40 : 24), span = big ? 900 : 300;
+  const k = big ? 2.9 : 1;
+  const le = t => (big ? 34 : 10) + 46 * k * Math.pow(t, 2.3), chord = t => 84 * k * (1 - (big ? .42 : .62) * Math.pow(t, 2.2));
   const X = t => cx + dir * span * t, Y = (t, d) => le(t) + d * chord(t);
-  // Umriss
   let up = '', lo = '';
   for (let i = 0; i <= 24; i++){ const t = i / 24; up += `${i ? 'L' : 'M'}${X(t).toFixed(1)} ${le(t).toFixed(1)} `; }
   for (let i = 24; i >= 0; i--){ const t = i / 24; lo += `L${X(t).toFixed(1)} ${(le(t) + chord(t)).toFixed(1)} `; }
-  let g = `<path class="out" d="${up}${lo}Z"/>`;
+  let g = `<path class="out" d="${up}${lo}Z"/>`, top = '';
   const byL = { A:[], B:[], C:[], Z:[] };
   lines.forEach((l, i) => byL[lvlOf(l)].push(i));
-  const barX = cx, barY = 124;
+  const barX = cx, barY = H - (big ? 14 : 8);
   let curPt = null;
-  for (const k of 'ABCZ'){
-    const idx = byL[k]; if (!idx.length) continue;
-    g += `<text x="${cx - dir * 4}" y="${(Y(0, LVL_DEPTH[k]) + 4).toFixed(1)}" text-anchor="${side === 'L' ? 'start' : 'end'}">${k}</text>`;
+  for (const lv of 'ABCZ'){
+    const idx = byL[lv]; if (!idx.length) continue;
+    g += `<text x="${cx - dir * (big ? 8 : 4)}" y="${(Y(0, LVL_DEPTH[lv]) + 4).toFixed(1)}" text-anchor="${side === 'L' ? 'start' : 'end'}"${big ? ' style="font-size:18px"' : ''}>${lv}</text>`;
     idx.forEach((li, j) => {
-      const t = .06 + .9 * (j + .5) / idx.length, x = X(t), y = Y(t, LVL_DEPTH[k]);
-      const l = lines[li], isCur = l === line;
+      const t = .06 + .9 * (j + .5) / idx.length, x = X(t), y = Y(t, LVL_DEPTH[lv]);
+      const l = lines[li], isCur = l === line, r = big ? (isCur ? 11 : 6.5) : (isCur ? 6.5 : 3.6);
       if (isCur) curPt = [x, y];
-      g += `<circle class="pt ${side}${l[side] != null ? ' done' : ''}${isCur ? ' cur' : ''}" data-i="${li}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isCur ? 6.5 : 3.6}"><title>${esc(l.name)}</title></circle>`;
+      g += `<circle class="pt ${side}${l[side] != null ? ' done' : ''}${isCur ? ' cur' : ''}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}"/>`;
+      if (big) g += `<text class="lbl2${isCur ? ' cur' : ''}" x="${x.toFixed(1)}" y="${(y - r - 5).toFixed(1)}" text-anchor="middle">${esc(l.name)}</text>`;
+      top += `<circle class="hit" data-i="${li}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${big ? 22 : 11}"><title>${esc(l.name)}</title></circle>`;
     });
   }
   if (curPt){
     g = `<path class="ray ${side}" d="M${curPt[0].toFixed(1)} ${curPt[1].toFixed(1)} L${barX} ${barY}"/>` + g;
-    g += `<circle class="halo ray ${side}" style="stroke-dasharray:none" cx="${curPt[0].toFixed(1)}" cy="${curPt[1].toFixed(1)}" r="11"/>`;
+    g += `<circle class="halo ray ${side}" style="stroke-dasharray:none" cx="${curPt[0].toFixed(1)}" cy="${curPt[1].toFixed(1)}" r="${big ? 19 : 11}"/>`;
   }
-  g += `<path d="M${barX - 14} ${barY} L${barX + 14} ${barY}" stroke="var(--muted)" stroke-width="3" stroke-linecap="round"/>`;
-  g += `<text x="${barX + dir * 20}" y="${barY + 4}" text-anchor="${side === 'L' ? 'end' : 'start'}">Bar · ${side === 'L' ? 'linke' : 'rechte'} Seite</text>`;
-  svg.innerHTML = g;
+  g += `<path d="M${barX - (big ? 26 : 14)} ${barY} L${barX + (big ? 26 : 14)} ${barY}" stroke="var(--muted)" stroke-width="${big ? 5 : 3}" stroke-linecap="round"/>`;
+  g += `<text x="${barX + dir * (big ? 36 : 20)}" y="${barY + 4}" text-anchor="${side === 'L' ? 'end' : 'start'}"${big ? ' style="font-size:16px"' : ''}>Bar · ${side === 'L' ? 'linke' : 'rechte'} Seite</text>`;
+  return g + top;
 }
-$('kmap').addEventListener('click', e => {
-  const c = e.target.closest('.pt'); if (!c) return;
+function mapJump(e){
+  const c = e.target.closest('.hit'); if (!c) return;
   const i = +c.dataset.i; pos = (pos < N() ? 0 : N()) + i; render();
-});
+}
+$('kmap').addEventListener('click', mapJump);
+$('kmapBig').addEventListener('click', mapJump);
+async function kfOpen(){
+  $('kfull').hidden = false; render();
+  try{ if (document.documentElement.requestFullscreen && !document.fullscreenElement) await document.documentElement.requestFullscreen(); }catch(e){}
+  try{ await screen.orientation.lock('landscape'); }catch(e){}
+}
+async function kfClose(){
+  $('kfull').hidden = true;
+  try{ screen.orientation.unlock(); }catch(e){}
+  try{ if (document.fullscreenElement) await document.exitFullscreen(); }catch(e){}
+}
+$('kExp').onclick = kfOpen;
+$('kfClose').onclick = kfClose;
+$('kfSide').onclick = switchSide;
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && !$('kfull').hidden) $('kfull').hidden = true; });
 
 /* ---------- Sprachansage ---------- */
 let lastSaid = '';

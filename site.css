@@ -1,17 +1,11 @@
 :root{
-  --paper:#f3f5f6; --sheet:#ffffff; --ink:#0f2131; --ink-2:#4a5a68; --rule:#d6dde2;
-  --accent:#e8661c; --accent-ink:#b44a0c; --left:#1f6fb2;
+  --paper:#0b141c; --sheet:#111d27; --ink:#e7edf2; --ink-2:#9aabb8; --rule:#24333f;
+  --accent:#ff7a2e; --accent-ink:#ff9a5c; --left:#5aa7e8;
   --f-display:"Barlow Condensed","Inter Display",system-ui,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,sans-serif;
   --f-word:"Space Grotesk","Inter Display",system-ui,sans-serif;
-  color-scheme:light;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#0b141c; --sheet:#111d27; --ink:#e7edf2; --ink-2:#9aabb8; --rule:#24333f;
-  --accent:#ff7a2e; --accent-ink:#ff9a5c; --left:#5aa7e8; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --paper:#0b141c; --sheet:#111d27; --ink:#e7edf2; --ink-2:#9aabb8; --rule:#24333f;
-  --accent:#ff7a2e; --accent-ink:#ff9a5c; --left:#5aa7e8; color-scheme:dark}
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -50,7 +44,7 @@ section{padding:48px 0}
 .foot .wrap{display:flex;justify-content:space-between;gap:12px 24px;flex-wrap:wrap}
 
 .tag{display:inline-block;font-family:var(--f-display);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:13px;border:1.5px solid var(--accent);color:var(--accent-ink);border-radius:4px;padding:2px 10px}
-.todo{background:rgba(232,102,28,.12);color:var(--ink);border-radius:3px;padding:0 4px;font-size:.92em}
+.todo{background:rgba(255,122,46,.16);color:var(--ink);border-radius:3px;padding:0 4px;font-size:.92em}
 .ph{aspect-ratio:4/3;border:1.5px dashed var(--rule);border-radius:6px;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;background:var(--paper);color:var(--ink-2);font-family:var(--f-display);letter-spacing:.1em;text-transform:uppercase;font-size:13px;font-weight:600;text-align:center;padding:12px}
 .ph svg{width:56px;height:auto}
 @media (max-width:560px){.top .wrap{gap:4px}.nav{width:100%;justify-content:space-between;margin:0 -6px}.nav a{padding:8px 6px;font-size:15px}}

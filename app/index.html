@@ -873,7 +873,7 @@ async function btAutoReconnect(){
   } finally { btRetrying = false; }
 }
 async function btConnect(all){
-  if (!navigator.bluetooth) return showToast('Kein Web Bluetooth – bitte Chrome auf Android verwenden');
+  if (!navigator.bluetooth) return showToast('Kein Web Bluetooth – Android: Chrome · PC/Mac: Chrome oder Edge · iPhone/iPad: App Bluefy');
   if (device?.gatt.connected){ btManualOff = true; device.gatt.disconnect(); return; }
   btManualOff = false;
   if (all) device = null;

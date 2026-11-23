@@ -34,6 +34,8 @@
 .card:hover{border-color:var(--accent);color:var(--ink)}
 .card h3{font-size:28px}
 .card p{color:var(--ink-2);flex-grow:1}
+.compat{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--ink-2)}
+.compat b{display:inline-block;min-width:96px;color:var(--ink);font-weight:600}
 .card .go{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink)}
 @media (max-width:820px){.cards{grid-template-columns:1fr}}
 
@@ -146,7 +148,12 @@
         <a class="sheet card" href="app/index.html">
           <span class="lbl">Werkzeug</span>
           <h3>Mess-App</h3>
-          <p>Laser verbinden, Kite wählen, messen. Läuft im Browser auf Android (Chrome). Zugang derzeit nur für Testnutzer.</p>
+          <p>Laser verbinden, Kite wählen, messen – direkt im Browser. Zugang derzeit nur für Testnutzer.</p>
+          <ul class="compat">
+            <li><b>Android</b> Chrome</li>
+            <li><b>PC / Mac</b> Chrome oder Edge</li>
+            <li><b>iPhone / iPad</b> App „Bluefy“</li>
+          </ul>
           <span class="go">App öffnen →</span>
         </a>
       </div>

@@ -155,6 +155,7 @@
 <script src="../config.js"></script>
 <script src="../auth.js"></script>
 <script>TW.guard();</script>
+<script src="sb-api.js"></script>
 </head>
 <body>
 <header>
@@ -229,7 +230,7 @@
 
 <dialog id="cfg">
   <h2>Einstellungen</h2>
-  <label for="cUrl">Google-Skript-URL (endet auf /exec)</label>
+  <label for="cUrl">Google-Skript-URL (nur noch für Winddaten von Nora, endet auf /exec)</label>
   <input id="cUrl" placeholder="https://script.google.com/macros/s/…/exec">
   <label for="cKey">Passwort (wie im Skript)</label>
   <input id="cKey" type="password">
@@ -449,7 +450,8 @@ let device = null, chr = null, wakeLock = null, lastPkt = { v:null, t:0 };
 
 /* ---------- Google-Skript ---------- */
 async function api(params){
-  if (!cfg.url) throw new Error('Keine Skript-URL – bitte in ⚙ eintragen');
+  if (window.SBAPI && SBAPI.has(params.action)) return SBAPI.call(params);   // Daten in Supabase
+  if (!cfg.url) throw new Error(params.action === 'wind' ? 'Winddaten: Google-Skript-URL in ⚙ eintragen' : 'Keine Skript-URL – bitte in ⚙ eintragen');
   const q = new URLSearchParams({ ...params, key: cfg.key });
   const r = await fetch(cfg.url + '?' + q.toString(), { redirect:'follow' });
   const j = await r.json();
@@ -458,6 +460,7 @@ async function api(params){
 }
 
 async function apiPost(body){
+  if (window.SBAPI) return SBAPI.post(body);
   if (!cfg.url) throw new Error('Keine Skript-URL – bitte in ⚙ eintragen');
   const r = await fetch(cfg.url, { method:'POST', redirect:'follow',
     headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify({ ...body, key: cfg.key }) });
@@ -948,12 +951,12 @@ function loadQr(){
 }
 $('shMake').onclick = async () => {
   const id = $('shSel').value; if (!id) return showToast('Zuerst eine Messreihe sichern (📦)');
-  const dep = (/\/s\/([^/]+)\/exec/.exec(cfg.url) || [])[1];
-  if (!dep) return showToast('⚠ Skript-URL in ⚙ prüfen');
+  const dep = window.SBAPI ? '' : (/\/s\/([^/]+)\/exec/.exec(cfg.url) || [])[1];
+  if (!window.SBAPI && !dep) return showToast('⚠ Skript-URL in ⚙ prüfen');
   $('shMake').disabled = true;
   try{
     const j = await api({ action:'share_create', id, zustand: $('shState').value, serial: store.get('serial:' + kite, ''), basis: $('shBasis').checked ? '1' : '0' });
-    const link = new URL('../vergleich/index.html', location.href).href + `?t=${j.token}&s=${dep}`;
+    const link = new URL('../vergleich/index.html', location.href).href + `?t=${j.token}` + (dep ? `&s=${dep}` : '');
     $('shLink').value = link; $('shOut').hidden = false; $('shQr').innerHTML = '';
     try{ await loadQr(); new QRCode($('shQr'), { text: link, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M }); }
     catch(e){ $('shQr').textContent = 'QR-Code gerade nicht verfügbar'; }
@@ -1438,7 +1441,7 @@ $('lbClose').onclick = () => $('lb').close();
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c])); }
 
-if (!cfg.url) openCfg(); else { loadKites(); flush(); }
+if (!cfg.url && !window.SBAPI) openCfg(); else { loadKites(); flush(); }
 </script>
 </body>
 </html>

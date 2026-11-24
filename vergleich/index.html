@@ -99,6 +99,7 @@ section.block h2{font-size:28px;margin-bottom:12px}
           <span><i style="background:var(--bad)"></i>darüber</span>
         </div>
       </div>
+      <p class="note" id="cmpNote" hidden style="margin:-4px 0 0">Weitere Vergleichsmessungen erscheinen hier, sobald andere Besitzer ihre Messung dieses Modells anonym freigeben.</p>
 
       <section class="block">
         <div class="sheet">
@@ -126,7 +127,7 @@ section.block h2{font-size:28px;margin-bottom:12px}
 <footer class="foot">
   <div class="wrap">
     <span><a href="../index.html">trimwerk.app</a></span>
-    <span>Unabhängiges Projekt, nicht mit Flysurfer verbunden. Vergleichsmessungen werden ohne Namen gezeigt.</span>
+    <span>Unabhängiges Projekt, nicht mit Flysurfer verbunden. Vergleichsmessungen nur mit Zustimmung der Besitzer und ohne Namen.</span>
   </div>
 </footer>
 
@@ -170,6 +171,7 @@ function show(j){
     `<option value="${esc(c.key)}">Messung vom ${esc(fmtDate(c.datum))}${c.zustand ? ' · ' + esc(c.zustand) : ''}</option>`));
   $('cmpSel').innerHTML = opts.join('');
   if ((j.compare || []).length) $('cmpSel').value = j.compare[0].key;
+  $('cmpNote').hidden = (j.compare || []).length > 0;
   $('state').hidden = true; $('view').hidden = false;
   render();
 }

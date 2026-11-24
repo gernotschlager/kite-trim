@@ -259,6 +259,7 @@
     <div><label for="shSel">Gesicherte Messreihe</label><select id="shSel"><option value="">– zuerst sichern –</option></select></div>
     <div><label for="shState">Zustand</label><select id="shState"><option>gebraucht</option><option>neu</option><option>nach Trimm</option></select></div>
   </div>
+  <label class="chk"><input type="checkbox" id="shBasis"> Anonym für Vergleiche freigeben (andere sehen die Werte ohne Namen als Vergleich)</label>
   <div class="row"><button class="btn" id="shMake" type="button">🔗 Link für Käufer erstellen</button></div>
   <div id="shOut" hidden style="margin-top:10px">
     <input id="shLink" readonly aria-label="Freigabe-Link" style="width:100%">
@@ -267,7 +268,7 @@
       <button class="btn" id="shShare" type="button">Teilen …</button>
       <button class="btn" id="shCopy" type="button">Link kopieren</button>
     </div>
-    <p class="hint" style="font-size:13px">Käufer sehen diese Messreihe nur zum Lesen, neben dem Leinenplan und anderen Messungen desselben Modells (ohne Namen). Link zurückziehen: im Blatt „Freigaben“ bei „Aktiv“ „nein“ eintragen.</p>
+    <p class="hint" style="font-size:13px">Käufer sehen diese Messreihe nur zum Lesen, neben dem Leinenplan und den Messungen desselben Modells, die ihre Besitzer anonym freigegeben haben. Link zurückziehen: im Blatt „Freigaben“ bei „Aktiv“ „nein“ eintragen.</p>
   </div>
   <div class="sec">Messreihe sichern</div>
   <div class="f2">
@@ -946,7 +947,7 @@ $('shMake').onclick = async () => {
   if (!dep) return showToast('⚠ Skript-URL in ⚙ prüfen');
   $('shMake').disabled = true;
   try{
-    const j = await api({ action:'share_create', id, zustand: $('shState').value, serial: store.get('serial:' + kite, '') });
+    const j = await api({ action:'share_create', id, zustand: $('shState').value, serial: store.get('serial:' + kite, ''), basis: $('shBasis').checked ? '1' : '0' });
     const link = new URL('../vergleich/index.html', location.href).href + `?t=${j.token}&s=${dep}`;
     $('shLink').value = link; $('shOut').hidden = false; $('shQr').innerHTML = '';
     try{ await loadQr(); new QRCode($('shQr'), { text: link, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M }); }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" class="tw-wait">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -44,8 +44,31 @@
 .fact .k{color:var(--ink-2);font-size:15px;margin-top:6px}
 @media (max-width:820px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
+<style>
+.tw-wait body{visibility:hidden}
+#gate{display:none;min-height:calc(100vh - 160px);align-items:center;justify-content:center;padding:40px 16px}
+.gated #gate{display:flex}
+.gated main,.gated .nav,.gated .foot .out{display:none}
+.gatebox{width:100%;max-width:420px;display:flex;flex-direction:column;gap:18px}
+.gatebox h1{font-size:clamp(36px,6vw,52px);font-weight:700}
+.gatebox p{color:var(--ink-2)}
+.gatebox form{display:flex;flex-direction:column;gap:12px}
+.gatebox form[hidden]{display:none}
+.gatebox .tag{align-self:flex-start}
+.gatebox label{font-family:var(--f-display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--ink-2)}
+.gatebox input{font:inherit;font-size:17px;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:8px;min-height:48px;padding:0 14px;width:100%}
+.gatebox input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.gatebox .btn{justify-content:center;width:100%;cursor:pointer}
+.gatebox .link{background:none;border:0;color:var(--accent-ink);font:inherit;font-size:15px;cursor:pointer;padding:8px 0;align-self:flex-start;min-height:44px}
+.gatebox .msg{font-size:15px;min-height:1.4em}
+.gatebox .msg.err{color:#ff8a7a}.gatebox .msg.ok{color:#3ecf8e}
+.foot .out button{background:none;border:0;color:var(--ink-2);font:inherit;font-size:14px;cursor:pointer;padding:0;text-decoration:underline}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
 </head>
-<body>
+<body class="gated">
 
 <header class="top">
   <div class="wrap">
@@ -66,6 +89,37 @@
     </nav>
   </div>
 </header>
+
+<section id="gate" aria-label="Anmeldung">
+  <div class="gatebox sheet">
+    <span class="tag">Bald verfügbar</span>
+    <h1>Trimwerk</h1>
+    <p>Leinen messen, Kites trimmen, Trimm belegen. Die Plattform ist im Aufbau – Zugang derzeit nur auf Einladung.</p>
+    <form id="fLogin" data-mode="login">
+      <label for="lEmail">E-Mail</label>
+      <input id="lEmail" type="email" autocomplete="username" required>
+      <label for="lPw">Passwort</label>
+      <input id="lPw" type="password" autocomplete="current-password" required>
+      <button class="btn primary" type="submit">Anmelden</button>
+      <button class="link" type="button" id="toForgot">Passwort vergessen?</button>
+    </form>
+    <form id="fForgot" data-mode="forgot" hidden>
+      <label for="fEmail">E-Mail</label>
+      <input id="fEmail" type="email" autocomplete="username" required>
+      <button class="btn primary" type="submit">Link zum Zurücksetzen senden</button>
+      <button class="link" type="button" id="toLogin">Zurück zur Anmeldung</button>
+    </form>
+    <form id="fSetPw" data-mode="setpw" hidden>
+      <p style="color:var(--ink)">Willkommen! Lege jetzt dein Passwort fest.</p>
+      <label for="sPw">Neues Passwort (mind. 8 Zeichen)</label>
+      <input id="sPw" type="password" autocomplete="new-password" minlength="8" required>
+      <label for="sPw2">Passwort wiederholen</label>
+      <input id="sPw2" type="password" autocomplete="new-password" minlength="8" required>
+      <button class="btn primary" type="submit">Passwort speichern</button>
+    </form>
+    <div class="msg" id="gMsg" role="status" aria-live="polite"></div>
+  </div>
+</section>
 
 <main>
   <section class="hero">
@@ -163,10 +217,63 @@
 
 <footer class="foot">
   <div class="wrap">
+    <span class="out"><button type="button" id="logout">Abmelden</button> <span id="who"></span></span>
     <span>trimwerk.app</span>
     <span>Unabhängiges Projekt, nicht mit Flysurfer verbunden. Markennamen gehören ihren Inhabern.</span>
   </div>
 </footer>
 
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const forms = ['fLogin', 'fForgot', 'fSetPw'];
+  const msg = (t, cls) => { $('gMsg').textContent = t || ''; $('gMsg').className = 'msg' + (cls ? ' ' + cls : ''); };
+  const mode = m => { forms.forEach(f => $(f).hidden = $(f).dataset.mode !== m); msg(''); };
+  const reveal = () => document.documentElement.classList.remove('tw-wait');
+  const next = new URLSearchParams(location.search).get('next');
+  async function unlock(s) {
+    if (next && next.startsWith('/') && !next.startsWith('//')) return location.replace(next);
+    document.body.classList.remove('gated');
+    if (s) $('who').textContent = '· ' + s.user.email;
+    if (location.search || location.hash) history.replaceState(null, '', location.pathname);
+  }
+  const de = e => /Invalid login/i.test(e.message) ? 'E-Mail oder Passwort stimmt nicht.'
+    : /Email not confirmed/i.test(e.message) ? 'Die E-Mail-Adresse ist noch nicht bestätigt.'
+    : /rate limit/i.test(e.message) ? 'Zu viele Versuche – bitte kurz warten.' : e.message;
+
+  $('toForgot').onclick = () => { mode('forgot'); $('fEmail').value = $('lEmail').value; };
+  $('toLogin').onclick = () => mode('login');
+  $('fLogin').onsubmit = async e => {
+    e.preventDefault(); msg('Anmelden …');
+    const { data, error } = await TW.sb.auth.signInWithPassword({ email: $('lEmail').value.trim(), password: $('lPw').value });
+    if (error) return msg(de(error), 'err');
+    unlock(data.session);
+  };
+  $('fForgot').onsubmit = async e => {
+    e.preventDefault(); msg('Senden …');
+    const { error } = await TW.sb.auth.resetPasswordForEmail($('fEmail').value.trim(), { redirectTo: TW.root + 'index.html' });
+    if (error) return msg(de(error), 'err');
+    msg('Falls ein Konto existiert, ist eine E-Mail mit Link unterwegs.', 'ok');
+  };
+  $('fSetPw').onsubmit = async e => {
+    e.preventDefault();
+    if ($('sPw').value !== $('sPw2').value) return msg('Die Passwörter stimmen nicht überein.', 'err');
+    msg('Speichern …');
+    const { error } = await TW.sb.auth.updateUser({ password: $('sPw').value });
+    if (error) return msg(de(error), 'err');
+    unlock(await TW.session());
+  };
+  $('logout').onclick = () => TW.logout();
+  TW.sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') { document.body.classList.add('gated'); mode('setpw'); } });
+
+  (async () => {
+    const s = await TW.session();
+    if (s && (TW.linkType === 'invite' || TW.linkType === 'recovery')) mode('setpw');
+    else if (s || !window.TRIMWERK_CONFIG.gate) unlock(s);
+    else mode('login');
+    reveal();
+  })();
+})();
+</script>
 </body>
 </html>

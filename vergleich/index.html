@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;700&display=swap">
 <link rel="stylesheet" href="../site.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="../config.js"></script>
 <style>
 :root{--ok:#3ecf8e;--warn:#f5c04a;--bad:#ff6b5e;--f-mono:"IBM Plex Mono",ui-monospace,monospace}
 main{padding:32px 0 56px}
@@ -148,7 +150,16 @@ async function load(){
   const q = new URLSearchParams(location.search);
   if (q.has('demo')) return show(DEMO);
   const t = (q.get('t') || '').replace(/[^a-f0-9]/gi, ''), s = (q.get('s') || '').replace(/[^A-Za-z0-9_-]/g, '');
-  if (!t || !s) return fail('Dieser Link ist unvollständig. Bitte den Link oder QR-Code vom Verkäufer erneut öffnen.');
+  if (!t) return fail('Dieser Link ist unvollständig. Bitte den Link oder QR-Code vom Verkäufer erneut öffnen.');
+  if (!s){  // neue Links: Bericht aus Supabase (nur über den geheimen Link lesbar)
+    try{
+      const C = window.TRIMWERK_CONFIG, sb = window.supabase.createClient(C.supabaseUrl, C.supabaseKey, { auth: { persistSession: false } });
+      const { data, error } = await sb.rpc('shared_report', { t });
+      if (error) throw error;
+      if (!data || !data.ok) return fail((data && data.error) || 'Messprotokoll nicht gefunden.');
+      return show(data);
+    }catch(e){ return fail('Das Messprotokoll konnte gerade nicht geladen werden. Bitte später erneut versuchen.'); }
+  }
   try{
     const r = await fetch(`https://script.google.com/macros/s/${s}/exec?action=share_get&t=${t}`, { redirect:'follow' });
     const j = await r.json();

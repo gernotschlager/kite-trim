@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" class="tw-wait">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -24,6 +24,11 @@
 @media (max-width:600px){.signs{grid-template-columns:1fr}}
 .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
 </style>
+<style>.tw-wait body{visibility:hidden}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="../config.js"></script>
+<script src="../auth.js"></script>
+<script>TW.guard();</script>
 </head>
 <body>
 

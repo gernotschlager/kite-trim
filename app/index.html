@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" class="tw-wait">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -150,6 +150,11 @@
   #kdlg.edit .kc{outline:1px dashed var(--warn);outline-offset:1px}
   .ksec{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin:6px 0}
 </style>
+<style>.tw-wait body{visibility:hidden}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="../config.js"></script>
+<script src="../auth.js"></script>
+<script>TW.guard();</script>
 </head>
 <body>
 <header>

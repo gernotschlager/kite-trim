@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Messprotokoll – Trimwerk</title>
+<meta name="description" content="Vermessener Kite: jede Leine gegen den Leinenplan und im Vergleich mit anderen Kites desselben Modells.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b141c">
+<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;700&display=swap">
+<link rel="stylesheet" href="../site.css">
+<style>
+:root{--ok:#3ecf8e;--warn:#f5c04a;--bad:#ff6b5e;--f-mono:"IBM Plex Mono",ui-monospace,monospace}
+main{padding:32px 0 56px}
+.state{padding:60px 0;text-align:center;color:var(--ink-2)}
+.head h1{font-size:clamp(34px,5.4vw,56px);font-weight:700;margin:10px 0 6px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:13px;color:var(--ok)}
+.badge svg{width:16px;height:16px}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:22px}
+.fact .k{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:var(--ink-2);font-weight:600}
+.fact .v{font-family:var(--f-mono);font-size:17px;margin-top:4px;word-break:break-word}
+@media (max-width:720px){.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.demo{background:rgba(255,122,46,.12);border:1px solid rgba(255,122,46,.4);border-radius:8px;padding:12px 16px;font-size:14px;margin-bottom:18px}
+
+.cmpbar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin:28px 0 14px}
+.cmpbar label{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:15px}
+select{font:inherit;font-size:16px;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:8px;min-height:44px;padding:0 12px;max-width:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+th{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;font-size:12px;color:var(--ink-2);font-weight:600;vertical-align:bottom}
+th.grp{text-align:center;border-bottom:2px solid var(--rule)}
+th.me{color:var(--accent-ink)}
+td:first-child,th.l{text-align:left}
+td.num{font-family:var(--f-mono)}
+td.sep,th.sep{border-left:1px solid var(--rule)}
+tr.lvl td{font-family:var(--f-display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--ink-2);text-align:left;padding-top:16px;border-bottom:none}
+.d{font-family:var(--f-mono);font-size:13px;margin-left:6px}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}.muted{color:var(--ink-2)}
+.sum td{font-size:16px}
+.sum td.big{font-family:var(--f-mono);font-size:18px}
+.note{color:var(--ink-2);font-size:14px;margin-top:14px;max-width:62em}
+.note p+p{margin-top:8px}
+section.block{padding:0;margin-top:28px}
+section.block h2{font-size:28px;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../index.html" aria-label="trimwerk – Startseite">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M6 30 C18 10 46 10 58 30" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        <path d="M14 27 L32 54 M24 20 L32 54 M40 20 L32 54 M50 27 L32 54" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+        <path d="M32 54 L32 30" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="27" r="3.4" fill="var(--accent)"/>
+      </svg>
+      <span class="wm"><b>trim</b><span>werk</span><i></i></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="../bericht/index.html">Musterbericht</a>
+      <a href="../diy/index.html">DIY</a>
+      <a href="../ueber/index.html">Über</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div id="state" class="state">Messprotokoll wird geladen …</div>
+
+    <div id="view" hidden>
+      <div id="demo" class="demo" hidden><b>Beispiel.</b> Diese Ansicht zeigt die simulierten Werte des Musterberichts. Ein echter Link zeigt die Messung eines bestimmten Kites.</div>
+
+      <div class="sheet head">
+        <span class="badge"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Gesicherte Messung · nicht veränderbar</span>
+        <h1 id="kite">–</h1>
+        <p class="muted">Jede Waageleine links und rechts mit dem Laser gemessen und mit dem Leinenplan des Herstellers verglichen.</p>
+        <div class="facts">
+          <div class="fact"><div class="k">Messdatum</div><div class="v" id="fDate">–</div></div>
+          <div class="fact"><div class="k">Seriennummer</div><div class="v" id="fSerial">–</div></div>
+          <div class="fact"><div class="k">Zustand</div><div class="v" id="fState">–</div></div>
+          <div class="fact"><div class="k">Gemessen</div><div class="v" id="fCount">–</div></div>
+        </div>
+      </div>
+
+      <div class="cmpbar">
+        <label for="cmpSel">Vergleichen mit</label>
+        <select id="cmpSel"></select>
+        <div class="legend">
+          <span><i style="background:var(--ok)"></i>bis ±5 mm</span>
+          <span><i style="background:var(--warn)"></i>bis ±15 mm</span>
+          <span><i style="background:var(--bad)"></i>darüber</span>
+        </div>
+      </div>
+
+      <section class="block">
+        <div class="sheet">
+          <h2>Auf einen Blick</h2>
+          <div class="scroll"><table class="sum" id="sumTbl"></table></div>
+          <p class="note">Durchschnittliche Abweichung jeder Ebene vom Leinenplan, getrennt nach links und rechts. Minus heißt: Die Leinen sind kürzer als vorgesehen – typisch für Schrumpfung mit der Zeit.</p>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="sheet">
+          <h2>Jede Leine</h2>
+          <div class="scroll"><table id="lineTbl"></table></div>
+          <div class="note">
+            <p><b>So ist gemessen:</b> Alle Leinen unter gleicher Last (5 kg) eingehängt, Länge per Laser bis zum Einhängepunkt, Zielscheiben-Abstand herausgerechnet. Δ = gemessene Länge − Leinenplan.</p>
+            <p><b>Z-Ebene:</b> In der Standardstellung des Performance Tuners (Mitte) sind rund +20 mm gegenüber dem Leinenplan normal – der Plan gilt für den kurzen Knoten.</p>
+            <p><b>B- und C-Ebene:</b> Gemessen bis zur Umlenkrolle am Mixer, ohne Pulleyline.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span><a href="../index.html">trimwerk.app</a></span>
+    <span>Unabhängiges Projekt, nicht mit Flysurfer verbunden. Vergleichsmessungen werden ohne Namen gezeigt.</span>
+  </div>
+</footer>
+
+<script>
+const DEMO = {"ok":true,"demo":true,"kite":"Sonic5 10m²","datum":"2026-11-21","zustand":"gebraucht","serial":"S5-10-XXXXXX","lines":[{"group":"A-Ebene","name":"a1","soll":6196,"L":6164,"R":6168},{"group":"A-Ebene","name":"a2","soll":6100,"L":6072,"R":6071},{"group":"A-Ebene","name":"a3","soll":5853,"L":5819,"R":5822},{"group":"A-Ebene","name":"a4","soll":5787,"L":5757,"R":5761},{"group":"A-Ebene","name":"a5","soll":5502,"L":5472,"R":5474},{"group":"A-Ebene","name":"a6","soll":5389,"L":5358,"R":5358},{"group":"A-Ebene","name":"a7","soll":5093,"L":5064,"R":5065},{"group":"A-Ebene","name":"a8","soll":5013,"L":4980,"R":4985},{"group":"A-Ebene","name":"a9","soll":4713,"L":4686,"R":4686},{"group":"A-Ebene","name":"a10","soll":4616,"L":4583,"R":4588},{"group":"A-Ebene","name":"a11","soll":4455,"L":4427,"R":4430},{"group":"B-Ebene","name":"b1","soll":4929,"L":4878,"R":4877},{"group":"B-Ebene","name":"b2","soll":4832,"L":4779,"R":4782},{"group":"B-Ebene","name":"b3","soll":4584,"L":4530,"R":4531},{"group":"B-Ebene","name":"b4","soll":4518,"L":4462,"R":4465},{"group":"B-Ebene","name":"b5","soll":4235,"L":4184,"R":4185},{"group":"B-Ebene","name":"b6","soll":4123,"L":4072,"R":4073},{"group":"B-Ebene","name":"b7","soll":3832,"L":3777,"R":3777},{"group":"B-Ebene","name":"b8","soll":3755,"L":3700,"R":3701},{"group":"B-Ebene","name":"b9","soll":3472,"L":3421,"R":3422},{"group":"B-Ebene","name":"b10","soll":3375,"L":3326,"R":3333},{"group":"B-Ebene","name":"b11","soll":3219,"L":3166,"R":3166},{"group":"B-Ebene","name":"b12","soll":3103,"L":3046,"R":3047},{"group":"C-Ebene","name":"c1","soll":5387,"L":5323,"R":5322},{"group":"C-Ebene","name":"c2","soll":5290,"L":5222,"R":5224},{"group":"C-Ebene","name":"c3","soll":5042,"L":4963,"R":4973},{"group":"C-Ebene","name":"c4","soll":4976,"L":4912,"R":4911},{"group":"C-Ebene","name":"c5","soll":4690,"L":4627,"R":4628},{"group":"C-Ebene","name":"c6","soll":4579,"L":4514,"R":4516},{"group":"C-Ebene","name":"c7","soll":4289,"L":4226,"R":4227},{"group":"C-Ebene","name":"c8","soll":4210,"L":4143,"R":4142},{"group":"C-Ebene","name":"c9","soll":3917,"L":3853,"R":3852},{"group":"C-Ebene","name":"c10","soll":3821,"L":3752,"R":3753},{"group":"C-Ebene","name":"c11","soll":3666,"L":3603,"R":3602},{"group":"C-Ebene","name":"c12","soll":3546,"L":3482,"R":3482},{"group":"Z-Ebene","name":"br1","soll":6397,"L":6388,"R":6408},{"group":"Z-Ebene","name":"br2","soll":6135,"L":6129,"R":6144},{"group":"Z-Ebene","name":"br3","soll":5953,"L":5943,"R":5964},{"group":"Z-Ebene","name":"br4","soll":5737,"L":5726,"R":5743},{"group":"Z-Ebene","name":"br5","soll":5480,"L":5472,"R":5492},{"group":"Z-Ebene","name":"br6","soll":5262,"L":5250,"R":5269},{"group":"Z-Ebene","name":"br7","soll":5044,"L":5036,"R":5054},{"group":"Z-Ebene","name":"br8","soll":4929,"L":4922,"R":4940},{"group":"Z-Ebene","name":"br9","soll":4738,"L":4724,"R":4745},{"group":"Z-Ebene","name":"br10","soll":4570,"L":4560,"R":4578},{"group":"Z-Ebene","name":"br11","soll":4477,"L":4466,"R":4484},{"group":"Z-Ebene","name":"br12","soll":4459,"L":4452,"R":4468}],"compare":[{"key":"v1","datum":"2026-11-21","zustand":"nach Trimm","lines":[{"group":"A-Ebene","name":"a1","soll":6196,"L":6163,"R":6168},{"group":"A-Ebene","name":"a2","soll":6100,"L":6071,"R":6072},{"group":"A-Ebene","name":"a3","soll":5853,"L":5818,"R":5821},{"group":"A-Ebene","name":"a4","soll":5787,"L":5756,"R":5761},{"group":"A-Ebene","name":"a5","soll":5502,"L":5472,"R":5474},{"group":"A-Ebene","name":"a6","soll":5389,"L":5357,"R":5359},{"group":"A-Ebene","name":"a7","soll":5093,"L":5065,"R":5065},{"group":"A-Ebene","name":"a8","soll":5013,"L":4979,"R":4986},{"group":"A-Ebene","name":"a9","soll":4713,"L":4685,"R":4687},{"group":"A-Ebene","name":"a10","soll":4616,"L":4584,"R":4587},{"group":"A-Ebene","name":"a11","soll":4455,"L":4427,"R":4430},{"group":"B-Ebene","name":"b1","soll":4929,"L":4903,"R":4901},{"group":"B-Ebene","name":"b2","soll":4832,"L":4805,"R":4805},{"group":"B-Ebene","name":"b3","soll":4584,"L":4553,"R":4552},{"group":"B-Ebene","name":"b4","soll":4518,"L":4487,"R":4487},{"group":"B-Ebene","name":"b5","soll":4235,"L":4207,"R":4207},{"group":"B-Ebene","name":"b6","soll":4123,"L":4095,"R":4095},{"group":"B-Ebene","name":"b7","soll":3832,"L":3802,"R":3802},{"group":"B-Ebene","name":"b8","soll":3755,"L":3726,"R":3727},{"group":"B-Ebene","name":"b9","soll":3472,"L":3442,"R":3445},{"group":"B-Ebene","name":"b10","soll":3375,"L":3345,"R":3344},{"group":"B-Ebene","name":"b11","soll":3219,"L":3188,"R":3188},{"group":"B-Ebene","name":"b12","soll":3103,"L":3072,"R":3071},{"group":"C-Ebene","name":"c1","soll":5387,"L":5358,"R":5358},{"group":"C-Ebene","name":"c2","soll":5290,"L":5262,"R":5261},{"group":"C-Ebene","name":"c3","soll":5042,"L":5014,"R":5014},{"group":"C-Ebene","name":"c4","soll":4976,"L":4947,"R":4948},{"group":"C-Ebene","name":"c5","soll":4690,"L":4661,"R":4660},{"group":"C-Ebene","name":"c6","soll":4579,"L":4549,"R":4551},{"group":"C-Ebene","name":"c7","soll":4289,"L":4263,"R":4261},{"group":"C-Ebene","name":"c8","soll":4210,"L":4179,"R":4179},{"group":"C-Ebene","name":"c9","soll":3917,"L":3892,"R":3892},{"group":"C-Ebene","name":"c10","soll":3821,"L":3791,"R":3792},{"group":"C-Ebene","name":"c11","soll":3666,"L":3640,"R":3637},{"group":"C-Ebene","name":"c12","soll":3546,"L":3519,"R":3518},{"group":"Z-Ebene","name":"br1","soll":6397,"L":6411,"R":6411},{"group":"Z-Ebene","name":"br2","soll":6135,"L":6144,"R":6147},{"group":"Z-Ebene","name":"br3","soll":5953,"L":5967,"R":5966},{"group":"Z-Ebene","name":"br4","soll":5737,"L":5751,"R":5751},{"group":"Z-Ebene","name":"br5","soll":5480,"L":5492,"R":5493},{"group":"Z-Ebene","name":"br6","soll":5262,"L":5273,"R":5272},{"group":"Z-Ebene","name":"br7","soll":5044,"L":5058,"R":5056},{"group":"Z-Ebene","name":"br8","soll":4929,"L":4940,"R":4941},{"group":"Z-Ebene","name":"br9","soll":4738,"L":4749,"R":4749},{"group":"Z-Ebene","name":"br10","soll":4570,"L":4583,"R":4581},{"group":"Z-Ebene","name":"br11","soll":4477,"L":4490,"R":4490},{"group":"Z-Ebene","name":"br12","soll":4459,"L":4471,"R":4471}]}]};
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[3]}.${m[2]}.${m[1]}` : (d || '–'); };
+const lvlOf = n => /^br/i.test(n) ? 'Z' : (n[0] || '?').toUpperCase();
+const LV = { A:'A-Ebene', B:'B-Ebene', C:'C-Ebene', Z:'Z-Ebene' };
+const cls = d => d == null ? 'muted' : Math.abs(d) <= 5 ? 'ok' : Math.abs(d) <= 15 ? 'warn' : 'bad';
+const sgn = d => d == null ? '–' : (d > 0 ? '+' : d < 0 ? '−' : '±') + Math.abs(Math.round(d));
+let data = null;
+
+function fail(msg){ $('state').textContent = msg; }
+
+async function load(){
+  const q = new URLSearchParams(location.search);
+  if (q.has('demo')) return show(DEMO);
+  const t = (q.get('t') || '').replace(/[^a-f0-9]/gi, ''), s = (q.get('s') || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (!t || !s) return fail('Dieser Link ist unvollständig. Bitte den Link oder QR-Code vom Verkäufer erneut öffnen.');
+  try{
+    const r = await fetch(`https://script.google.com/macros/s/${s}/exec?action=share_get&t=${t}`, { redirect:'follow' });
+    const j = await r.json();
+    if (!j.ok) return fail(j.error || 'Messprotokoll nicht gefunden.');
+    show(j);
+  }catch(e){ fail('Das Messprotokoll konnte gerade nicht geladen werden. Bitte später erneut versuchen.'); }
+}
+
+function show(j){
+  data = j;
+  $('demo').hidden = !j.demo;
+  $('kite').textContent = 'Flysurfer ' + String(j.kite || '').replace(/m²$/, ' m²');
+  document.title = `Messprotokoll ${j.kite} – Trimwerk`;
+  $('fDate').textContent = fmtDate(j.datum);
+  $('fSerial').textContent = j.serial || '–';
+  $('fState').textContent = j.zustand || '–';
+  const n = j.lines.length * 2, m = j.lines.reduce((a, l) => a + (l.L != null) + (l.R != null), 0);
+  $('fCount').textContent = `${m} von ${n} Leinen`;
+  const opts = ['<option value="">Leinenplan (Sollwerte)</option>'].concat((j.compare || []).map(c =>
+    `<option value="${esc(c.key)}">Messung vom ${esc(fmtDate(c.datum))}${c.zustand ? ' · ' + esc(c.zustand) : ''}</option>`));
+  $('cmpSel').innerHTML = opts.join('');
+  if ((j.compare || []).length) $('cmpSel').value = j.compare[0].key;
+  $('state').hidden = true; $('view').hidden = false;
+  render();
+}
+
+function avg(arr){ const v = arr.filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }
+
+function render(){
+  const c = (data.compare || []).find(x => x.key === $('cmpSel').value) || null;
+  const cmap = {}; if (c) c.lines.forEach(l => cmap[l.name] = l);
+  const dv = (l, s) => l && l[s] != null && l.soll != null ? l[s] - l.soll : null;
+  const cLabel = c ? `Vergleich ${fmtDate(c.datum)}` : null;
+
+  // Zusammenfassung je Ebene
+  const lv = {};
+  data.lines.forEach(l => { const k = lvlOf(l.name); (lv[k] = lv[k] || []).push(l); });
+  let h = `<tr><th class="l">Ebene</th><th class="grp me" colspan="2">Dieser Kite</th>${c ? `<th class="grp sep" colspan="2">${esc(cLabel)}</th>` : ''}</tr>`;
+  h += `<tr><th></th><th class="me">Links</th><th class="me">Rechts</th>${c ? '<th class="sep">Links</th><th>Rechts</th>' : ''}</tr>`;
+  ['A','B','C','Z'].filter(k => lv[k]).forEach(k => {
+    const a = s => avg(lv[k].map(l => dv(l, s)));
+    const b = s => avg(lv[k].map(l => dv(cmap[l.name], s)));
+    const td = (v, sep) => `<td class="big ${cls(v)}${sep ? ' sep' : ''}">${sgn(v)}</td>`;
+    h += `<tr><td>${LV[k]}</td>${td(a('L'))}${td(a('R'))}${c ? td(b('L'), true) + td(b('R')) : ''}</tr>`;
+  });
+  $('sumTbl').innerHTML = h;
+
+  // Jede Leine
+  let t = `<tr><th class="l" rowspan="2">Leine</th><th rowspan="2">Soll</th><th class="grp me" colspan="2">Dieser Kite</th>${c ? `<th class="grp sep" colspan="2">${esc(cLabel)}</th>` : ''}</tr>`;
+  t += `<tr><th class="me">Links</th><th class="me">Rechts</th>${c ? '<th class="sep">Links</th><th>Rechts</th>' : ''}</tr>`;
+  let g = null;
+  data.lines.forEach(l => {
+    const k = lvlOf(l.name);
+    if (k !== g){ g = k; t += `<tr class="lvl"><td colspan="${c ? 6 : 4}">${LV[k] || esc(l.group)}</td></tr>`; }
+    const cell = (x, s, sep) => {
+      const v = x ? x[s] : null, d = dv(x, s);
+      return `<td class="num${sep ? ' sep' : ''}">${v == null ? '<span class="muted">–</span>' : Math.round(v) + `<span class="d ${cls(d)}">${sgn(d)}</span>`}</td>`;
+    };
+    t += `<tr><td>${esc(l.name)}</td><td class="num muted">${l.soll == null ? '–' : Math.round(l.soll)}</td>${cell(l, 'L')}${cell(l, 'R')}${c ? cell(cmap[l.name], 'L', true) + cell(cmap[l.name], 'R') : ''}</tr>`;
+  });
+  $('lineTbl').innerHTML = t;
+}
+
+$('cmpSel').onchange = render;
+load();
+</script>
+</body>
+</html>

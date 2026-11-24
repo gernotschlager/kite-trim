@@ -254,6 +254,21 @@
   <p class="hint" id="listTime" style="margin:4px 0;color:var(--text)"></p>
   <p class="hint" id="listHint">Auf einen Wert tippen, um dorthin zu springen.</p>
   <table id="tbl"></table>
+  <div class="sec">Für Käufer freigeben</div>
+  <div class="f2">
+    <div><label for="shSel">Gesicherte Messreihe</label><select id="shSel"><option value="">– zuerst sichern –</option></select></div>
+    <div><label for="shState">Zustand</label><select id="shState"><option>gebraucht</option><option>neu</option><option>nach Trimm</option></select></div>
+  </div>
+  <div class="row"><button class="btn" id="shMake" type="button">🔗 Link für Käufer erstellen</button></div>
+  <div id="shOut" hidden style="margin-top:10px">
+    <input id="shLink" readonly aria-label="Freigabe-Link" style="width:100%">
+    <div id="shQr" style="background:#fff;padding:10px;width:max-content;margin:10px 0;border-radius:6px"></div>
+    <div class="row" style="flex-wrap:wrap">
+      <button class="btn" id="shShare" type="button">Teilen …</button>
+      <button class="btn" id="shCopy" type="button">Link kopieren</button>
+    </div>
+    <p class="hint" style="font-size:13px">Käufer sehen diese Messreihe nur zum Lesen, neben dem Leinenplan und anderen Messungen desselben Modells (ohne Namen). Link zurückziehen: im Blatt „Freigaben“ bei „Aktiv“ „nein“ eintragen.</p>
+  </div>
   <div class="sec">Messreihe sichern</div>
   <div class="f2">
     <div><label for="arLabel">Bezeichnung</label><input id="arLabel" placeholder="z. B. vor Korrektur Z-Ebene"></div>
@@ -913,7 +928,39 @@ async function arLoadList(){
   $('cmpSel').innerHTML = '<option value="">– kein Vergleich –</option>' + arList.map(x =>
     `<option value="${esc(x.id)}">${esc(x.datum)} · ${esc(x.label || 'ohne Bezeichnung')} (${x.gemessen}/${x.n})${x.messzeit !== '' && x.messzeit != null ? ' · ' + hm(+x.messzeit) : ''}</option>`).join('');
   $('cmpSel').value = cmp ? cmp.id : '';
+  $('shSel').innerHTML = arList.length ? arList.map(x => `<option value="${esc(x.id)}">${esc(x.datum)} · ${esc(x.label || 'ohne Bezeichnung')}</option>`).join('')
+    : '<option value="">– zuerst sichern –</option>';
+  $('shOut').hidden = true;
 }
+/* Freigabe-Link für Käufer */
+function loadQr(){
+  return window.QRCode ? Promise.resolve() : new Promise((ok, bad) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc);
+  });
+}
+$('shMake').onclick = async () => {
+  const id = $('shSel').value; if (!id) return showToast('Zuerst eine Messreihe sichern (📦)');
+  const dep = (/\/s\/([^/]+)\/exec/.exec(cfg.url) || [])[1];
+  if (!dep) return showToast('⚠ Skript-URL in ⚙ prüfen');
+  $('shMake').disabled = true;
+  try{
+    const j = await api({ action:'share_create', id, zustand: $('shState').value, serial: store.get('serial:' + kite, '') });
+    const link = new URL('../vergleich/index.html', location.href).href + `?t=${j.token}&s=${dep}`;
+    $('shLink').value = link; $('shOut').hidden = false; $('shQr').innerHTML = '';
+    try{ await loadQr(); new QRCode($('shQr'), { text: link, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M }); }
+    catch(e){ $('shQr').textContent = 'QR-Code gerade nicht verfügbar'; }
+    showToast(j.existing ? 'Bestehender Link für diese Messreihe ✓' : 'Link erstellt ✓');
+  }catch(e){ showToast('⚠ ' + (/Unbekannte Aktion|unknown/i.test(e.message) ? 'Skript noch ohne Freigabe – freigabe.gs einbauen' : e.message)); }
+  finally{ $('shMake').disabled = false; }
+};
+$('shCopy').onclick = async () => { try{ await navigator.clipboard.writeText($('shLink').value); showToast('Link kopiert ✓'); }catch(e){ $('shLink').select(); } };
+$('shShare').onclick = async () => {
+  const url = $('shLink').value;
+  if (navigator.share){ try{ await navigator.share({ title: 'Messprotokoll ' + kite, text: 'Vermessung meines Kites bei Trimwerk', url }); }catch(e){} }
+  else { try{ await navigator.clipboard.writeText(url); showToast('Link kopiert ✓'); }catch(e){} }
+};
 async function cmpSet(id, quiet){
   if (!id){ cmp = null; store.set(cmpKey(), ''); render(); if ($('list').open) listRender(); return; }
   try{

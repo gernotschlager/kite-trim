@@ -104,6 +104,9 @@ details summary{cursor:pointer;font:600 15px var(--f-display);letter-spacing:.06
 .head .pdfbtn{position:absolute;top:14px;right:14px}
 @media (max-width:560px){.head .pdfbtn{position:static;grid-column:1/-1;justify-self:start}}
 .printfoot{display:none}
+.view .btn:not(.primary),dialog .btn:not(.primary){font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.04em;background:var(--sheet);color:var(--ink);border:1.5px solid var(--rule);border-radius:8px;padding:7px 14px;box-shadow:none}
+.view .btn:not(.primary):hover,dialog .btn:not(.primary):hover{border-color:var(--ink-2);background:var(--sheet);color:var(--ink)}
+#shOff{color:var(--bad)!important}
 @media print{
   @page{size:A4;margin:12mm}
   :root{--paper:#fff;--sheet:#fff;--ink:#14202a;--ink-2:#55626d;--rule:#d5dce2;--grid:#eef1f4;--band:rgba(90,167,232,.12);--accent-ink:#c2551a;--pre:#9aa5ae;

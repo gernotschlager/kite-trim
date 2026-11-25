@@ -71,6 +71,8 @@ table.def{width:100%;border-collapse:collapse;font-size:15px;margin:4px 0 10px}
 mark{background:color-mix(in srgb,var(--accent) 40%,transparent);color:inherit;border-radius:2px}
 .hidden{display:none!important}
 .back{font-size:14px;color:var(--ink-2)}
+code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.9em;background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:0 5px;white-space:nowrap}
+pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 12px;line-height:1.5}
 </style>
 <!-- Zugang: derzeit nur nach Anmeldung. Für eine öffentliche Hilfe die folgenden fünf Zeilen entfernen. -->
 <style>.tw-wait body{visibility:hidden}</style>
@@ -116,7 +118,7 @@ mark{background:color-mix(in srgb,var(--accent) 40%,transparent);color:inherit;b
           <li><a href="#messen">Messen mit der App</a>
             <ol><li><a href="#kite-waehlen">Kite wählen</a></li><li><a href="#ablauf">Ablauf einer Messung</a></li><li><a href="#korrigieren">Korrigieren und von Hand eintragen</a></li><li><a href="#uebersicht">Übersicht und Vergleich</a></li><li><a href="#sichern">Messreihe sichern</a></li><li><a href="#einstellungen">Einstellungen</a></li></ol></li>
           <li><a href="#logbuch">Logbuch</a>
-            <ol><li><a href="#lb-trimm">Trimm-Eintrag</a></li><li><a href="#lb-session">Session-Eintrag</a></li></ol></li>
+            <ol><li><a href="#lb-trimm">Trimm-Eintrag</a></li><li><a href="#lb-session">Session-Eintrag</a></li><li><a href="#wind">Winddaten</a></li></ol></li>
           <li><a href="#berichte">Meine Berichte</a>
             <ol><li><a href="#kennzahlen">Kennzahlen und Bewertung</a></li><li><a href="#vergleich">Berichte vergleichen</a></li><li><a href="#freigabe">Mit Freunden teilen</a></li></ol></li>
           <li><a href="#kaeufer">Käufer-Freigabe</a></li>
@@ -275,7 +277,7 @@ mark{background:color-mix(in srgb,var(--accent) 40%,transparent);color:inherit;b
               <tr><th>Automatisch weiter</th><td>Nach jeder Messung zur nächsten Leine springen.</td></tr>
               <tr><th>Leine ansagen</th><td>Die App sagt die nächste Leine an (z. B. „a 1“) – praktisch, wenn du nicht aufs Handy schauen willst.</td></tr>
               <tr><th>Kite-Skizze</th><td>Skizze über der Leinenanzeige ein- oder ausblenden.</td></tr>
-              <tr><th>Google-Skript-URL</th><td>Nur noch für das Abholen von Winddaten im Session-Logbuch nötig.</td></tr>
+              <tr><th>Wind-Schnittstelle</th><td>Optional: Adresse und Passwort einer Schnittstelle, die Winddaten automatisch liefert. Ohne Eintrag lädst du Winddaten als Datei (siehe <a href="#wind">Winddaten</a>).</td></tr>
             </tbody></table>
             <div class="todo"><b>✎ Ergänzen:</b> Wie wird der Laser-Offset für eine eigene Zielscheibe ermittelt?</div>
           </div>
@@ -317,13 +319,49 @@ mark{background:color-mix(in srgb,var(--accent) 40%,transparent);color:inherit;b
             <p>Für einen Tag auf dem Wasser oder am Land: Zeit, Material, Wind und wie es lief. So siehst du später, ob ein Trimm wirklich etwas gebracht hat.</p>
             <ul>
               <li><b>Board / Stand / Bar</b> und Knoten an der Bar.</li>
-              <li><b>Wind:</b> Station wählen und <span class="ui">Von Nora holen</span> trägt Ø-Wind, Böen und Richtung für die Session-Zeit ein (braucht die Google-Skript-URL in den Einstellungen).</li>
+              <li><b>Wind:</b> Ø-Wind, Böen und Richtung direkt eintragen – oder mit <span class="ui">📄 Winddatei laden</span> aus einer Datei deiner Wetterstation berechnen lassen (siehe <a href="#wind">Winddaten</a>).</li>
               <li><b>Ergebnis:</b> Sprünge, Hangtime, Höhen – z. B. von Garmin/WOO – und eine Notiz zum Gefühl.</li>
             </ul>
             <p>Session-Einträge bleiben immer privat, auch wenn du einen Kite mit Freunden teilst.</p>
           </div>
           <figure class="shot"><img src="img/app_lb_session.webp" width="640" height="1385" loading="lazy" alt="Logbuch, Reiter Session"><figcaption>Logbuch · Session</figcaption></figure>
         </div>
+      </article>
+      <article class="topic" id="wind">
+        <h3>Winddaten</h3>
+        <p>Zu jeder Session gehören drei Windwerte: <b>Ø-Wind</b>, <b>Böen</b> und <b>Richtung</b>. Du kannst sie direkt eintragen oder aus einer Datei berechnen lassen – die App nimmt dann nur die Werte zwischen <b>Zeit von</b> und <b>bis</b> der Session.</p>
+
+        <p><b>So geht’s</b></p>
+        <ol>
+          <li>Im Logbuch auf <span class="ui">🏄 Session</span>, Datum und Zeit von/bis eintragen.</li>
+          <li><span class="ui">📄 Winddatei laden</span> und die Datei wählen.</li>
+          <li>Die App trägt Ø-Wind, Böen und Richtung ein und zeigt darunter, wie viele Messwerte in der Session-Zeit lagen und welche Einheit sie erkannt hat.</li>
+          <li>Unter <b>Quelle / Station</b> notieren, woher die Daten stammen (z. B. „Windmesser Hafen“).</li>
+        </ol>
+
+        <p><b>Welche Daten werden gebraucht?</b></p>
+        <table class="def"><tbody>
+          <tr><th>Zeitpunkt <small>(Pflicht)</small></th><td>Datum und Uhrzeit jedes Messwerts – in einer Spalte (<code>2026-11-25 14:10</code>, <code>25.11.2026 14:10</code>, <code>2026-11-25T13:10Z</code>, Unix-Zeit) oder getrennt in <b>Datum</b> und <b>Uhrzeit</b>. Nur Uhrzeit (<code>14:10</code>) geht auch, dann gilt das Session-Datum. Ohne Zeitzone wird Ortszeit angenommen; Angaben mit <code>Z</code> oder <code>+01:00</code> werden umgerechnet.</td></tr>
+          <tr><th>Windgeschwindigkeit <small>(Pflicht)</small></th><td>Mittelwind je Messintervall (typisch 1–10 Minuten). Daraus wird der <b>Ø-Wind</b> der Session.</td></tr>
+          <tr><th>Böen <small>(empfohlen)</small></th><td>Spitzenwert je Intervall. Ins Logbuch kommt die <b>höchste Böe</b> der Session. Fehlt die Spalte, gilt der höchste Mittelwind.</td></tr>
+          <tr><th>Richtung <small>(optional)</small></th><td>In Grad, woher der Wind kommt (0/360 = Nord, 90 = Ost, 180 = Süd, 270 = West). Gemittelt wird richtig über Nord hinweg (350° und 10° ergibt 0°).</td></tr>
+          <tr><th>Einheit</th><td>Knoten, m/s oder km/h. Steht die Einheit in der Spaltenüberschrift (<code>Wind m/s</code>, <code>Böen (km/h)</code>), erkennt die App sie selbst; sonst unter <b>Einheit in der Datei</b> wählen. Ins Logbuch kommt immer <b>Knoten</b>.</td></tr>
+          <tr><th>Zeitraum</th><td>Die Datei muss die Session-Zeit abdecken. Ein ganzer Tag oder eine ganze Woche ist kein Problem.</td></tr>
+        </tbody></table>
+
+        <p><b>Dateiformate</b></p>
+        <ul>
+          <li><b>CSV/TXT</b> (Export aus Excel, Wetterstation, Windmesser-App): erste Zeile = Spaltennamen, Trennzeichen <code>;</code>, <code>,</code> oder Tabulator, Dezimalkomma oder -punkt.</li>
+          <li><b>JSON</b>: eine Liste von Einträgen mit denselben Angaben.</li>
+        </ul>
+        <p>Erkannte Spaltennamen (Groß-/Kleinschreibung egal): Zeit: <i>Zeit, Uhrzeit, Datum, Zeitstempel, time, timestamp</i> · Wind: <i>Wind, Mittel, Speed, avg, ff</i> · Böen: <i>Böen, Böe, Spitze, Gust, max, fx</i> · Richtung: <i>Richtung, Windrichtung, dir, Grad, dd</i>.</p>
+        <p><b>Beispiel (CSV)</b></p>
+<pre class="code">Zeit;Wind kn;Böen kn;Richtung
+25.11.2026 14:00;14,2;19,0;315
+25.11.2026 14:10;15,8;21,4;320
+25.11.2026 14:20;16,1;22,9;318</pre>
+        <p><b>Woher bekomme ich solche Daten?</b> Viele Wetterstationen, Windmesser und Wetter-Apps bieten einen CSV-Export der Messwerte. Staatliche Wetterdienste stellen Stationsdaten oft als CSV-Download bereit. Wichtig ist nur, dass Zeit und Wind enthalten sind.</p>
+        <div class="tip"><b>Automatisch per Schnittstelle:</b> Liefert eine Station ihre Daten über eine Adresse im Internet, lässt sich das als Wind-Schnittstelle einrichten (⚙ Einstellungen). Dann erscheint im Logbuch <span class="ui">🌬 Wind abrufen</span>. Bei Interesse melden – das richten wir je Station ein.</div>
       </article>
     </section>
 

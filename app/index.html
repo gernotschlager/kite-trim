@@ -102,6 +102,7 @@
   #queue{font-size:13px;color:var(--warn);text-align:center;min-height:1em}
   dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(560px,94vw);max-height:90dvh}
   dialog::backdrop{background:rgba(0,0,0,.6)}
+  [hidden]{display:none!important}
   dialog{position:fixed} .qhelp{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);
     display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;font-weight:700;font-family:var(--f-display);font-size:18px;z-index:1}
   .qhelp:hover{color:var(--text);border-color:var(--muted)}
@@ -272,9 +273,9 @@
 <dialog id="cfg">
   <a class="qhelp" href="../hilfe/index.html#einstellungen" target="_blank" rel="noopener" aria-label="Hilfe: Einstellungen" title="Hilfe">?</a>
   <h2>Einstellungen</h2>
-  <label for="cUrl">Google-Skript-URL (nur noch für Winddaten von Nora, endet auf /exec)</label>
-  <input id="cUrl" placeholder="https://script.google.com/macros/s/…/exec">
-  <label for="cKey">Passwort (wie im Skript)</label>
+  <label for="cUrl">Wind-Schnittstelle (optional, URL)</label>
+  <input id="cUrl" placeholder="https://…">
+  <label for="cKey">Passwort der Schnittstelle</label>
   <input id="cKey" type="password">
   <label for="cTol">Toleranz grün / gelb (mm)</label>
   <div style="display:flex;gap:8px"><input id="cTol1" type="number" inputmode="numeric"><input id="cTol2" type="number" inputmode="numeric"></div>
@@ -437,16 +438,24 @@
       <label for="lbBoard">Board / Stand / Bar</label>
       <input id="lbBoard" placeholder="z. B. Jaime SLS 136, 55 cm, L-Bar">
 
-      <div class="sec">Wind</div>
+      <div class="sec">Wind <a href="../hilfe/index.html#wind" target="_blank" rel="noopener" style="color:var(--muted);font-size:12px">Welche Daten?</a></div>
       <div class="f2">
-        <div><label for="lbStation">Station</label>
-          <select id="lbStation">
+        <div><label for="lbStation">Quelle / Station</label><input id="lbStation" placeholder="z. B. Windmesser am Spot"></div>
+        <div><label>&nbsp;</label><button class="btn" id="lbWindFile" type="button" style="width:100%">📄 Winddatei laden</button>
+          <input type="file" id="lbWindIn" accept=".csv,.txt,.json,text/csv,text/plain,application/json" hidden></div>
+      </div>
+      <div class="f2" id="lbWindApi" hidden>
+        <div><label for="lbApiStation">Station (Schnittstelle)</label>
+          <select id="lbApiStation">
             <option value="segelschule-neusiedl">Segelschule Neusiedl</option>
             <option value="zamg-neusiedl1">Neusiedl 1 (ZAMG)</option>
             <option value="zamg-neusiedl2">Neusiedl 2 (ZAMG)</option>
           </select></div>
-        <div><label>&nbsp;</label><button class="btn" id="lbWindBtn" type="button" style="width:100%">🌬 Von Nora holen</button></div>
+        <div><label>&nbsp;</label><button class="btn" id="lbWindBtn" type="button" style="width:100%">🌬 Wind abrufen</button></div>
       </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px"><label for="lbWindUnit" style="margin:0;white-space:nowrap">Einheit in der Datei</label>
+        <select id="lbWindUnit" style="flex:1"><option value="">automatisch erkennen</option><option value="kn">Knoten (kn)</option><option value="m/s">m/s</option><option value="km/h">km/h</option></select></div>
+      <p class="hint" id="lbWindInfo" style="margin:4px 0 0">CSV- oder JSON-Datei mit Zeit und Wind (optional Böen, Richtung) – die App rechnet Ø, Böen und Richtung für „Zeit von–bis“ aus. Oder die Werte unten direkt eintragen.</p>
       <div class="f3">
         <div><label for="lbWAvg">Ø kn</label><input id="lbWAvg" type="number" inputmode="decimal"></div>
         <div><label for="lbWGust">Böen kn</label><input id="lbWGust" type="number" inputmode="decimal"></div>
@@ -501,7 +510,7 @@ let device = null, chr = null, wakeLock = null, lastPkt = { v:null, t:0 };
 /* ---------- Google-Skript ---------- */
 async function api(params){
   if (window.SBAPI && SBAPI.has(params.action)) return SBAPI.call(params);   // Daten in Supabase
-  if (!cfg.url) throw new Error(params.action === 'wind' ? 'Winddaten: Google-Skript-URL in ⚙ eintragen' : 'Keine Skript-URL – bitte in ⚙ eintragen');
+  if (!cfg.url) throw new Error(params.action === 'wind' ? 'Keine Wind-Schnittstelle eingetragen (⚙)' : 'Keine Schnittstellen-URL – bitte in ⚙ eintragen');
   const q = new URLSearchParams({ ...params, key: cfg.key });
   const r = await fetch(cfg.url + '?' + q.toString(), { redirect:'follow' });
   const j = await r.json();
@@ -1131,7 +1140,8 @@ $('cfgSave').onclick = () => {
 
 /* ---------- Logbuch (Trimm & Session) ---------- */
 let lbType = 'Trimm', lbWindSrc = '';
-const lbPrefs = Object.assign({ load:5, board:'', station:'segelschule-neusiedl', method:'', rig:'Trim2go' }, store.get('lbPrefs', {}));
+const lbPrefs = Object.assign({ load:5, board:'', station:'', apiStation:'segelschule-neusiedl', method:'', rig:'Trim2go' }, store.get('lbPrefs', {}));
+if (/^(segelschule|zamg)-/.test(lbPrefs.station)) { lbPrefs.apiStation = lbPrefs.station; lbPrefs.station = ''; }
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
 const num = id => { const v = $(id).value.trim().replace(',', '.'); return v === '' ? '' : Number(v); };
 
@@ -1156,6 +1166,7 @@ function openLb(){
   $('lbTitle').textContent = 'Logbuch · ' + kite;
   if (!$('lbDate').value) $('lbDate').value = today();
   $('lbLoad').value = lbPrefs.load; $('lbBoard').value = lbPrefs.board; $('lbStation').value = lbPrefs.station;
+  $('lbApiStation').value = lbPrefs.apiStation; $('lbWindApi').hidden = !cfg.url;
   $('lbMethod').value = lbPrefs.method;
   if ($('lbMethod').selectedIndex < 0) $('lbMethod').selectedIndex = 0;
   $('lbRig').value = lbPrefs.rig;
@@ -1201,7 +1212,7 @@ $('lbWindBtn').onclick = async () => {
   if (!(to > from)) return showToast('„bis“ muss nach „von“ liegen');
   $('lbWindBtn').disabled = true; $('lbWindBtn').textContent = '⏳ lade…';
   try{
-    const st = $('lbStation').value, q = { action:'wind', from:from.toISOString(), to:to.toISOString() };
+    const st = $('lbApiStation').value, q = { action:'wind', from:from.toISOString(), to:to.toISOString() };
     const j = await api({ ...q, station:st });
     // Richtungssensor der Segelschule zeigt ~30° zu weit östlich → Richtung von ZAMG Neusiedl 1 übernehmen
     let dir = j.dir, src = '';
@@ -1209,10 +1220,102 @@ $('lbWindBtn').onclick = async () => {
       try{ dir = (await api({ ...q, station:'zamg-neusiedl1' })).dir; src = ' (Richtung: ZAMG Neusiedl 1)'; }catch(e){}
     }
     $('lbWAvg').value = j.avg; $('lbWGust').value = j.gust; $('lbWDir').value = dir;
-    lbWindSrc = src;
+    lbWindSrc = src; $('lbStation').value = $('lbApiStation').selectedOptions[0].text;
     showToast(`Wind: Ø ${j.avg} kn, Böen ${j.gust} kn, ${dir}°${src}`);
   }catch(e){ showToast('⚠ ' + e.message); }
-  finally{ $('lbWindBtn').disabled = false; $('lbWindBtn').textContent = '🌬 Von Nora holen'; }
+  finally{ $('lbWindBtn').disabled = false; $('lbWindBtn').textContent = '🌬 Wind abrufen'; }
+};
+
+/* ---------- Winddatei (CSV/JSON) ---------- */
+const WIND = {
+  // Spalten erkennen (Reihenfolge wichtig: Richtung/Böen vor Wind, weil „Windrichtung“ auch „wind“ enthält)
+  col(h){
+    const n = h.toLowerCase().replace(/[^a-zäöüß0-9/°]/g, '');
+    if (/zeitstempel|timestamp|datetime|uhrzeit|zeitpunkt|datumzeit/.test(n) || /^(time|zeit|utc|lokal|local)/.test(n)) return 'time';
+    if (/^(datum|date|tag|day)$/.test(n)) return 'date';
+    if (/richt|dir|grad|deg|°/.test(n) || n === 'dd') return 'dir';
+    if (/b(ö|oe)|gust|spitze|peak|max/.test(n) || n === 'fx' || n === 'ffx') return 'gust';
+    if (/wind|speed|geschw|mittel|avg|mean|ws|ff|kn|knot|ms|kmh/.test(n)) return 'avg';
+    return '';
+  },
+  unit(h){
+    const n = h.toLowerCase();
+    if (/m\/s|\bms\b|\(ms\)|m s-1|mps|meter/.test(n)) return 'm/s';
+    if (/km\/h|kmh|kph/.test(n)) return 'km/h';
+    if (/kn|knot|kt\b|knoten/.test(n)) return 'kn';
+    return '';
+  },
+  factor: { 'kn':1, 'm/s':1.943844, 'km/h':0.539957 },
+  num(v){ if (v == null) return NaN; const t = String(v).trim().replace(/\s/g, ''); if (!t) return NaN;
+    return Number(/,\d+$/.test(t) && !/\.\d+,/.test(t) ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '')); },
+  time(v, dateV, day){
+    if (v == null || v === '') return null;
+    if (typeof v === 'number' || /^\d{9,13}$/.test(String(v).trim())) { const x = Number(v); return new Date(x < 1e11 ? x * 1000 : x); }
+    let t = String(v).trim(); if (dateV) t = String(dateV).trim() + ' ' + t;
+    let m = t.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (m) return new Date(+(m[3].length === 2 ? '20' + m[3] : m[3]), m[2] - 1, +m[1], +m[4], +m[5], +(m[6] || 0));
+    m = t.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(\.\d+)?\s*(Z|[+-]\d{2}:?\d{2})?$/);
+    if (m) return m[8] ? new Date(t.replace(' ', 'T')) : new Date(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
+    m = t.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (m && day) { const [y, mo, d] = day.split('-').map(Number); return new Date(y, mo - 1, d, +m[1], +m[2], +(m[3] || 0)); }
+    const x = new Date(t); return isNaN(x) ? null : x;
+  },
+  table(text, name){
+    text = text.replace(/^\uFEFF/, '').trim();
+    if (/\.json$/i.test(name) || /^[\[{]/.test(text)) {
+      let j = JSON.parse(text); if (!Array.isArray(j)) j = j.data || j.values || j.records || Object.values(j).find(Array.isArray) || [];
+      if (!j.length || typeof j[0] !== 'object') throw new Error('JSON: erwartet wird eine Liste von Einträgen');
+      const head = Object.keys(j[0]); return { head, rows: j.map(o => head.map(k => o[k])) };
+    }
+    const lines = text.split(/\r?\n/).filter(l => l.trim() && !/^#/.test(l));
+    const first = lines[0]; const sep = [';', '\t', ','].sort((a, b) => first.split(b).length - first.split(a).length)[0];
+    const split = l => l.split(sep).map(x => x.trim().replace(/^"(.*)"$/, '$1'));
+    return { head: split(first), rows: lines.slice(1).map(split) };
+  },
+  parse(text, name, day, from, to){
+    const { head, rows } = WIND.table(text, name);
+    const idx = {}; head.forEach((h, i) => { const c = WIND.col(h); if (c && idx[c] === undefined) idx[c] = i; });
+    if (idx.time === undefined && idx.date !== undefined) { idx.time = idx.date; delete idx.date; }
+    if (idx.time === undefined) throw new Error('Keine Zeit-Spalte gefunden (z. B. „Zeit“, „Datum“, „timestamp“)');
+    if (idx.avg === undefined && idx.gust === undefined) throw new Error('Keine Wind-Spalte gefunden (z. B. „Wind kn“, „Wind m/s“)');
+    const force = $('lbWindUnit').value, uh = head[idx.avg ?? idx.gust];
+    const unit = force || WIND.unit(uh) || WIND.unit(head.join(' ')) || 'kn', f = WIND.factor[unit];
+    const gUnit = force || (idx.gust !== undefined ? (WIND.unit(head[idx.gust]) || unit) : unit), gf = WIND.factor[gUnit];
+    const guessed = !force && !WIND.unit(uh) && !WIND.unit(head.join(' '));
+    const pts = rows.map(r => ({ t: WIND.time(r[idx.time], idx.date !== undefined ? r[idx.date] : null, day),
+      a: idx.avg !== undefined ? WIND.num(r[idx.avg]) * f : NaN, g: idx.gust !== undefined ? WIND.num(r[idx.gust]) * gf : NaN,
+      d: idx.dir !== undefined ? WIND.num(r[idx.dir]) : NaN })).filter(p => p.t && !isNaN(p.t));
+    if (!pts.length) throw new Error('Keine lesbaren Zeitangaben in der Datei');
+    const sel = pts.filter(p => p.t >= from && p.t <= to);
+    if (!sel.length) {
+      const fmt = d => d.toLocaleString('de-AT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const ts = pts.map(p => +p.t); throw new Error(`Keine Werte in der Session-Zeit. Die Datei reicht von ${fmt(new Date(Math.min(...ts)))} bis ${fmt(new Date(Math.max(...ts)))}`);
+    }
+    const A = sel.map(p => p.a).filter(x => !isNaN(x)), G = sel.map(p => p.g).filter(x => !isNaN(x)), D = sel.map(p => p.d).filter(x => !isNaN(x) && x >= 0 && x <= 360);
+    const avg = A.length ? A.reduce((s, x) => s + x, 0) / A.length : NaN;
+    const gust = G.length ? Math.max(...G) : (A.length ? Math.max(...A) : NaN);
+    let dir = NaN; if (D.length) { const sx = D.reduce((s, x) => s + Math.sin(x * Math.PI / 180), 0), cx = D.reduce((s, x) => s + Math.cos(x * Math.PI / 180), 0);
+      dir = (Math.round(Math.atan2(sx, cx) * 180 / Math.PI) + 360) % 360; }
+    return { avg: isNaN(avg) ? '' : Math.round(avg * 10) / 10, gust: isNaN(gust) ? '' : Math.round(gust * 10) / 10, dir: isNaN(dir) ? '' : dir,
+      n: sel.length, unit, guessed, gustFromAvg: !G.length && A.length > 0 };
+  }
+};
+$('lbWindFile').onclick = () => {
+  if (!$('lbDate').value || !$('lbFrom').value || !$('lbTo').value) return showToast('Bitte zuerst Datum und Zeit von/bis eintragen');
+  $('lbWindIn').value = ''; $('lbWindIn').click();
+};
+$('lbWindIn').onchange = async () => {
+  const file = $('lbWindIn').files[0]; if (!file) return;
+  const d = $('lbDate').value, from = new Date(`${d}T${$('lbFrom').value}`), to = new Date(`${d}T${$('lbTo').value}`);
+  if (!(to > from)) return showToast('„bis“ muss nach „von“ liegen');
+  try{
+    const r = WIND.parse(await file.text(), file.name, d, from, to);
+    $('lbWAvg').value = r.avg; $('lbWGust').value = r.gust; $('lbWDir').value = r.dir;
+    if (!$('lbStation').value.trim()) $('lbStation').value = file.name.replace(/\.[^.]+$/, '');
+    lbWindSrc = '';
+    $('lbWindInfo').textContent = `✓ ${file.name}: ${r.n} Werte in der Session-Zeit · Einheit ${r.unit}${r.guessed ? ' (angenommen – sonst Einheit wählen)' : ''}${r.unit !== 'kn' ? ' → kn umgerechnet' : ''}${r.gustFromAvg ? ' · keine Böen-Spalte, Böen = höchster Mittelwert' : ''}${r.dir === '' ? ' · keine Richtung in der Datei' : ''}`;
+    showToast(`Wind: Ø ${r.avg} kn, Böen ${r.gust} kn${r.dir !== '' ? ', ' + r.dir + '°' : ''}`);
+  }catch(e){ $('lbWindInfo').textContent = '⚠ ' + e.message; showToast('⚠ ' + e.message); }
 };
 // Versatz links/rechts → eine Spalte, z. B. "L 27 / R 28" (+ = Front länger)
 function lbOffsetText(){
@@ -1233,7 +1336,7 @@ $('lbSave').onclick = async () => {
     versatz: lbOffsetText(), knoten: sess ? $('lbKnotS').value.trim() : (secOn('lbBarOn') ? $('lbKnot').value.trim() : ''),
     board: sess ? $('lbBoard').value.trim() : '',
     wind: sess ? num('lbWAvg') : '', boeen: sess ? num('lbWGust') : '', richtung: sess ? num('lbWDir') : '',
-    station: sess && $('lbWAvg').value ? $('lbStation').selectedOptions[0].text + lbWindSrc : '',
+    station: sess && $('lbWAvg').value ? ($('lbStation').value.trim() + lbWindSrc).trim() : '',
     spruenge: sess ? num('lbJumps') : '', hoehe_avg: sess ? num('lbJAvg') : '', hoehe_max: sess ? num('lbJMax') : '',
     hangtime: sess ? num('lbHang') : '', datei: sess ? $('lbFile').value.trim() : '',
     notiz: $('lbNote').value.trim(),
@@ -1261,7 +1364,7 @@ $('lbSave').onclick = async () => {
   $('lbSave').disabled = true;
   try{
     await api({ action:'log', kite, data: JSON.stringify(data) });
-    Object.assign(lbPrefs, { station:$('lbStation').value, board: sess ? data.board : lbPrefs.board,
+    Object.assign(lbPrefs, { station:$('lbStation').value.trim(), apiStation:$('lbApiStation').value, board: sess ? data.board : lbPrefs.board,
       load: sess ? lbPrefs.load : (data.last || lbPrefs.load), method: sess ? lbPrefs.method : data.methode,
       rig: sess ? lbPrefs.rig : data.vorrichtung });
     store.set('lbPrefs', lbPrefs);

@@ -102,6 +102,9 @@
   #queue{font-size:13px;color:var(--warn);text-align:center;min-height:1em}
   dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(560px,94vw);max-height:90dvh}
   dialog::backdrop{background:rgba(0,0,0,.6)}
+  dialog{position:fixed} .qhelp{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;font-weight:700;font-family:var(--f-display);font-size:18px;z-index:1}
+  .qhelp:hover{color:var(--text);border-color:var(--muted)}
   @media (min-width:1000px){
     #list,#lb{width:min(1500px,96vw);max-width:none;height:94dvh;max-height:94dvh;padding:20px 24px}
     #list[open],#lb[open]{display:flex;flex-direction:column}
@@ -267,6 +270,7 @@
 </dialog>
 
 <dialog id="cfg">
+  <a class="qhelp" href="../hilfe/index.html#einstellungen" target="_blank" rel="noopener" aria-label="Hilfe: Einstellungen" title="Hilfe">?</a>
   <h2>Einstellungen</h2>
   <label for="cUrl">Google-Skript-URL (nur noch für Winddaten von Nora, endet auf /exec)</label>
   <input id="cUrl" placeholder="https://script.google.com/macros/s/…/exec">
@@ -289,6 +293,7 @@
 </dialog>
 
 <dialog id="list">
+  <a class="qhelp" href="../hilfe/index.html#uebersicht" target="_blank" rel="noopener" aria-label="Hilfe: Übersicht und Sichern" title="Hilfe">?</a>
   <h2 id="listTitle">Übersicht</h2>
   <div class="dgrid"><div class="dmain">
   <div class="arbar">
@@ -300,7 +305,7 @@
   <p class="hint" id="listHint">Auf einen Wert tippen, um dorthin zu springen.</p>
   <table id="tbl"></table>
   </div><div class="dside">
-  <div class="sec">Für Käufer freigeben</div>
+  <div class="sec">Für Käufer freigeben <a href="../hilfe/index.html#kaeufer" target="_blank" rel="noopener" style="color:var(--muted);font-size:12px">Hilfe</a></div>
   <div class="f2">
     <div><label for="shSel">Gesicherte Messreihe</label><select id="shSel"><option value="">– zuerst sichern –</option></select></div>
     <div><label for="shState">Zustand</label><select id="shState"><option>gebraucht</option><option>neu</option><option>nach Trimm</option></select></div>
@@ -314,7 +319,7 @@
       <button class="btn" id="shShare" type="button">Teilen …</button>
       <button class="btn" id="shCopy" type="button">Link kopieren</button>
     </div>
-    <p class="hint" style="font-size:13px">Käufer sehen diese Messreihe nur zum Lesen, neben dem Leinenplan und den Messungen desselben Modells, die ihre Besitzer anonym freigegeben haben. Link zurückziehen: im Blatt „Freigaben“ bei „Aktiv“ „nein“ eintragen.</p>
+    <p class="hint" style="font-size:13px">Käufer sehen diese Messreihe nur zum Lesen, neben dem Leinenplan und den Messungen desselben Modells, die ihre Besitzer anonym freigegeben haben.</p>
   </div>
   <div class="sec">Messreihe sichern</div>
   <div class="f2">
@@ -326,11 +331,12 @@
     <button class="btn" id="arNew" type="button" style="color:var(--bad);margin-right:auto">🆕 Neue Messreihe</button>
     <button class="btn" id="listClose" type="button">Schließen</button>
   </div>
-  <p class="hint" style="font-size:13px">Die Messzeit zählt ab „Neue Messreihe“; Lücken über 5 min gelten als Pause. „Sichern“ kopiert alle aktuellen Werte samt Messzeit ins Blatt „Messarchiv“. „Neue Messreihe“ sichert zuerst und leert dann alle Felder dieses Kites.</p>
+  <p class="hint" style="font-size:13px">Die Messzeit zählt ab „Neue Messreihe“; Lücken über 5 min gelten als Pause. „Sichern“ speichert alle aktuellen Werte samt Messzeit als gesicherte Messreihe (zu sehen unter „Berichte“ auf der Webseite). „Neue Messreihe“ sichert zuerst und leert dann alle Felder dieses Kites.</p>
 </div></div>
 </dialog>
 
 <dialog id="lb">
+  <a class="qhelp" href="../hilfe/index.html#logbuch" target="_blank" rel="noopener" aria-label="Hilfe: Logbuch" title="Hilfe">?</a>
   <h2 id="lbTitle">Logbuch</h2>
   <div class="dgrid"><div class="dmain">
   <div class="tabs">
@@ -569,18 +575,18 @@ async function kPick(name){
   }
   if (!k.sheet){
     const b = $('kdlg').querySelector(`[data-k="${CSS.escape(name)}"]`);
-    if (!b.dataset.confirm){ b.dataset.confirm = '1'; b.textContent = 'anlegen?'; showToast(`Nochmal tippen: Messblatt „${name} m²“ anlegen`); return; }
+    if (!b.dataset.confirm){ b.dataset.confirm = '1'; b.textContent = 'anlegen?'; showToast(`Nochmal tippen: Kite „${name} m²“ anlegen`); return; }
     try{
-      showToast('Messblatt wird angelegt …');
+      showToast('Kite wird angelegt …');
       const j = await api({ action:'kite_new', name });
       k.sheet = j.sheet; kites.push(j.sheet);
-      showToast(`✓ Messblatt „${j.sheet}“ angelegt`);
+      showToast(`✓ Kite „${j.sheet}“ angelegt`);
     }catch(e){ showToast('⚠ ' + e.message); return; }
   }
   kite = k.sheet; store.set('kite', kite); kiteLabel(); $('kdlg').close();
   loadLines(false);
 }
-const K_LEG = '<span class="kc has mini">10</span> Messblatt vorhanden · <span class="kc new mini">12</span> nur Leinenplan – 2× tippen legt das Messblatt an';
+const K_LEG = '<span class="kc has mini">10</span> dein Kite · <span class="kc new mini">12</span> nur Leinenplan – 2× tippen legt den Kite an';
 $('kiteBtn').onclick = () => { $('kdlg').classList.remove('edit'); $('kEdit').textContent = '☆ Favoriten'; $('kHint').innerHTML = K_LEG; kRender(); $('kdlg').showModal(); };
 $('kClose').onclick = () => $('kdlg').close();
 $('kEdit').onclick = () => { const on = $('kdlg').classList.toggle('edit');
@@ -639,7 +645,7 @@ async function flush(){
         }
         queue.shift(); store.set('queue', queue);
       }catch(e){
-        $('queue').textContent = `⏳ ${queue.filter(q => q.type !== 'mlog').length || 1} Wert(e) noch nicht in der Tabelle – ${e.message}`;
+        $('queue').textContent = `⏳ ${queue.filter(q => q.type !== 'mlog').length || 1} Wert(e) noch nicht gespeichert – ${e.message}`;
         setTimeout(() => { flushing = false; flush(); }, 5000);
         return;
       }
@@ -1260,7 +1266,7 @@ $('lbSave').onclick = async () => {
       rig: sess ? lbPrefs.rig : data.vorrichtung });
     store.set('lbPrefs', lbPrefs);
     if (data.seriennr) store.set('serial:' + kite, data.seriennr);
-    showToast(`${lbType} im Blatt „${kite}“ eingetragen ✓`);
+    showToast(`${lbType} für „${kite}“ gespeichert ✓`);
     lbClear(); lbDraftClear(); lbLoadEntries();
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('lbSave').disabled = false; }

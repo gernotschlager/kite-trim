@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="de" class="tw-wait">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hilfe – Trimwerk</title>
+<meta name="description" content="Anleitung zu Trimwerk: Konto, Mess-App mit Laser, Logbuch, Berichte vergleichen und teilen, Trimm-Grundlagen und Begriffe.">
+<meta name="theme-color" content="#0b141c">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;700&display=swap">
+<link rel="stylesheet" href="../site.css">
+<style>
+.help{max-width:1240px;margin:0 auto;padding:28px 16px 64px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:900px){.help{grid-template-columns:1fr;gap:20px}}
+.toc{position:sticky;top:12px;max-height:calc(100dvh - 24px);overflow:auto;display:flex;flex-direction:column;gap:12px;padding:0}
+@media (max-width:900px){.toc{position:static;max-height:none}}
+.toc h1{font-size:40px;margin:0}
+.search{width:100%;background:var(--sheet);border:1.5px solid var(--rule);border-radius:8px;color:var(--ink);padding:11px 12px;font:inherit}
+.toc nav ol{list-style:none;margin:0;padding:0;counter-reset:ch}
+.toc nav>ol>li{counter-increment:ch;margin:2px 0}
+.toc nav>ol>li>a{display:flex;gap:10px;padding:7px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-weight:500}
+.toc nav>ol>li>a::before{content:counter(ch);font:600 15px var(--f-display);color:var(--accent);min-width:14px}
+.toc nav a:hover,.toc nav a.on{background:var(--sheet)}
+.toc nav ol ol{padding-left:32px;margin-bottom:6px}
+.toc nav ol ol a{display:block;padding:3px 8px;color:var(--ink-2);text-decoration:none;font-size:14.5px;border-radius:6px}
+.toc details summary{display:none}
+@media (max-width:900px){
+  .toc details{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;padding:6px 10px}
+  .toc details summary{display:block;cursor:pointer;font:600 16px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:6px 0;color:var(--accent-ink)}
+  .toc nav ol ol{display:none}
+}
+.content{min-width:0;display:flex;flex-direction:column;gap:28px}
+.content section{padding:0}
+.chapter{scroll-margin-top:12px}
+.chapter>h2{font-size:clamp(30px,4vw,40px);margin:0 0 4px;display:flex;gap:12px;align-items:baseline}
+.chapter>h2 .no{font:700 0.8em var(--f-display);color:var(--accent)}
+.chapter>p.lead{color:var(--ink-2);margin:0 0 14px;font-size:17px;max-width:70ch}
+.topic{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:22px 24px;margin-top:14px;scroll-margin-top:12px}
+@media (max-width:600px){.topic{padding:18px}}
+.topic h3{font-size:24px;margin:0 0 8px}
+.topic p,.topic li{max-width:72ch;line-height:1.65}
+.topic p{margin:0 0 10px}
+.topic ol,.topic ul{margin:0 0 10px;padding-left:22px}
+.topic li{margin-bottom:6px}
+.topic .cols{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:24px;align-items:start}
+@media (max-width:760px){.topic .cols{grid-template-columns:1fr}}
+.shot{margin:0;display:flex;flex-direction:column;gap:6px}
+.shot img{width:100%;height:auto;border:1px solid var(--rule);border-radius:14px;display:block;background:var(--paper)}
+.shot.wide img{border-radius:8px}
+.shot figcaption{font-size:13px;color:var(--ink-2)}
+@media (max-width:760px){.cols .shot{max-width:300px}}
+.tip,.warn,.todo{border-left:4px solid var(--left);background:color-mix(in srgb,var(--left) 9%,transparent);padding:10px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:15px}
+.warn{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.todo{border-color:#e3b13c;background:color-mix(in srgb,#e3b13c 10%,transparent);border-left-style:dashed}
+.todo b:first-child{color:#e3b13c}
+kbd,.ui{font:600 14px var(--f-display);letter-spacing:.04em;background:var(--paper);border:1px solid var(--rule);border-radius:5px;padding:1px 7px;white-space:nowrap;color:var(--ink)}
+table.def{width:100%;border-collapse:collapse;font-size:15px;margin:4px 0 10px}
+.def th,.def td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--rule)}
+.def th{font-weight:600;white-space:nowrap;width:30%}
+.def td{color:var(--ink-2)}
+@media (max-width:560px){.def th{white-space:normal}}
+.gloss{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}
+@media (max-width:700px){.gloss{grid-template-columns:1fr}}
+.gloss div{padding:10px 0;border-bottom:1px solid var(--rule)}
+.gloss b{display:block}
+.gloss span{color:var(--ink-2);font-size:15px}
+.noresult{display:none;background:var(--sheet);border:1px dashed var(--rule);border-radius:10px;padding:20px;color:var(--ink-2)}
+mark{background:color-mix(in srgb,var(--accent) 40%,transparent);color:inherit;border-radius:2px}
+.hidden{display:none!important}
+.back{font-size:14px;color:var(--ink-2)}
+</style>
+<!-- Zugang: derzeit nur nach Anmeldung. Für eine öffentliche Hilfe die folgenden fünf Zeilen entfernen. -->
+<style>.tw-wait body{visibility:hidden}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="../config.js"></script>
+<script src="../auth.js"></script>
+<script>TW.guard();</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../index.html" aria-label="trimwerk – Startseite">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M6 30 C18 10 46 10 58 30" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        <path d="M14 27 L32 54 M24 20 L32 54 M40 20 L32 54 M50 27 L32 54" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+        <path d="M32 54 L32 30" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="27" r="3.4" fill="var(--accent)"/>
+      </svg>
+      <span class="wm"><b>trim</b><span>werk</span><i></i></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="../bericht/index.html">Musterbericht</a>
+      <a href="../diy/index.html">DIY</a>
+      <a href="../berichte/index.html">Berichte</a>
+      <a href="../app/index.html">App</a>
+      <a href="./index.html" aria-current="page">Hilfe</a>
+      <a href="../ueber/index.html">Über</a>
+    </nav>
+  </div>
+</header>
+
+<main class="help">
+  <aside class="toc">
+    <h1>Hilfe</h1>
+    <input class="search" id="q" type="search" placeholder="Suchen, z. B. Laser, Offset, Freigabe …" aria-label="Hilfe durchsuchen">
+    <details id="tocBox" open>
+      <summary>Inhalt</summary>
+      <nav aria-label="Inhalt">
+        <ol>
+          <li><a href="#start">Erste Schritte</a>
+            <ol><li><a href="#konto">Konto und Anmeldung</a></li><li><a href="#browser">Passender Browser</a></li><li><a href="#installieren">App auf den Homescreen</a></li><li><a href="#laser">Laser verbinden</a></li></ol></li>
+          <li><a href="#messen">Messen mit der App</a>
+            <ol><li><a href="#kite-waehlen">Kite wählen</a></li><li><a href="#ablauf">Ablauf einer Messung</a></li><li><a href="#korrigieren">Korrigieren und von Hand eintragen</a></li><li><a href="#uebersicht">Übersicht und Vergleich</a></li><li><a href="#sichern">Messreihe sichern</a></li><li><a href="#einstellungen">Einstellungen</a></li></ol></li>
+          <li><a href="#logbuch">Logbuch</a>
+            <ol><li><a href="#lb-trimm">Trimm-Eintrag</a></li><li><a href="#lb-session">Session-Eintrag</a></li></ol></li>
+          <li><a href="#berichte">Meine Berichte</a>
+            <ol><li><a href="#kennzahlen">Kennzahlen und Bewertung</a></li><li><a href="#vergleich">Berichte vergleichen</a></li><li><a href="#freigabe">Mit Freunden teilen</a></li></ol></li>
+          <li><a href="#kaeufer">Käufer-Freigabe</a></li>
+          <li><a href="#grundlagen">Trimm-Grundlagen</a>
+            <ol><li><a href="#ebenen">Ebenen A, B, C, Z</a></li><li><a href="#vorzeichen">Plus, Minus, Soll</a></li><li><a href="#wann">Wann trimmen?</a></li></ol></li>
+          <li><a href="#probleme">Probleme lösen</a></li>
+          <li><a href="#begriffe">Begriffe von A bis Z</a></li>
+        </ol>
+      </nav>
+    </details>
+  </aside>
+
+  <div class="content" id="content">
+    <div class="noresult" id="noresult">Nichts gefunden. Versuch ein anderes Wort – oder frag direkt nach, dann ergänzen wir die Hilfe.</div>
+
+    <!-- ===================== 1 ===================== -->
+    <section class="chapter" id="start">
+      <h2><span class="no">1</span>Erste Schritte</h2>
+      <p class="lead">Konto einrichten, Browser wählen, Laser koppeln – danach kannst du messen.</p>
+
+      <article class="topic" id="konto">
+        <h3>Konto und Anmeldung</h3>
+        <p>Trimwerk ist derzeit nur auf Einladung nutzbar. Du bekommst eine E-Mail mit einem Link.</p>
+        <ol>
+          <li>Link in der Einladungs-E-Mail öffnen.</li>
+          <li>Auf der Startseite ein eigenes Passwort festlegen.</li>
+          <li>Ab jetzt meldest du dich auf <b>trimwerk.app</b> mit E-Mail und Passwort an.</li>
+        </ol>
+        <p>Passwort vergessen? Auf der Startseite <span class="ui">Passwort vergessen</span> wählen – du bekommst einen Link zum Zurücksetzen.</p>
+        <p>Unter <a href="../berichte/index.html">Berichte</a> kannst du mit <span class="ui">Name ändern</span> festlegen, wie dich Freunde bei geteilten Kites sehen.</p>
+        <div class="tip"><b>Deine Daten gehören dir.</b> Kites, Messungen und Logbuch sieht nur dein Konto – außer du gibst etwas ausdrücklich frei (<a href="#freigabe">Freunde</a> oder <a href="#kaeufer">Käufer</a>).</div>
+      </article>
+
+      <article class="topic" id="browser">
+        <h3>Passender Browser</h3>
+        <p>Die Mess-App spricht über Bluetooth direkt mit dem Laser. Das können nicht alle Browser:</p>
+        <table class="def"><tbody>
+          <tr><th>Android</th><td>Chrome</td></tr>
+          <tr><th>PC / Mac</th><td>Chrome oder Edge</td></tr>
+          <tr><th>iPhone / iPad</th><td>App „Bluefy“ aus dem App Store (Safari und Chrome auf dem iPhone können kein Bluetooth im Browser)</td></tr>
+        </tbody></table>
+        <p>Berichte, Logbuch und Hilfe funktionieren in jedem Browser – nur das Messen mit Laser braucht einen der oben genannten.</p>
+      </article>
+
+      <article class="topic" id="installieren">
+        <h3>App auf den Homescreen</h3>
+        <p>Die Mess-App ist eine Web-App: Sie läuft im Browser, lässt sich aber wie eine normale App auf den Homescreen legen – mit Trimwerk-Symbol und ohne Adressleiste.</p>
+        <ol>
+          <li><b>Android/Chrome:</b> <a href="../app/index.html">Mess-App</a> öffnen → Menü <span class="ui">⋮</span> → <span class="ui">Zum Startbildschirm hinzufügen</span> bzw. <span class="ui">App installieren</span>.</li>
+          <li><b>PC/Chrome oder Edge:</b> rechts in der Adressleiste auf das Installieren-Symbol klicken.</li>
+          <li><b>iPhone/Bluefy:</b> Mess-App in Bluefy öffnen und als Lesezeichen bzw. auf den Home-Bildschirm legen.</li>
+        </ol>
+        <div class="tip">Nach einem Update zeigt die App manchmal noch das alte Aussehen. Dann die App einmal ganz schließen und neu öffnen.</div>
+      </article>
+
+      <article class="topic" id="laser">
+        <h3>Laser verbinden</h3>
+        <div class="cols">
+          <div>
+            <p>Getestet ist der <b>Bosch GLM 50 C</b>.</p>
+            <ol>
+              <li>Laser einschalten und Bluetooth am Laser aktivieren.</li>
+              <li>In der App oben auf <span class="ui">● Laser</span> tippen.</li>
+              <li>Im Auswahlfenster des Browsers den Laser wählen und <span class="ui">Koppeln</span>.</li>
+              <li>Der Punkt wird grün – jede Messung am Laser landet jetzt direkt im aktuellen Feld.</li>
+            </ol>
+            <p>Taucht der Laser nicht auf: <span class="ui">⚙</span> → <span class="ui">Laser suchen – alle Geräte anzeigen</span>. Weitere Hilfe unter <a href="#probleme">Probleme lösen</a>.</p>
+            <div class="warn">Der Laser kann immer nur mit <b>einem</b> Gerät verbunden sein. Ist er noch mit der Bosch-App oder einem anderen Handy gekoppelt, findet ihn die Mess-App nicht.</div>
+          </div>
+          <figure class="shot"><img src="img/app_main.webp" width="640" height="1385" loading="lazy" alt="Startansicht der Mess-App mit Kite-Auswahl, Laser-Knopf, Kite-Skizze und aktueller Leine"><figcaption>Oben: Kite, Laser, Übersicht ☰, Logbuch 📒, Einstellungen ⚙</figcaption></figure>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===================== 2 ===================== -->
+    <section class="chapter" id="messen">
+      <h2><span class="no">2</span>Messen mit der App</h2>
+      <p class="lead">Leine für Leine, links und rechts – die App führt dich durch alle Waageleinen und vergleicht sofort mit dem Leinenplan.</p>
+
+      <article class="topic" id="kite-waehlen">
+        <h3>Kite wählen</h3>
+        <div class="cols">
+          <div>
+            <p>Oben links auf den Kite-Namen tippen. Die Bibliothek enthält die Leinenpläne vieler Flysurfer-Modelle, sortiert nach Familie (Sonic, Soul, Peak …) und Größe.</p>
+            <ul>
+              <li><b>Orange Größe</b> = dein Kite, schon angelegt.</li>
+              <li><b>Graue Größe</b> = nur Leinenplan. <b>Zweimal tippen</b> legt den Kite in deinem Konto an.</li>
+              <li><span class="ui">☆ Favoriten</span>: häufig gemessene Kites oben anheften.</li>
+            </ul>
+            <div class="todo"><b>✎ Ergänzen:</b> Was tun, wenn ein Modell oder eine Größe fehlt? (Leinenplan schicken, wer pflegt die Bibliothek …)</div>
+          </div>
+          <figure class="shot"><img src="img/app_kite.webp" width="640" height="1385" loading="lazy" alt="Dialog Kite wählen mit Favoriten und Modellfamilien"><figcaption>Kite-Auswahl mit Favoriten und Bibliothek</figcaption></figure>
+        </div>
+      </article>
+
+      <article class="topic" id="ablauf">
+        <h3>Ablauf einer Messung</h3>
+        <ol>
+          <li>Kite im Trimwerk bzw. Trimwerk Go einspannen und unter Zug setzen (siehe <a href="../diy/index.html">DIY-Anleitung</a>).</li>
+          <li>Die App zeigt die aktuelle Leine groß an (z. B. <b>a1</b>), darunter <b>Soll</b> aus dem Leinenplan. Die <b>Kite-Skizze</b> zeigt, wo die Leine sitzt.</li>
+          <li>Laser auf die Zielscheibe richten und messen. Der Wert erscheint unter <b>Gemessen</b>, darunter die Abweichung zum Soll – grün, gelb oder rot je nach <a href="#einstellungen">Toleranz</a>.</li>
+          <li>Die App springt zur nächsten Leine (abschaltbar). Mit <span class="ui">◀ Zurück</span> und <span class="ui">Weiter ▶</span> wechselst du selbst.</li>
+          <li>Seite wechseln: auf <span class="ui">LINKS ⇄</span> tippen. Oben rechts siehst du den Fortschritt, z. B. <b>31/47 · gesamt 30/94</b>.</li>
+        </ol>
+        <p>Jeder Wert wird sofort gespeichert. Ohne Netz merkt sich die App die Werte und schickt sie nach, sobald wieder Verbindung besteht – erkennbar an <b>⏳ … noch nicht gespeichert</b> unten.</p>
+        <figure class="shot wide"><img src="img/app_full.webp" width="1400" height="647" loading="lazy" alt="Kite-Skizze im Vollbild mit allen Messpunkten"><figcaption>Mit <span class="ui">⤢</span> wird die Skizze zum Vollbild – praktisch quer am Handy oder am Tablet.</figcaption></figure>
+        <div class="todo"><b>✎ Ergänzen:</b> Deine Praxis-Tipps zum Ablauf – Reihenfolge, Zug/Last je Leine, wie lange eine komplette Messung dauert.</div>
+      </article>
+
+      <article class="topic" id="korrigieren">
+        <h3>Korrigieren und von Hand eintragen</h3>
+        <ul>
+          <li><b>Rückgängig:</b> Nach jeder Messung erscheint kurz <span class="ui">Rückgängig</span> – ein Tipp entfernt den letzten Wert.</li>
+          <li><span class="ui">✕ Löschen</span> löscht den Wert der angezeigten Leine.</li>
+          <li><b>Von Hand:</b> Wert ins Feld <span class="ui">Wert manuell (mm)</span> tippen und <span class="ui">Eintragen</span>. Händische Werte werden <b>nicht</b> um den Laser-Offset korrigiert.</li>
+          <li>Neu messen: einfach zur Leine springen und nochmals messen – der alte Wert wird ersetzt.</li>
+        </ul>
+      </article>
+
+      <article class="topic" id="uebersicht">
+        <h3>Übersicht und Vergleich</h3>
+        <div class="cols">
+          <div>
+            <p><span class="ui">☰</span> (oder Tipp auf den Leinennamen) öffnet die Übersicht aller Leinen mit Soll, links und rechts. Ein Tipp auf einen Wert springt zu dieser Leine.</p>
+            <p><b>Vergleich mit gesicherter Messreihe:</b> Oben eine frühere Messreihe wählen – z. B. die Eingangsmessung vor dem Trimm. Die Werte stehen dann daneben, so siehst du direkt, was sich verändert hat.</p>
+            <p>Am großen Bildschirm öffnet sich die Übersicht als ganze Seite, mit Freigabe und Sichern in der rechten Spalte.</p>
+          </div>
+          <figure class="shot"><img src="img/app_list.webp" width="640" height="1385" loading="lazy" alt="Übersicht aller Leinen mit Soll und Messwerten links und rechts"><figcaption>Übersicht: Soll, links, rechts</figcaption></figure>
+        </div>
+      </article>
+
+      <article class="topic" id="sichern">
+        <h3>Messreihe sichern</h3>
+        <div class="cols">
+          <div>
+            <p>Eine <b>Messreihe</b> ist ein kompletter Durchgang – z. B. „Eingang“, „nach Trimm“. Solange sie läuft, kannst du Werte ändern. Gesichert wird sie zum unveränderlichen Bericht.</p>
+            <ul>
+              <li><span class="ui">📦 Sichern</span> speichert alle aktuellen Werte samt Messzeit als gesicherte Messreihe. Bezeichnung und Messdatum vorher eintragen.</li>
+              <li><span class="ui">🆕 Neue Messreihe</span> sichert die laufende und beginnt mit dem nächsten Wert eine neue, leere.</li>
+              <li>Die <b>Messzeit</b> zählt ab dem ersten Wert; Lücken über 5 Minuten gelten als Pause.</li>
+            </ul>
+            <p>Gesicherte Messreihen findest du auf der Webseite unter <a href="#berichte">Berichte</a>.</p>
+            <div class="warn">Gesichert ist gesichert: Werte einer gesicherten Messreihe lassen sich nicht mehr ändern. Das macht Berichte für Käufer glaubwürdig.</div>
+          </div>
+          <figure class="shot"><img src="img/app_list_share.webp" width="640" height="1385" loading="lazy" alt="Bereich Für Käufer freigeben und Messreihe sichern"><figcaption>Unten in der Übersicht: Käufer-Freigabe und Sichern</figcaption></figure>
+        </div>
+      </article>
+
+      <article class="topic" id="einstellungen">
+        <h3>Einstellungen</h3>
+        <div class="cols">
+          <div>
+            <table class="def"><tbody>
+              <tr><th>Toleranz grün / gelb</th><td>Bis zu welcher Abweichung (mm) ein Wert grün bzw. gelb angezeigt wird; darüber rot. Voreinstellung 5 / 15 mm.</td></tr>
+              <tr><th>Laser-Offset</th><td>Abstand zwischen Messpunkt des Lasers und Anknüpfpunkt der Leine an der Zielscheibe. Wird von jeder Lasermessung abgezogen (Voreinstellung 18 mm).</td></tr>
+              <tr><th>Automatisch weiter</th><td>Nach jeder Messung zur nächsten Leine springen.</td></tr>
+              <tr><th>Leine ansagen</th><td>Die App sagt die nächste Leine an (z. B. „a 1“) – praktisch, wenn du nicht aufs Handy schauen willst.</td></tr>
+              <tr><th>Kite-Skizze</th><td>Skizze über der Leinenanzeige ein- oder ausblenden.</td></tr>
+              <tr><th>Google-Skript-URL</th><td>Nur noch für das Abholen von Winddaten im Session-Logbuch nötig.</td></tr>
+            </tbody></table>
+            <div class="todo"><b>✎ Ergänzen:</b> Wie wird der Laser-Offset für eine eigene Zielscheibe ermittelt?</div>
+          </div>
+          <figure class="shot"><img src="img/app_cfg.webp" width="640" height="1385" loading="lazy" alt="Einstellungen der Mess-App"><figcaption>Einstellungen ⚙</figcaption></figure>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===================== 3 ===================== -->
+    <section class="chapter" id="logbuch">
+      <h2><span class="no">3</span>Logbuch</h2>
+      <p class="lead">Was am Kite verändert wurde und wie er danach flog – das Gedächtnis zu jeder Messreihe. Öffnen mit <span class="ui">📒</span>.</p>
+
+      <article class="topic" id="lb-trimm">
+        <h3>Trimm-Eintrag</h3>
+        <div class="cols">
+          <div>
+            <p>Für alles, was beim Trimm gemessen oder verändert wird. Leere Felder sind kein Problem – trag ein, was du hast.</p>
+            <table class="def"><tbody>
+              <tr><th>Last/Leine</th><td>Zug je Leine in kg während der Messung.</td></tr>
+              <tr><th>Versatz L / R</th><td>Längenunterschied zwischen Front- und Back-Main je Seite in mm; <b>+ = Front länger</b>. Mit 📷 ein Foto dazu.</td></tr>
+              <tr><th>Seriennummer</th><td>Vom Etikett am Kite, optional mit Foto. Bleibt bei Freigaben an Freunde privat.</td></tr>
+              <tr><th>Vorrichtung / Methode</th><td>Womit und mit welcher Referenz gemessen wurde – wichtig, damit Messungen vergleichbar bleiben.</td></tr>
+              <tr><th>Performance Tuner</th><td>Stellung der Knotenleiter an der Z-Main links/rechts. Flysurfer-Standard: Mitte. Oben = Z ca. 20 mm länger, unten = ca. 20 mm kürzer (= Leinenplan).</td></tr>
+              <tr><th>Marker-Leinen</th><td>Einzelne Leinen je Ebene (z. B. a3, b3, c3, br5), die vor und nach dem Trimm gemessen werden.</td></tr>
+              <tr><th>Schlaufen, Pulleylines</th><td>Trimmschlaufen B/C und Pulleylines (unter Zug). Neuer Ersatzsatz: B 1190, C 990 mm – kürzer heißt geschrumpft.</td></tr>
+              <tr><th>Bar</th><td>Knoten an der Bar, Bar-Breite, Front- und Backline-Längen.</td></tr>
+            </tbody></table>
+            <div class="tip">Ein Längenfeld antippen und dann am Laser messen – der Wert landet direkt im Feld. Ein angefangener Eintrag bleibt als Entwurf erhalten.</div>
+          </div>
+          <figure class="shot"><img src="img/app_lb.webp" width="640" height="1385" loading="lazy" alt="Logbuch, Reiter Trimm"><figcaption>Logbuch · Trimm</figcaption></figure>
+        </div>
+      </article>
+
+      <article class="topic" id="lb-session">
+        <h3>Session-Eintrag</h3>
+        <div class="cols">
+          <div>
+            <p>Für einen Tag auf dem Wasser oder am Land: Zeit, Material, Wind und wie es lief. So siehst du später, ob ein Trimm wirklich etwas gebracht hat.</p>
+            <ul>
+              <li><b>Board / Stand / Bar</b> und Knoten an der Bar.</li>
+              <li><b>Wind:</b> Station wählen und <span class="ui">Von Nora holen</span> trägt Ø-Wind, Böen und Richtung für die Session-Zeit ein (braucht die Google-Skript-URL in den Einstellungen).</li>
+              <li><b>Ergebnis:</b> Sprünge, Hangtime, Höhen – z. B. von Garmin/WOO – und eine Notiz zum Gefühl.</li>
+            </ul>
+            <p>Session-Einträge bleiben immer privat, auch wenn du einen Kite mit Freunden teilst.</p>
+          </div>
+          <figure class="shot"><img src="img/app_lb_session.webp" width="640" height="1385" loading="lazy" alt="Logbuch, Reiter Session"><figcaption>Logbuch · Session</figcaption></figure>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===================== 4 ===================== -->
+    <section class="chapter" id="berichte">
+      <h2><span class="no">4</span>Meine Berichte</h2>
+      <p class="lead">Alle gesicherten Messreihen als Bericht – einzeln, im Vergleich nebeneinander und auf Wunsch mit Freunden geteilt. Zu finden unter <a href="../berichte/index.html">Berichte</a>.</p>
+
+      <article class="topic" id="berichte-liste">
+        <h3>Die Liste</h3>
+        <div class="cols">
+          <div>
+            <p>Links stehen deine Kites mit ihren Messreihen, darunter Kites, die andere mit dir geteilt haben („von …“). Mit <span class="ui">Alle</span> · <span class="ui">Meine</span> · <span class="ui">Geteilt</span> filtern, im Suchfeld nach Kite oder Name suchen.</p>
+            <p>Ein Tipp auf eine Messreihe öffnet den Bericht. Auch die <b>laufende Messung</b> erscheint – als Zwischenstand, noch nicht gesichert.</p>
+            <p>Jeder Bericht enthält: Kopfdaten (Datum, Zustand, Messpunkte, Messzeit), Kennzahlen, Ebenen-Übersicht, Abweichung je Leine, Symmetrie links/rechts und die Trimm-Einträge vom selben Tag.</p>
+          </div>
+          <figure class="shot"><img src="img/ber_list.webp" width="640" height="1385" loading="lazy" alt="Liste Meine Berichte mit eigenen und geteilten Kites"><figcaption>Eigene und geteilte Kites</figcaption></figure>
+        </div>
+      </article>
+
+      <article class="topic" id="kennzahlen">
+        <h3>Kennzahlen und Bewertung</h3>
+        <div class="cols">
+          <div>
+            <p>Alle Werte sind Abweichungen vom Leinenplan: <b>Ist − Soll</b> in mm (siehe <a href="#vorzeichen">Plus, Minus, Soll</a>).</p>
+            <table class="def"><tbody>
+              <tr><th>Symmetrie</th><td>Anteil der Leinenpaare, bei denen links und rechts höchstens 5 mm auseinanderliegen. 100 % = perfekt symmetrisch.</td></tr>
+              <tr><th>Ebenenabgleich</th><td>Größter Abstand der B- oder C-Ebene zur A-Ebene (Mittelwerte). Klein = Profil wie vorgesehen.</td></tr>
+              <tr><th>Z links − rechts</th><td>Mittlere Seitendifferenz der Steuerebene. Ungleich lange Steuerleinen lassen den Kite in eine Richtung ziehen.</td></tr>
+              <tr><th>A-Ebene vs. Plan</th><td>Mittlere Abweichung der A-Ebene. Sie wird nicht getrimmt – ihre Verkürzung zeigt, wie stark die Leinen gealtert sind.</td></tr>
+              <tr><th>Streuung</th><td>Abstand zwischen kürzester und längster Leine einer Ebene (bezogen auf Soll).</td></tr>
+            </tbody></table>
+            <p><b>Bewertung je Ebene</b> nach größter Seitendifferenz bzw. Abstand zur A-Ebene: <span class="ui" style="color:#3cc487">gut</span> bis 5 mm, <span class="ui" style="color:#e3b13c">prüfen</span> bis 10 mm, <span class="ui" style="color:#ef6a5b">trimmen</span> darüber.</p>
+          </div>
+          <figure class="shot"><img src="img/ber_kpis.webp" width="640" height="1385" loading="lazy" alt="Kennzahlen und Ebenen-Übersicht eines Berichts"><figcaption>Kennzahlen und Ebenen</figcaption></figure>
+        </div>
+      </article>
+
+      <article class="topic" id="vergleich">
+        <h3>Berichte vergleichen</h3>
+        <ol>
+          <li>Einen Bericht öffnen – er wird <span class="ui" style="color:#5aa7e8">A</span>.</li>
+          <li>Bei einer zweiten Messreihe auf <span class="ui">Vergleichen</span> tippen – sie wird <span class="ui" style="color:#ff8a42">B</span>.</li>
+          <li>Oben erscheint die Vergleichstabelle mit <b>Δ B − A</b>: grün = B näher am Plan bzw. symmetrischer, rot = schlechter. Darunter beide Berichte nebeneinander (am Handy untereinander).</li>
+        </ol>
+        <p>Typische Vergleiche: <b>vor und nach dem Trimm</b>, dein Kite <b>heute und vor einer Saison</b>, oder dein Kite gegen den eines Freundes. Auch <b>andere Größen und Modelle</b> lassen sich vergleichen, weil die Abweichung vom jeweiligen Leinenplan verglichen wird. Beim gleichen Kite gibt es zusätzlich <span class="ui">Alle Leinen vergleichen</span>.</p>
+        <p><span class="ui">A ⇄ B</span> tauscht die Seiten, <span class="ui">Vergleich beenden</span> zeigt wieder nur A. Die Adresse im Browser enthält beide Berichte – du kannst sie als Lesezeichen speichern.</p>
+        <figure class="shot wide"><img src="img/ber_compare.webp" width="1400" height="875" loading="lazy" alt="Zwei Berichte im Vergleich mit Differenztabelle"><figcaption>Vergleich am großen Bildschirm</figcaption></figure>
+      </article>
+
+      <article class="topic" id="freigabe">
+        <h3>Mit Freunden teilen</h3>
+        <div class="cols">
+          <div>
+            <p>Je mehr Kites gemessen sind, desto spannender werden Vergleiche. Darum kannst du deine Kites mit anderen Trimwerk-Mitgliedern teilen – <b>pro Kite</b>:</p>
+            <ol>
+              <li>In der Liste beim Kite auf den Knopf rechts tippen (<span class="ui">privat</span>, <span class="ui">2 Freunde</span> …).</li>
+              <li>Wählen: <b>Privat</b>, <b>Freunde</b> (bestimmte Mitglieder ankreuzen) oder <b>Alle Mitglieder</b>.</li>
+              <li><span class="ui">Speichern</span>.</li>
+            </ol>
+            <p><b>Geteilt werden</b> nur gesicherte Messreihen und Trimm-Einträge. <b>Privat bleiben</b> Seriennummer, eigene Bezeichnungen, laufende Messungen und Session-Einträge. Freunde können nichts verändern.</p>
+            <p>Die Freigabe lässt sich jederzeit zurücknehmen – einfach wieder auf <b>Privat</b> stellen.</p>
+          </div>
+          <figure class="shot"><img src="img/ber_share.webp" width="640" height="1385" loading="lazy" alt="Dialog Freigabe mit Privat, Freunde und Alle Mitglieder"><figcaption>Freigabe je Kite</figcaption></figure>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===================== 5 ===================== -->
+    <section class="chapter" id="kaeufer">
+      <h2><span class="no">5</span>Käufer-Freigabe</h2>
+      <p class="lead">Beim Verkauf eines gebrauchten Kites zeigt ein Messbericht, in welchem Zustand die Leinen wirklich sind.</p>
+      <article class="topic" id="kaeufer-link">
+        <h3>Link oder QR-Code erstellen</h3>
+        <ol>
+          <li>Messreihe in der App sichern (siehe <a href="#sichern">Messreihe sichern</a>).</li>
+          <li><span class="ui">☰</span> → <b>Für Käufer freigeben</b>: gesicherte Messreihe und Zustand (gebraucht, neu, nach Trimm) wählen.</li>
+          <li><span class="ui">🔗 Link für Käufer erstellen</span> – du bekommst einen Link und einen QR-Code zum Teilen oder Kopieren.</li>
+        </ol>
+        <p>Der Käufer braucht <b>kein Konto</b>. Er sieht nur diese eine Messreihe zum Lesen, neben dem Leinenplan – ohne deinen Namen.</p>
+        <p><b>Anonym für Vergleiche freigeben</b> (Häkchen): Dann darf deine Messreihe ohne Namen als Vergleich bei Käufern desselben Modells erscheinen. Ohne Häkchen bleibt sie nur über deinen Link sichtbar.</p>
+        <div class="tip">Käufer-Freigabe und Freigabe an Freunde sind unabhängig voneinander: Der Käufer-Link zeigt genau eine Messreihe öffentlich, die Freunde-Freigabe zeigt angemeldeten Mitgliedern alle gesicherten Messreihen eines Kites.</div>
+        <div class="todo"><b>✎ Offen:</b> Einen Käufer-Link zurückziehen geht derzeit noch nicht selbst – kommt in einem der nächsten Schritte.</div>
+      </article>
+    </section>
+
+    <!-- ===================== 6 ===================== -->
+    <section class="chapter" id="grundlagen">
+      <h2><span class="no">6</span>Trimm-Grundlagen</h2>
+      <p class="lead">Warum Foil-Kites sich mit der Zeit verstimmen und was die Zahlen in den Berichten bedeuten.</p>
+
+      <article class="topic" id="warum">
+        <h3>Warum trimmen?</h3>
+        <p>Waageleinen verändern sich mit der Zeit: Sie schrumpfen oder längen sich, oft unterschiedlich je Ebene und Seite. Schon wenige Millimeter verschieben das Profil des Kites. Trimmen heißt: die Leinenlängen wieder auf den Leinenplan des Herstellers bringen – wie Ski wachsen oder das Fahrradservice.</p>
+        <p>Woran du merkst, dass es Zeit ist, steht auf der <a href="../ueber/index.html">Über-Seite</a>: wenn andere mit kleineren Kites mehr Höhe laufen, die Ohren klappern, die Front einfach wegbricht …</p>
+      </article>
+
+      <article class="topic" id="ebenen">
+        <h3>Ebenen A, B, C, Z</h3>
+        <table class="def"><tbody>
+          <tr><th>A-Ebene (a1, a2 …)</th><td>Vorderste Leinen an der Eintrittskante. Sie ist die <b>Referenz</b> und wird nicht getrimmt; ihre Verkürzung zeigt den Alterungszustand.</td></tr>
+          <tr><th>B- und C-Ebene</th><td>Mittlere Leinen. Ziel des Trimms: auf das Niveau der A-Ebene bringen und beide Seiten angleichen. Verstellt wird über Trimmschlaufen und Pulleylines.</td></tr>
+          <tr><th>Z-Ebene (br1, br2 …)</th><td>Steuer- bzw. Bremsleinen an der Hinterkante. In Tuner-Stellung Mitte liegt sie planmäßig rund 20 mm über dem Leinenplan.</td></tr>
+        </tbody></table>
+      </article>
+
+      <article class="topic" id="vorzeichen">
+        <h3>Plus, Minus, Soll</h3>
+        <ul>
+          <li><b>Soll</b> = Länge laut Leinenplan des Herstellers.</li>
+          <li><b>+</b> = Leine ist <b>länger</b> als der Plan, <b>−</b> = <b>kürzer</b>.</li>
+          <li><b>L − R</b> = links minus rechts. Positiv heißt: die linke Leine ist länger.</li>
+          <li>Versatz Front/Back: <b>+ = Front-Main länger</b>.</li>
+        </ul>
+        <p>Entscheidend ist meist nicht der absolute Wert, sondern das <b>Verhältnis der Ebenen zueinander</b> und die <b>Symmetrie links/rechts</b>. Gleichmäßig gealterte Leinen sind darum meist weniger kritisch als einzelne Ebenen oder Seiten, die aus der Reihe tanzen.</p>
+      </article>
+
+      <article class="topic" id="wann">
+        <h3>Wann trimmen?</h3>
+        <div class="todo"><b>✎ Ergänzen:</b> Deine Erfahrung – nach wie vielen Flugstunden messen? Welche Abweichungen spürst du im Flug? Welches Symptom passt zu welcher Ebene? Und wann lohnt sich ein neuer Leinensatz statt Trimmen?</div>
+        <p>Als Faustregel aus der Bewertung im Bericht: bis 5 mm passt, bis 10 mm im Auge behalten, darüber trimmen. Nach jedem Trimm eine neue Messreihe – dann zeigt der Vergleich, was es gebracht hat.</p>
+      </article>
+    </section>
+
+    <!-- ===================== 7 ===================== -->
+    <section class="chapter" id="probleme">
+      <h2><span class="no">7</span>Probleme lösen</h2>
+      <p class="lead">Die häufigsten Stolpersteine und was hilft.</p>
+
+      <article class="topic" id="p-laser">
+        <h3>Der Laser wird nicht gefunden oder verbindet nicht</h3>
+        <ul>
+          <li>Bluetooth am Laser <b>und</b> am Handy eingeschaltet?</li>
+          <li>Ist der Laser noch mit der Bosch-App oder einem anderen Gerät verbunden? Dort trennen.</li>
+          <li>Richtiger Browser? Am iPhone nur mit Bluefy (siehe <a href="#browser">Passender Browser</a>).</li>
+          <li><span class="ui">⚙</span> → <span class="ui">Laser suchen – alle Geräte anzeigen</span> versuchen.</li>
+          <li>Android: Der Browser braucht die Berechtigung für Geräte in der Nähe bzw. Standort.</li>
+          <li>Laser aus- und wieder einschalten, App neu laden.</li>
+        </ul>
+      </article>
+
+      <article class="topic" id="p-werte">
+        <h3>Gemessen, aber der Wert kommt nicht an</h3>
+        <ul>
+          <li>Steht unten <b>⏳ … noch nicht gespeichert</b>? Dann fehlt gerade die Verbindung. Die Werte bleiben auf dem Gerät und werden automatisch nachgereicht – App offen lassen, bis die Meldung verschwindet.</li>
+          <li>Punkt neben <span class="ui">Laser</span> grau statt grün? Verbindung zum Laser neu herstellen.</li>
+          <li>Ist die laufende Messreihe schon gesichert? Dann mit <span class="ui">🆕 Neue Messreihe</span> weitermessen.</li>
+        </ul>
+      </article>
+
+      <article class="topic" id="p-login">
+        <h3>Anmeldung, alte Version, leere Liste</h3>
+        <ul>
+          <li><b>„Bitte neu anmelden“:</b> Die Anmeldung ist abgelaufen – auf der Startseite neu anmelden; ungesendete Werte bleiben erhalten.</li>
+          <li><b>App sieht alt aus:</b> App ganz schließen und neu öffnen.</li>
+          <li><b>Keine Berichte:</b> Berichte entstehen erst, wenn eine Messreihe Werte hat; geteilte Kites erscheinen erst, wenn jemand sie für dich freigibt.</li>
+        </ul>
+      </article>
+
+      <div class="todo"><b>✎ Ergänzen:</b> Probleme aus der Praxis – z. B. Laser misst die falsche Fläche, Werte springen, Akku, Messen bei Sonne.</div>
+    </section>
+
+    <!-- ===================== 8 ===================== -->
+    <section class="chapter" id="begriffe">
+      <h2><span class="no">8</span>Begriffe von A bis Z</h2>
+      <article class="topic">
+        <div class="gloss">
+          <div><b>A-Ebene</b><span>Vorderste Waageleinen an der Eintrittskante; Referenz beim Trimm.</span></div>
+          <div><b>Back-Main</b><span>Hauptleine der hinteren Waage.</span></div>
+          <div><b>Bericht</b><span>Auswertung einer gesicherten Messreihe mit Kennzahlen und Diagrammen.</span></div>
+          <div><b>Ebenenabgleich</b><span>Größter Abstand der B/C-Ebene zur A-Ebene.</span></div>
+          <div><b>Freigabe</b><span>Erlaubnis, dass Freunde, alle Mitglieder oder ein Käufer einen Kite bzw. eine Messreihe sehen.</span></div>
+          <div><b>Front-Main</b><span>Hauptleine der vorderen Waage.</span></div>
+          <div><b>Laser-Offset</b><span>Wird von jeder Lasermessung abgezogen, damit die Leinenlänge ab Anknüpfpunkt stimmt.</span></div>
+          <div><b>Leinenplan</b><span>Sollängen aller Waageleinen laut Hersteller.</span></div>
+          <div><b>Marker-Leine</b><span>Ausgewählte Leine je Ebene, die vor und nach dem Trimm gemessen wird.</span></div>
+          <div><b>Messreihe</b><span>Ein kompletter Messdurchgang eines Kites; laufend oder gesichert.</span></div>
+          <div><b>Performance Tuner</b><span>Knotenleiter an der Z-Main zum Verstellen der Steuerebene.</span></div>
+          <div><b>Pulleyline</b><span>Leine über Umlenkrollen in der Waage; schrumpft mit der Zeit.</span></div>
+          <div><b>Soll</b><span>Länge laut Leinenplan.</span></div>
+          <div><b>Symmetrie</b><span>Anteil der Leinenpaare mit höchstens 5 mm Unterschied links/rechts.</span></div>
+          <div><b>Trimmschlaufe</b><span>Schlaufe zum Verlängern oder Verkürzen einer Ebene.</span></div>
+          <div><b>Trimwerk / Trimwerk Go</b><span>Große Trimmvorrichtung (alle Leinen auf Zug) bzw. mobile Version zum Nachbauen.</span></div>
+          <div><b>Versatz</b><span>Längenunterschied Front- zu Back-Main; + = Front länger.</span></div>
+          <div><b>Z-Ebene</b><span>Steuerleinen an der Hinterkante (br1, br2 …).</span></div>
+        </div>
+        <div class="todo"><b>✎ Bitte prüfen:</b> Stimmen die Erklärungen zu Front-/Back-Main, Pulleyline und Trimmschlaufe? Fehlen Begriffe?</div>
+      </article>
+    </section>
+
+    <p class="back">Fehlt etwas oder ist etwas unklar? Sag Bescheid – die Hilfe wächst mit euren Fragen.</p>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span><a href="../index.html">trimwerk.app</a></span>
+    <span>Unabhängiges Projekt, nicht mit Flysurfer verbunden. Nachbau und Trimm auf eigene Verantwortung.</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const q = document.getElementById('q'), content = document.getElementById('content');
+  const topics = [...content.querySelectorAll('.topic, .chapter > .todo')];
+  const chapters = [...content.querySelectorAll('.chapter')];
+  const orig = new Map(topics.map(t => [t, t.innerHTML]));
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss');
+  function markText(el, words){
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const nodes = []; while (walk.nextNode()) nodes.push(walk.currentNode);
+    const re = new RegExp('(' + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+    nodes.forEach(n => { if (!re.test(n.nodeValue)) return; re.lastIndex = 0;
+      const span = document.createElement('span'); span.innerHTML = n.nodeValue.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(re, '<mark>$1</mark>');
+      n.replaceWith(span); });
+  }
+  let t;
+  q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(run, 120); });
+  function run(){
+    const words = norm(q.value.trim()).split(/\s+/).filter(w => w.length > 1);
+    topics.forEach(el => { el.innerHTML = orig.get(el); });
+    if (!words.length){ topics.forEach(el => el.classList.remove('hidden')); chapters.forEach(c => c.classList.remove('hidden')); document.getElementById('noresult').style.display = 'none'; return; }
+    let hits = 0;
+    topics.forEach(el => {
+      const txt = norm(el.textContent + ' ' + (el.closest('.chapter').querySelector('h2').textContent));
+      const ok = words.every(w => txt.includes(w));
+      el.classList.toggle('hidden', !ok); if (ok){ hits++; markText(el, q.value.trim().split(/\s+/).filter(w => w.length > 1)); }
+    });
+    chapters.forEach(c => c.classList.toggle('hidden', !c.querySelector('.topic:not(.hidden), .todo:not(.hidden)')));
+    document.getElementById('noresult').style.display = hits ? 'none' : 'block';
+  }
+  // Inhaltsverzeichnis: aktiven Abschnitt markieren, am Handy nach Klick zuklappen
+  const links = [...document.querySelectorAll('.toc nav a')];
+  const box = document.getElementById('tocBox');
+  if (innerWidth <= 900) box.open = false;
+  links.forEach(a => a.addEventListener('click', () => { if (q.value){ q.value = ''; run(); } if (innerWidth <= 900) box.open = false; }));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting){ links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); } }), {rootMargin: '0px 0px -75% 0px'});
+  chapters.forEach(c => io.observe(c));
+  // Direkt-Sprung (?-Links aus App und Berichten): Abschnitt kurz hervorheben
+  if (location.hash){ const el = document.querySelector(location.hash); if (el && el.classList.contains('topic')) { el.style.boxShadow = '0 0 0 2px var(--accent)'; setTimeout(() => el.style.boxShadow = '', 2500); } }
+})();
+</script>
+</body>
+</html>

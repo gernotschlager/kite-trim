@@ -139,7 +139,8 @@ dialog h3{font-size:26px;margin:0 0 6px}
       <a href="../bericht/index.html">Musterbericht</a>
       <a href="../diy/index.html">DIY</a>
       <a href="./index.html" aria-current="page">Berichte</a>
-      <a href="../app/index.html">Mess-App</a>
+      <a href="../app/index.html">App</a>
+      <a href="../hilfe/index.html">Hilfe</a>
       <a href="../ueber/index.html">Über</a>
     </nav>
   </div>
@@ -161,7 +162,7 @@ dialog h3{font-size:26px;margin:0 0 6px}
 </main>
 
 <dialog id="shareDlg">
-  <h3>Freigabe</h3>
+  <h3>Freigabe <a href="../hilfe/index.html#freigabe" target="_blank" rel="noopener" style="font:500 14px var(--f-body);color:var(--accent-ink);margin-left:6px">Hilfe</a></h3>
   <p class="cnote" id="shareKite" style="margin:0 0 8px"></p>
   <label class="opt"><input type="radio" name="mode" value="privat"><span><b>Privat</b><small>Nur du siehst die Berichte dieses Kites.</small></span></label>
   <label class="opt"><input type="radio" name="mode" value="freunde"><span><b>Freunde</b><small>Nur die ausgewählten Mitglieder.</small></span></label>
@@ -311,7 +312,7 @@ function report(rep, slot, paired){
       ${kpi('A-Ebene vs. Plan', sg(a.aPlan), 'mm', 'Alterungszustand der Leinen')}
     </section>
     <section class="sheet">
-      <div class="secthead"><h3>Ebenen im Überblick</h3><span class="lbl">Ist − Soll in mm</span></div>
+      <div class="secthead"><h3>Ebenen im Überblick</h3><span class="lbl">Ist − Soll in mm · <a href="../hilfe/index.html#kennzahlen" style="color:var(--accent-ink)">Was bedeutet das?</a></span></div>
       <div class="scroll"><table class="t"><thead><tr><th>Ebene</th><th>Ø</th><th>Ø L − R</th><th>max |L − R|</th><th>Streuung</th><th>Bewertung</th></tr></thead><tbody>
       ${LEVELS.filter(k => a.lv[k]).map(k => { const v = a.lv[k];
         return `<tr><td><b>${NAMES[k]}</b></td><td class="mono"><b>${sg(v.m)}</b></td><td class="mono">${sg(v.mLR)}</td><td class="mono">${isNaN(v.maxLR)?'–':r0(v.maxLR)}</td><td class="mono">${isNaN(v.spread)?'–':r0(v.spread)}</td><td>${rate(k, v, a)}</td></tr>`; }).join('')}
@@ -472,7 +473,7 @@ $('shareSave').onclick = async () => {
 };
 
 /* ---------- Name ---------- */
-function drawWho(){ $('who').innerHTML = `Angemeldet als <b>${esc(ME || '…')}</b> <button class="linkbtn" id="editName">Name ändern</button>`; $('editName').onclick = () => { $('nameIn').value = ME; $('nameErr').hidden = true; $('nameDlg').showModal(); }; }
+function drawWho(){ $('who').innerHTML = `Angemeldet als <b>${esc(ME || '…')}</b> <button class="linkbtn" id="editName">Name ändern</button> · <a href="../hilfe/index.html#berichte" style="color:var(--accent-ink)">Hilfe</a>`; $('editName').onclick = () => { $('nameIn').value = ME; $('nameErr').hidden = true; $('nameDlg').showModal(); }; }
 $('nameCancel').onclick = () => $('nameDlg').close();
 $('nameSave').onclick = async () => {
   try { ME = await rpc('set_my_name', {n: $('nameIn').value}); $('nameDlg').close(); drawWho(); }

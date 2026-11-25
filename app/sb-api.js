@@ -64,6 +64,14 @@
   async function values(mid) {
     return mid ? chk(await sb.from('measurement_values').select('line, side, value_mm, soll, grp').eq('measurement_id', mid)) : [];
   }
+  // Ist die laufende Messung identisch mit einer schon gesicherten Messreihe desselben Kites?
+  async function duplicateOf(kid, vals) {
+    const key = vs => vs.filter(v => v.value_mm != null).map(v => v.line + '|' + v.side + '|' + Number(v.value_mm)).sort().join(';');
+    const mine = key(vals); if (!mine) return null;
+    const locked = chk(await sb.from('measurements').select('id, measured_at, label').eq('kite_id', kid).eq('locked', true).order('created_at', { ascending: false }));
+    for (const m of locked) { if (key(await values(m.id)) === mine) return m; }
+    return null;
+  }
   function toLines(vals, order) {
     const m = {};
     vals.forEach(v => {
@@ -155,6 +163,8 @@
       const kid = await kiteId(p.kite), cid = await current(p.kite, false);
       const vals = await values(cid);
       if (!vals.some(v => v.value_mm != null)) throw new Error('Keine Messwerte zum Sichern vorhanden');
+      const dup = await duplicateOf(kid, vals);
+      if (dup) throw new Error(`Diese Werte sind schon gesichert (${dup.measured_at}${dup.label ? ' · ' + dup.label : ''}) – nicht doppelt gesichert`);
       const meta = Object.assign({ gesichert_am: today() }, statMeta(await stats(cid)));
       const nm = chk(await sb.from('measurements').insert({ kite_id: kid, measured_at: p.datum || today(), label: p.label || '',
         offset_mm: Number(p.offset) || 18, meta }).select('id').single());
@@ -165,17 +175,22 @@
     async new_series(p) {
       if (p.confirm !== '1') throw new Error('Bestätigung fehlt');
       const cid = await current(p.kite, false);
-      let saved = null;
+      let saved = null, duplicate = null, discarded = false;
       if (cid) {
         const vals = await values(cid);
-        if (vals.some(v => v.value_mm != null)) {
+        const kid = await kiteId(p.kite);
+        if (p.mode === 'discard' && vals.some(v => v.value_mm != null)) {
+          chk(await sb.from('measurements').delete().eq('id', cid)); discarded = true;
+        } else if (vals.some(v => v.value_mm != null) && (duplicate = await duplicateOf(kid, vals))) {
+          chk(await sb.from('measurements').delete().eq('id', cid)); discarded = true;
+        } else if (vals.some(v => v.value_mm != null)) {
           const meta = Object.assign({ gesichert_am: today() }, statMeta(await stats(cid)));
           chk(await sb.from('measurements').update({ label: p.label || '', measured_at: p.datum || today(), offset_mm: Number(p.offset) || 18, meta }).eq('id', cid));
           chk(await sb.from('measurements').update({ locked: true }).eq('id', cid));
           saved = { id: cid, n: vals.length };
         }
       }
-      return ok({ saved });
+      return ok({ saved, discarded, duplicate: duplicate ? { id: duplicate.id, datum: duplicate.measured_at, label: duplicate.label || '' } : null });
     },
     async share_create(p) {
       const m = chk(await sb.from('measurements').select('id, share_token, kite_id').eq('id', p.id).single());

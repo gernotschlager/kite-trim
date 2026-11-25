@@ -232,7 +232,8 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
         <h3>Korrigieren und von Hand eintragen</h3>
         <ul>
           <li><b>Rückgängig:</b> Nach jeder Messung erscheint kurz <span class="ui">Rückgängig</span> – ein Tipp entfernt den letzten Wert.</li>
-          <li><span class="ui">✕ Löschen</span> löscht den Wert der angezeigten Leine.</li>
+          <li><span class="ui">✕ Löschen</span> löscht den Wert der angezeigten Leine – zur Sicherheit zweimal tippen.</li>
+          <li><b>Schutz vor Überschreiben:</b> Hat eine Leine schon einen Wert und weicht der neue um mehr als die Gelb-Toleranz ab (Voreinstellung 15 mm), fragt die App nach: <span class="ui">Überschreiben</span> oder <span class="ui">Behalten</span>. Kleine Abweichungen beim Nachmessen werden ohne Rückfrage übernommen. Abschaltbar in den <a href="#einstellungen">Einstellungen</a>.</li>
           <li><b>Von Hand:</b> Wert ins Feld <span class="ui">Wert manuell (mm)</span> tippen und <span class="ui">Eintragen</span>. Händische Werte werden <b>nicht</b> um den Laser-Offset korrigiert.</li>
           <li>Neu messen: einfach zur Leine springen und nochmals messen – der alte Wert wird ersetzt.</li>
         </ul>
@@ -257,7 +258,9 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
             <p>Eine <b>Messreihe</b> ist ein kompletter Durchgang – z. B. „Eingang“, „nach Trimm“. Solange sie läuft, kannst du Werte ändern. Gesichert wird sie zum unveränderlichen Bericht.</p>
             <ul>
               <li><span class="ui">📦 Sichern</span> speichert alle aktuellen Werte samt Messzeit als gesicherte Messreihe. Bezeichnung und Messdatum vorher eintragen.</li>
-              <li><span class="ui">🆕 Neue Messreihe</span> sichert die laufende und beginnt mit dem nächsten Wert eine neue, leere.</li>
+              <li><span class="ui">🆕 Neue Messreihe</span> leert die Felder für eine Neuvermessung. Vorher fragt die App, was mit der laufenden Messung passieren soll:
+                <ul><li><b>Als Bericht sichern und neu beginnen</b> – der Normalfall.</li><li><b>Verwerfen und neu beginnen</b> – löscht die laufende Messung endgültig, z. B. nach einem Test (zur Sicherheit zweimal tippen).</li></ul>
+                Sind die Werte schon als Bericht gesichert (etwa weil du vorher <span class="ui">📦 Sichern</span> getippt hast), wird nicht doppelt gesichert – die Felder werden nur geleert.</li>
               <li>Die <b>Messzeit</b> zählt ab dem ersten Wert; Lücken über 5 Minuten gelten als Pause.</li>
             </ul>
             <p>Gesicherte Messreihen findest du auf der Webseite unter <a href="#berichte">Berichte</a>.</p>
@@ -275,6 +278,7 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
               <tr><th>Toleranz grün / gelb</th><td>Bis zu welcher Abweichung (mm) ein Wert grün bzw. gelb angezeigt wird; darüber rot. Voreinstellung 5 / 15 mm.</td></tr>
               <tr><th>Laser-Offset</th><td>Abstand zwischen Messpunkt des Lasers und Anknüpfpunkt der Leine an der Zielscheibe. Wird von jeder Lasermessung abgezogen (Voreinstellung 18 mm).</td></tr>
               <tr><th>Automatisch weiter</th><td>Nach jeder Messung zur nächsten Leine springen.</td></tr>
+              <tr><th>Vor dem Überschreiben fragen</th><td>Rückfrage, wenn ein neuer Wert stark vom vorhandenen abweicht (mehr als die Gelb-Toleranz) – schützt z. B. bei Tests vor versehentlichem Überschreiben.</td></tr>
               <tr><th>Leine ansagen</th><td>Die App sagt die nächste Leine an (z. B. „a 1“) – praktisch, wenn du nicht aufs Handy schauen willst.</td></tr>
               <tr><th>Kite-Skizze</th><td>Skizze über der Leinenanzeige ein- oder ausblenden.</td></tr>
               <tr><th>Wind-Schnittstelle</th><td>Optional: Adresse und Passwort einer Schnittstelle, die Winddaten automatisch liefert. Ohne Eintrag lädst du Winddaten als Datei (siehe <a href="#wind">Winddaten</a>).</td></tr>

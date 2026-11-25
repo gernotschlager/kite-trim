@@ -285,6 +285,7 @@
   <label><input type="checkbox" id="cAuto" style="width:auto"> Nach Messung automatisch weiter</label>
   <label><input type="checkbox" id="cVoice" style="width:auto"> Leine ansagen (Sprachausgabe, z. B. „a 1“)</label>
   <label><input type="checkbox" id="cMap" style="width:auto"> Kite-Skizze anzeigen</label>
+  <label><input type="checkbox" id="cGuard" style="width:auto"> Vor dem Überschreiben fragen (wenn der neue Wert mehr als die Gelb-Toleranz abweicht)</label>
   <button class="btn" id="btAll" style="width:100%;margin-top:14px">🔍 Laser suchen – alle Geräte anzeigen</button>
   <details style="margin-top:12px"><summary>Bluetooth-Rohdaten</summary><div id="log"></div></details>
   <div class="row">
@@ -332,8 +333,27 @@
     <button class="btn" id="arNew" type="button" style="color:var(--bad);margin-right:auto">🆕 Neue Messreihe</button>
     <button class="btn" id="listClose" type="button">Schließen</button>
   </div>
-  <p class="hint" style="font-size:13px">Die Messzeit zählt ab „Neue Messreihe“; Lücken über 5 min gelten als Pause. „Sichern“ speichert alle aktuellen Werte samt Messzeit als gesicherte Messreihe (zu sehen unter „Berichte“ auf der Webseite). „Neue Messreihe“ sichert zuerst und leert dann alle Felder dieses Kites.</p>
+  <p class="hint" style="font-size:13px">Die Messzeit zählt ab „Neue Messreihe“; Lücken über 5 min gelten als Pause. „Sichern“ speichert alle aktuellen Werte samt Messzeit als gesicherte Messreihe (zu sehen unter „Berichte“ auf der Webseite). „Neue Messreihe“ fragt, ob die laufende Messung als Bericht gesichert oder verworfen wird, und leert dann alle Felder dieses Kites.</p>
 </div></div>
+</dialog>
+
+<dialog id="owDlg" style="width:min(420px,94vw)">
+  <h2 style="margin:0 0 6px">Wert überschreiben?</h2>
+  <p id="owTxt" style="margin:0 0 6px;line-height:1.5"></p>
+  <p class="hint" style="margin:0">Ein neuer Laserwert ersetzt den Vorschlag, solange dieses Fenster offen ist.</p>
+  <div class="row" style="margin-top:14px">
+    <button class="btn" id="owKeep">Behalten</button>
+    <button class="btn primary" id="owYes">Überschreiben</button>
+  </div>
+</dialog>
+
+<dialog id="nsDlg" style="width:min(460px,94vw)">
+  <h2 style="margin:0 0 6px">Neue Messreihe</h2>
+  <p id="nsTxt" style="margin:0 0 12px;line-height:1.5"></p>
+  <button class="btn primary" id="nsSave" style="width:100%;margin-bottom:8px">📦 Als Bericht sichern und neu beginnen</button>
+  <button class="btn" id="nsDiscard" style="width:100%;margin-bottom:8px;color:var(--bad)">🗑 Verwerfen und neu beginnen</button>
+  <p class="hint" style="margin:0 0 10px">Verwerfen löscht die laufende Messung endgültig – praktisch nach einem Test. Gesicherte Berichte bleiben immer erhalten. Sind die Werte schon als Bericht gesichert, wird nicht doppelt gesichert.</p>
+  <button class="btn" id="nsCancel" style="width:100%">Abbrechen</button>
 </dialog>
 
 <dialog id="lb">
@@ -815,7 +835,26 @@ function onMeasure(mm, laser){
   if (!N()) return;
   const off = laser ? (cfg.offset || 0) : 0;
   mm = Math.round(mm - off);
+  if ($('owDlg').open && owPending){ owPending.mm = mm; owPending.off = off; return owShow(); }
   const p = pos, { line, side } = cur();
+  if (cfg.guard !== false && line[side] != null && Math.abs(mm - line[side]) > (cfg.tol2 || 15)){
+    owPending = { p, mm, off }; return owShow();
+  }
+  commitMeasure(p, mm, off);
+}
+let owPending = null;
+function owShow(){
+  const { p, mm } = owPending, l = lines[p % N()], side = p < N() ? 'L' : 'R', old = l[side];
+  $('owTxt').innerHTML = `<b>${l.name} ${side === 'L' ? 'links' : 'rechts'}</b> hat schon <b>${fmt(old)} mm</b>.<br>Neuer Wert: <b>${fmt(mm)} mm</b> (${mm - old > 0 ? '+' : '−'}${fmt(Math.abs(mm - old))} mm).`;
+  if (!$('owDlg').open) $('owDlg').showModal();
+  if (navigator.vibrate) navigator.vibrate([80, 60, 80]);
+}
+$('owYes').onclick = () => { const x = owPending; owPending = null; $('owDlg').close(); if (x) commitMeasure(x.p, x.mm, x.off); };
+$('owKeep').onclick = () => { owPending = null; $('owDlg').close(); showToast('Wert behalten – nichts geändert'); };
+$('owDlg').addEventListener('close', () => { owPending = null; });
+function commitMeasure(p, mm, off){
+  const l0 = lines[p % N()], side0 = p < N() ? 'L' : 'R';
+  const line = l0, side = side0;
   const old = setValue(p, mm);
   if (navigator.vibrate) navigator.vibrate(60);
   lastUndo = { p, old };
@@ -846,10 +885,13 @@ $('undo').onclick = () => {
   pos = lastUndo.p; lastUndo = null; render();
   $('toast').classList.remove('show');
 };
+let delArmed = null;
 $('del').onclick = () => {
   if (!N()) return;
   const { line, side } = cur();
   if (line[side] == null) return showToast('Hier ist noch kein Wert');
+  if (delArmed !== pos){ delArmed = pos; showToast(`Nochmal tippen: ${line.name} ${side === 'L' ? 'links' : 'rechts'} (${fmt(line[side])} mm) löschen`); setTimeout(() => { if (delArmed === pos) delArmed = null; }, 4000); return; }
+  delArmed = null;
   const old = setValue(pos, ''); lastUndo = { p:pos, old };
   showToast(`${line.name} ${side === 'L' ? 'links' : 'rechts'} gelöscht`, true); render();
 };
@@ -1103,22 +1145,36 @@ $('arSave').onclick = async () => {
   }catch(e){ showToast('⚠ ' + e.message); }
   finally{ $('arSave').disabled = false; }
 };
-let arNewArmed = false;
-$('arNew').onclick = async () => {
+$('arNew').onclick = () => {
   if (queue.length) return showToast('Es werden noch Werte übertragen – bitte kurz warten');
-  if (!arNewArmed){ arNewArmed = true; showToast(`Nochmal tippen: aktuelle Werte von „${kite}“ sichern und alle Felder leeren`); setTimeout(() => arNewArmed = false, 4000); return; }
-  arNewArmed = false; $('arNew').disabled = true;
+  const n = lines.reduce((s, l) => s + (l.L != null) + (l.R != null), 0);
+  if (!n) return showToast('Die Felder sind schon leer – einfach losmessen');
+  $('nsTxt').innerHTML = `Die laufende Messung von <b>${kite.replace(/m²$/, ' m²')}</b> hat <b>${n}</b> Werte. Was soll damit passieren, bevor die Felder geleert werden?`;
+  nsArmed = false; $('nsDiscard').textContent = '🗑 Verwerfen und neu beginnen';
+  $('nsDlg').showModal();
+};
+let nsArmed = false;
+$('nsCancel').onclick = () => $('nsDlg').close();
+$('nsSave').onclick = () => newSeries('save');
+$('nsDiscard').onclick = () => {
+  if (!nsArmed){ nsArmed = true; $('nsDiscard').textContent = '🗑 Wirklich verwerfen? Nochmal tippen'; return; }
+  newSeries('discard');
+};
+async function newSeries(mode){
+  $('nsSave').disabled = $('nsDiscard').disabled = true;
   try{
-    const j = await api({ action:'new_series', kite, offset: cfg.offset, confirm:'1', label: $('arLabel').value.trim() || 'automatisch vor neuer Messreihe', datum: $('arDate').value });
-    $('arLabel').value = '';
+    const j = await api({ action:'new_series', kite, mode, offset: cfg.offset, confirm:'1', label: $('arLabel').value.trim() || 'automatisch vor neuer Messreihe', datum: $('arDate').value });
+    $('nsDlg').close(); $('arLabel').value = '';
     await loadLines(true);
     await arLoadList();
     if (j.saved){ await cmpSet(j.saved.id, true); showToast('Gesichert und geleert ✓ – Vergleich mit der gesicherten Reihe ist aktiv'); }
+    else if (j.duplicate){ await cmpSet(j.duplicate.id, true); showToast(`Werte waren schon als Bericht vom ${j.duplicate.datum} gesichert – nicht doppelt gesichert, Felder geleert ✓`); }
+    else if (j.discarded) showToast('Laufende Messung verworfen, Felder geleert ✓');
     else showToast('Felder geleert (es gab nichts zu sichern)');
     listRender(); timeLoad();
   }catch(e){ showToast('⚠ ' + e.message); }
-  finally{ $('arNew').disabled = false; }
-};
+  finally{ $('nsSave').disabled = $('nsDiscard').disabled = false; nsArmed = false; }
+}
 $('tbl').onclick = e => { const p = e.target.dataset?.p; if (p != null){ pos = +p; render(); $('list').close(); } };
 $('listBtn').onclick = openList; $('name').onclick = openList;
 $('listClose').onclick = () => $('list').close();
@@ -1126,14 +1182,14 @@ $('listClose').onclick = () => $('list').close();
 /* ---------- Einstellungen ---------- */
 function openCfg(){
   $('cUrl').value = cfg.url; $('cKey').value = cfg.key;
-  $('cTol1').value = cfg.tol1; $('cTol2').value = cfg.tol2; $('cAuto').checked = cfg.auto; $('cOff').value = cfg.offset; $('cVoice').checked = cfg.voice !== false; $('cMap').checked = cfg.map !== false;
+  $('cTol1').value = cfg.tol1; $('cTol2').value = cfg.tol2; $('cAuto').checked = cfg.auto; $('cOff').value = cfg.offset; $('cVoice').checked = cfg.voice !== false; $('cMap').checked = cfg.map !== false; $('cGuard').checked = cfg.guard !== false;
   $('cfg').showModal();
 }
 $('cfgBtn').onclick = openCfg;
 $('cfgCancel').onclick = () => $('cfg').close();
 $('cfgSave').onclick = () => {
   cfg = { url:$('cUrl').value.trim(), key:$('cKey').value, tol1:+$('cTol1').value || 5,
-          tol2:+$('cTol2').value || 15, auto:$('cAuto').checked, voice:$('cVoice').checked, map:$('cMap').checked,
+          tol2:+$('cTol2').value || 15, auto:$('cAuto').checked, voice:$('cVoice').checked, map:$('cMap').checked, guard:$('cGuard').checked,
           offset: $('cOff').value.trim() === '' ? 18 : +$('cOff').value.replace(',', '.') };
   store.set('cfg', cfg); $('cfg').close(); loadKites();
 };

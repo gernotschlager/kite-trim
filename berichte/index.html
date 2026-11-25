@@ -99,6 +99,23 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 details summary{cursor:pointer;font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);margin-top:12px}
 .err{color:var(--bad)}
+.mr td.ok{color:var(--ok)} .mr td.warn{color:var(--warn)} .mr td.bad{color:var(--bad)}
+.mr td.nil{color:var(--pre)}
+.mr th,.mr td{padding:6px 8px}
+.paired .mr,.rep.b .mr{font-size:13px}
+details.sheet>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0;color:var(--ink);text-transform:none;letter-spacing:0;font:inherit}
+details.sheet>summary::-webkit-details-marker{display:none}
+details.sheet>summary h3{font-size:24px;margin:0}
+details.sheet>summary .chev{color:var(--ink-2);font-size:14px}
+details.sheet[open]>summary{margin-bottom:12px}
+.shbox .f2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+@media (max-width:560px){.shbox .f2{grid-template-columns:1fr}}
+.shbox label{display:block;font-size:13px;color:var(--ink-2);margin-bottom:4px}
+.shbox select,.shbox input[type=text]{width:100%;background:var(--paper);border:1.5px solid var(--rule);border-radius:8px;color:var(--ink);padding:10px 12px;font:inherit}
+.shbox .chk{display:flex;gap:8px;align-items:flex-start;margin:12px 0;font-size:14.5px;color:var(--ink)}
+.shbox .chk input{accent-color:var(--accent);width:18px;height:18px;margin-top:2px}
+.shbox .qr{background:#fff;padding:10px;border-radius:8px;width:max-content;margin:12px 0}
+.shbox .row{display:flex;gap:10px;flex-wrap:wrap}
 .vbtn{font:600 12.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;border:1.5px solid var(--rule);background:none;color:var(--ink-2);border-radius:999px;padding:3px 10px;cursor:pointer;white-space:nowrap}
 .vbtn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 .grp-h .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
@@ -317,6 +334,7 @@ function report(rep, slot, paired){
       <div><div class="lbl">${tag}Leinenvermessung · Protokoll</div><h2>${esc(kiteTitle(rep.kite))}</h2></div>
       <div class="meta">${metaCells.map(([l,v]) => `<div><div class="lbl">${l}</div><div class="v">${esc(v)}</div></div>`).join('')}</div>
     </header>
+    ${paired ? '' : shareBox(rep)}
     <section class="kpis" aria-label="Kennzahlen">
       ${kpi('Symmetrie', isNaN(a.sym) ? '–' : a.sym, '%', 'Leinenpaare innerhalb ±5 mm')}
       ${kpi('Ebenenabgleich', isNaN(a.gap) ? '–' : r0(a.gap), 'mm', 'größter Abstand B/C zur A-Ebene')}
@@ -343,7 +361,99 @@ function report(rep, slot, paired){
       <div class="secthead"><h3>Trimm-Logbuch</h3><span class="lbl">${dt(rep.datum)}</span></div>
       ${logRows(rep)}
     </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Messreihe</h3><span class="lbl">alle Leinen · mm</span></div>
+      ${lineTable(rep)}
+    </section>
   </article>`;
+}
+function lineTable(rep){
+  const cls = d => d == null ? 'nil' : Math.abs(d) <= 5 ? 'ok' : Math.abs(d) <= 15 ? 'warn' : 'bad';
+  const levelOf = x => x.level || '?';
+  let last = '', body = '';
+  rep.lines.forEach(x => {
+    const lv = levelOf(x);
+    if (lv !== last){ last = lv; body += `<tr class="g"><td colspan="7">${NAMES[lv] || lv}</td></tr>`; }
+    const s = x.soll == null ? null : Number(x.soll), L = x.L == null ? null : Number(x.L), R = x.R == null ? null : Number(x.R);
+    const dl = L != null && s != null ? L - s : null, dr = R != null && s != null ? R - s : null, lr = L != null && R != null ? L - R : null;
+    body += `<tr><td>${esc(x.name)}</td><td class="mono">${s ?? '–'}</td><td class="mono">${L ?? '–'}</td><td class="mono">${R ?? '–'}</td>
+      <td class="mono ${cls(dl)}">${sg(dl)}</td><td class="mono ${cls(dr)}">${sg(dr)}</td><td class="mono ${cls(lr)}">${sg(lr)}</td></tr>`;
+  });
+  return `<div class="scroll"><table class="t mr"><thead><tr><th>Leine</th><th>Soll</th><th>Links</th><th>Rechts</th><th>Δ L</th><th>Δ R</th><th>L − R</th></tr></thead><tbody>${body}</tbody></table></div>
+    <p class="cnote">Δ = Ist − Soll. Farben: bis 5 mm grün, bis 15 mm gelb, darüber rot. Werte nach Abzug des Laser-Offsets.</p>`;
+}
+
+/* ---------- Käufer-Link ---------- */
+function shareBox(rep){
+  if (!rep.mine || !rep.locked) return '';
+  return `<details class="sheet shbox" id="shBox" data-id="${rep.id}">
+    <summary><h3>Für Käufer freigeben</h3><span><span class="chip" id="shStatus" style="color:var(--ink-2)">…</span> <span class="chev">▾</span></span></summary>
+    <p style="margin:0 0 12px">Ein Link (und QR-Code) zeigt genau diese Messreihe zum Lesen – ohne Konto und ohne deinen Namen. Ideal beim Verkauf eines gebrauchten Kites.</p>
+    <div class="f2">
+      <div><label for="shState">Zustand</label><select id="shState"><option>gebraucht</option><option>neu</option><option>nach Trimm</option></select></div>
+      <div></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="shBasis"><span>Anonym für Vergleiche freigeben – Käufer desselben Modells sehen diese Messreihe ohne Namen als Vergleich.</span></label>
+    <div class="row"><button class="btn primary sm" id="shMake">🔗 Link für Käufer erstellen</button></div>
+    <div id="shOut" hidden>
+      <input type="text" id="shLink" readonly aria-label="Link für Käufer" style="margin-top:14px">
+      <div class="qr" id="shQr"></div>
+      <div class="row"><button class="btn sm" id="shShare">Teilen …</button><button class="btn sm" id="shCopy">Link kopieren</button><button class="btn sm" id="shOff" style="color:var(--bad)">Link zurückziehen</button></div>
+    </div>
+    <p class="cnote err" id="shErr" hidden></p>
+  </details>`;
+}
+function loadQr(){
+  return window.QRCode ? Promise.resolve() : new Promise((ok, bad) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc);
+  });
+}
+async function shareInit(rep){
+  const box = $('shBox'); if (!box) return;
+  const err = m => { $('shErr').textContent = m; $('shErr').hidden = !m; };
+  const showLink = async token => {
+    const link = new URL('../vergleich/index.html', location.href).href + '?t=' + token;
+    $('shLink').value = link; $('shOut').hidden = false; $('shQr').innerHTML = '';
+    try { await loadQr(); new QRCode($('shQr'), {text: link, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M}); }
+    catch (e) { $('shQr').textContent = 'QR-Code gerade nicht verfügbar'; }
+  };
+  const status = (on, opt) => { const c = $('shStatus'); c.textContent = on ? (opt ? 'Link aktiv · im Vergleich' : 'Link aktiv') : 'nicht freigegeben'; c.className = 'chip' + (on ? ' ok' : ''); c.style.color = on ? '' : 'var(--ink-2)'; $('shMake').textContent = on ? '🔗 Link aktualisieren' : '🔗 Link für Käufer erstellen'; };
+  $('shState').value = rep.zustand || 'gebraucht';
+  try {
+    const r = await sb.from('measurements').select('share_token, share_active, compare_opt_in, state').eq('id', rep.id).single();
+    if (r.error) throw new Error(r.error.message);
+    const m = r.data; if (m.state) $('shState').value = m.state; $('shBasis').checked = !!m.compare_opt_in;
+    status(m.share_active && m.share_token, m.compare_opt_in);
+    if (m.share_active && m.share_token){ box.open = true; showLink(m.share_token); }
+  } catch (e) { status(false); }
+  $('shMake').onclick = async () => {
+    err(''); $('shMake').disabled = true;
+    try {
+      const st = $('shState').value;
+      const u = await sb.from('measurements').update({state: st}).eq('id', rep.id); if (u.error) throw new Error(u.error.message);
+      const token = await rpc('share_enable', {m: rep.id, opt_in: $('shBasis').checked});
+      rep.zustand = st; LIST.forEach(x => { if (x.id === rep.id) x.zustand = st; });
+      status(true, $('shBasis').checked); await showLink(token); drawList();
+    } catch (e) { err(e.message); }
+    $('shMake').disabled = false;
+  };
+  $('shCopy').onclick = async () => { try { await navigator.clipboard.writeText($('shLink').value); $('shCopy').textContent = 'Kopiert ✓'; setTimeout(() => $('shCopy').textContent = 'Link kopieren', 2000); } catch (e) { $('shLink').select(); } };
+  $('shShare').onclick = async () => {
+    const url = $('shLink').value;
+    if (navigator.share) { try { await navigator.share({title: 'Messprotokoll ' + kiteTitle(rep.kite), text: 'Vermessung meines Kites bei Trimwerk', url}); } catch (e) {} }
+    else $('shCopy').click();
+  };
+  let offArmed = false;
+  $('shOff').onclick = async () => {
+    if (!offArmed){ offArmed = true; $('shOff').textContent = 'Wirklich zurückziehen? Nochmal tippen'; setTimeout(() => { offArmed = false; $('shOff').textContent = 'Link zurückziehen'; }, 4000); return; }
+    err('');
+    try {
+      const u = await sb.from('measurements').update({share_active: false}).eq('id', rep.id); if (u.error) throw new Error(u.error.message);
+      $('shOut').hidden = true; status(false);
+    } catch (e) { err(e.message); }
+  };
 }
 
 /* ---------- Vergleich ---------- */
@@ -372,7 +482,7 @@ function compare(A, B){
   if (A.kite === B.kite){
     const bm = Object.fromEntries(B.lines.map(x => [x.name, x]));
     const dv = (x, s) => x == null || s == null ? null : Number(x) - Number(s);
-    lines = `<details><summary>Alle Leinen vergleichen</summary><div class="scroll"><table class="t" style="margin-top:8px"><thead><tr><th>Leine</th><th>Soll</th><th><span class="tagA">A</span>L</th><th><span class="tagA">A</span>R</th><th><span class="tagB">B</span>L</th><th><span class="tagB">B</span>R</th><th>Δ Ø</th></tr></thead><tbody>
+    lines = `<details open><summary>Alle Leinen vergleichen</summary><div class="scroll"><table class="t" style="margin-top:8px"><thead><tr><th>Leine</th><th>Soll</th><th><span class="tagA">A</span>L</th><th><span class="tagA">A</span>R</th><th><span class="tagB">B</span>L</th><th><span class="tagB">B</span>R</th><th>Δ Ø</th></tr></thead><tbody>
       ${A.lines.map(x => { const y = bm[x.name] || {}; const s = x.soll ?? y.soll;
         const al = dv(x.L, s), ar = dv(x.R, s), bl = dv(y.L, s), br = dv(y.R, s);
         const ma = mean([al, ar].filter(v => v != null)), mb = mean([bl, br].filter(v => v != null));
@@ -494,7 +604,7 @@ async function show(){
   v.innerHTML = '<div class="empty">Bericht wird geladen …</div>';
   try {
     const reps = await Promise.all(SEL.map(getRep));
-    if (reps.length === 1) v.innerHTML = report(reps[0], '', false);
+    if (reps.length === 1){ v.innerHTML = report(reps[0], '', false); shareInit(reps[0]); }
     else v.innerHTML = compare(reps[0], reps[1]) + `<div class="pair">${report(reps[0], 'A', true)}${report(reps[1], 'B', true)}</div>`;
     const sw = $('swap'); if (sw) sw.onclick = () => { SEL.reverse(); show(); };
     const cb = $('closeB'); if (cb) cb.onclick = () => { SEL = SEL.slice(0, 1); show(); };

@@ -245,7 +245,7 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
           <div>
             <p><span class="ui">☰</span> (oder Tipp auf den Leinennamen) öffnet die Übersicht aller Leinen mit Soll, links und rechts. Ein Tipp auf einen Wert springt zu dieser Leine.</p>
             <p><b>Vergleich mit gesicherter Messreihe:</b> Oben eine frühere Messreihe wählen – z. B. die Eingangsmessung vor dem Trimm. Die Werte stehen dann daneben, so siehst du direkt, was sich verändert hat.</p>
-            <p>Am großen Bildschirm öffnet sich die Übersicht als ganze Seite, mit Freigabe und Sichern in der rechten Spalte.</p>
+            <p>Am großen Bildschirm öffnet sich die Übersicht als ganze Seite, mit Sichern und Neue Messreihe in der rechten Spalte.</p>
           </div>
           <figure class="shot"><img src="img/app_list.webp" width="640" height="1385" loading="lazy" alt="Übersicht aller Leinen mit Soll und Messwerten links und rechts"><figcaption>Übersicht: Soll, links, rechts</figcaption></figure>
         </div>
@@ -266,7 +266,7 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
             <p>Gesicherte Messreihen findest du auf der Webseite unter <a href="#berichte">Berichte</a>.</p>
             <div class="warn">Gesichert ist gesichert: Werte einer gesicherten Messreihe lassen sich nicht mehr ändern. Das macht Berichte für Käufer glaubwürdig.</div>
           </div>
-          <figure class="shot"><img src="img/app_list_share.webp" width="640" height="1385" loading="lazy" alt="Bereich Für Käufer freigeben und Messreihe sichern"><figcaption>Unten in der Übersicht: Käufer-Freigabe und Sichern</figcaption></figure>
+          <figure class="shot"><img src="img/app_list_share.webp" width="640" height="1385" loading="lazy" alt="Bereich Messreihe sichern"><figcaption>Unten in der Übersicht: Messreihe sichern</figcaption></figure>
         </div>
       </article>
 
@@ -380,7 +380,7 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
           <div>
             <p>Links stehen deine Kites mit ihren Messreihen, darunter Kites, die andere mit dir geteilt haben („von …“). Mit <span class="ui">Alle</span> · <span class="ui">Meine</span> · <span class="ui">Geteilt</span> filtern, im Suchfeld nach Kite oder Name suchen.</p>
             <p>Ein Tipp auf eine Messreihe öffnet den Bericht. Auch die <b>laufende Messung</b> erscheint – als Zwischenstand, noch nicht gesichert.</p>
-            <p>Jeder Bericht enthält: Kopfdaten (Datum, Zustand, Messpunkte, Messzeit), Kennzahlen, Ebenen-Übersicht, Abweichung je Leine, Symmetrie links/rechts und die Trimm-Einträge vom selben Tag.</p>
+            <p>Jeder Bericht enthält: Kopfdaten (Datum, Zustand, Messpunkte, Messzeit), Kennzahlen, Ebenen-Übersicht, Abweichung je Leine, Symmetrie links/rechts, die Trimm-Einträge vom selben Tag und am Ende die <b>komplette Messreihe</b> mit Soll, links, rechts und den Abweichungen jeder Leine. Bei eigenen gesicherten Messreihen steht oben zusätzlich <b>Für Käufer freigeben</b>.</p>
           </div>
           <figure class="shot"><img src="img/ber_list.webp" width="640" height="1385" loading="lazy" alt="Liste Meine Berichte mit eigenen und geteilten Kites"><figcaption>Eigene und geteilte Kites</figcaption></figure>
         </div>
@@ -421,7 +421,7 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
           <tr><th>Δ B − A</th><td>Der Unterschied: Wert von B minus Wert von A. <span style="color:#3cc487"><b>Grün</b></span> = B ist besser (näher am Plan, symmetrischer, kleinerer Abstand der Ebenen), <span style="color:#ef6a5b"><b>rot</b></span> = B ist schlechter. Ohne Farbe = praktisch gleich (unter 1 mm).</td></tr>
           <tr><th>Obere Zeilen</th><td>Die vier Kennzahlen: Symmetrie, Ebenenabgleich, Z links − rechts, A-Ebene vs. Plan (siehe <a href="#kennzahlen">Kennzahlen</a>).</td></tr>
           <tr><th>Je Ebene</th><td>Für A, B, C und Z: Ø Ist − Soll, größte Seitendifferenz |L − R| und Streuung.</td></tr>
-          <tr><th>Alle Leinen vergleichen</th><td>Nur beim selben Kite: jede Leine einzeln mit Soll, Abweichung links/rechts von A und B und Δ des Mittelwerts. Zum Aufklappen unter der Tabelle.</td></tr>
+          <tr><th>Alle Leinen vergleichen</th><td>Nur beim selben Kite: jede Leine einzeln mit Soll, Abweichung links/rechts von A und B und Δ des Mittelwerts – direkt unter der Tabelle. Zusätzlich steht am Ende jedes Berichts die komplette Messreihe, im Vergleich also beide nebeneinander.</td></tr>
         </tbody></table>
         <div class="tip"><b>Welche Reihe ist A, welche B?</b> Am leichtesten zu lesen ist es, wenn <b>A die ältere</b> und <b>B die neuere</b> Messung ist – dann zeigt Δ, was sich seither verändert hat (grün = besser geworden). Falsch herum gewählt? <span class="ui">A ⇄ B</span> tauscht die Seiten.</div>
 
@@ -483,13 +483,14 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
         <h3>Link oder QR-Code erstellen</h3>
         <ol>
           <li>Messreihe in der App sichern (siehe <a href="#sichern">Messreihe sichern</a>).</li>
-          <li><span class="ui">☰</span> → <b>Für Käufer freigeben</b>: gesicherte Messreihe und Zustand (gebraucht, neu, nach Trimm) wählen.</li>
-          <li><span class="ui">🔗 Link für Käufer erstellen</span> – du bekommst einen Link und einen QR-Code zum Teilen oder Kopieren.</li>
+          <li>Auf der Webseite unter <a href="../berichte/index.html">Berichte</a> die gesicherte Messreihe öffnen.</li>
+          <li>Oben <b>Für Käufer freigeben</b> aufklappen, Zustand wählen (gebraucht, neu, nach Trimm) und <span class="ui">🔗 Link für Käufer erstellen</span>.</li>
+          <li>Du bekommst einen Link und einen QR-Code – mit <span class="ui">Teilen …</span> direkt per Messenger oder E-Mail, oder <span class="ui">Link kopieren</span>.</li>
         </ol>
         <p>Der Käufer braucht <b>kein Konto</b>. Er sieht nur diese eine Messreihe zum Lesen, neben dem Leinenplan – ohne deinen Namen.</p>
         <p><b>Anonym für Vergleiche freigeben</b> (Häkchen): Dann darf deine Messreihe ohne Namen als Vergleich bei Käufern desselben Modells erscheinen. Ohne Häkchen bleibt sie nur über deinen Link sichtbar.</p>
+        <p>Rechts neben der Überschrift siehst du, ob ein Link aktiv ist. <span class="ui">Link zurückziehen</span> (zweimal tippen) macht ihn sofort ungültig – z. B. nach dem Verkauf. Erstellst du später wieder einen Link, gilt die alte Adresse wieder.</p>
         <div class="tip">Käufer-Freigabe und Freigabe an Freunde sind unabhängig voneinander: Der Käufer-Link zeigt genau eine Messreihe öffentlich, die Freunde-Freigabe zeigt angemeldeten Mitgliedern alle gesicherten Messreihen eines Kites.</div>
-        <div class="todo"><b>✎ Offen:</b> Einen Käufer-Link zurückziehen geht derzeit noch nicht selbst – kommt in einem der nächsten Schritte.</div>
       </article>
     </section>
 

@@ -99,6 +99,18 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 details summary{cursor:pointer;font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);margin-top:12px}
 .err{color:var(--bad)}
+.vbtn{font:600 12.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;border:1.5px solid var(--rule);background:none;color:var(--ink-2);border-radius:999px;padding:3px 10px;cursor:pointer;white-space:nowrap}
+.vbtn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.grp-h .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.vhead{border-top:4px solid var(--accent)}
+.vhead h2{font-size:clamp(26px,3.4vw,38px);margin:2px 0 6px}
+.vfacts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden;padding:0}
+@media (max-width:760px){.vfacts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.vchart text{font-family:var(--f-mono);font-size:11px;fill:var(--ink-2)}
+.vchart .ax{stroke:var(--rule)} .vchart .gr{stroke:var(--grid)} .vchart .zero{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;opacity:.55}
+.vchart .trim{stroke:var(--accent);stroke-dasharray:3 4;opacity:.8} .vchart .trimlbl{fill:var(--accent);font-size:10.5px}
+.vchart circle{cursor:pointer}
+.t button.lnk{background:none;border:0;color:var(--accent-ink);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:3px;padding:0}
 
 /* ---------- Dialoge ---------- */
 dialog{background:var(--sheet);color:var(--ink);border:1px solid var(--rule);border-radius:12px;padding:20px;width:min(460px,94vw);max-height:90dvh}
@@ -203,7 +215,7 @@ const LB_LABEL = {datum:'Datum', zeit:'Zeit', vorrichtung:'Vorrichtung', methode
   pulley_B_L:'Pulleyline B L (mm)', pulley_B_R:'Pulleyline B R (mm)', pulley_C_L:'Pulleyline C L (mm)', pulley_C_R:'Pulleyline C R (mm)',
   knoten:'Knoten an der Bar', bar_breite:'Bar-Breite', front_L:'Frontline L (mm)', front_R:'Frontline R (mm)', back_L:'Backline L (mm)', back_R:'Backline R (mm)', notiz:'Notiz'};
 
-let LIST = [], FILTER = 'alle', SEL = [], MEMBERS = null, ME = '';
+let LIST = [], FILTER = 'alle', SEL = [], VER = null, MEMBERS = null, ME = '';
 const cache = {};
 
 /* ---------- Auswertung ---------- */
@@ -377,14 +389,104 @@ function compare(A, B){
   </section>`;
 }
 
+/* ---------- Verlauf ---------- */
+const LCOL = {A:'#5aa7e8', B:'#3cc487', C:'#e3b13c', Z:'#c58cff'};
+const dshort = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'2-digit'}) : '';
+function timeChart(pts, series, trims, o){
+  // pts: [{x, id, datum, locked}], series: [{name, color, vals:[…]}]
+  const W = 900, H = o.h || 260, pl = 46, pr = 16, pt = 22, pb = 34;
+  const xs = pts.map(p => p.x), x0 = Math.min(...xs), x1 = Math.max(...xs), span = x1 - x0 || 1;
+  const X = v => pts.length === 1 ? (pl + W - pr) / 2 : pl + 14 + (v - x0) / span * (W - pl - pr - 28);
+  const all = series.flatMap(s => s.vals).filter(v => v != null && !isNaN(v)).concat(o.zero ? [0] : []);
+  let lo = o.min != null ? o.min : Math.min(...all), hi = o.max != null ? o.max : Math.max(...all);
+  if (o.min == null || o.max == null){ const pad = Math.max(4, (hi - lo) * .15); if (o.min == null) lo -= pad; if (o.max == null) hi += pad; }
+  const step = [1,2,5,10,20,25,50,100].find(s => (hi - lo) / s <= 6) || 200;
+  if (o.min == null) lo = Math.floor(lo / step) * step; if (o.max == null) hi = Math.ceil(hi / step) * step;
+  const Y = v => pt + (hi - v) / (hi - lo || 1) * (H - pt - pb);
+  let g = '';
+  for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) g += `<line class="${t === 0 && o.zero ? 'zero' : 'gr'}" x1="${pl}" x2="${W-pr}" y1="${Y(t)}" y2="${Y(t)}"/><text x="${pl-6}" y="${Y(t)+4}" text-anchor="end">${t}${o.unit || ''}</text>`;
+  trims.forEach(tr => { if (tr.x < x0 - 86400000 * 3 || tr.x > x1 + 86400000 * 3 || pts.length === 1) return; const xx = Math.max(pl + 4, Math.min(W - pr - 4, X(tr.x)));
+    const right = xx > W - pr - 50;
+    g += `<line class="trim" x1="${xx}" x2="${xx}" y1="${pt - 8}" y2="${H - pb}"><title>Trimm ${dt(tr.d)}</title></line><text class="trimlbl" x="${right ? xx - 3 : xx + 3}" y="${pt - 10}" text-anchor="${right ? 'end' : 'start'}">Trimm</text>`; });
+  // Datumsbeschriftung: von rechts (neueste zuerst) und nur, wenn genug Abstand zur vorigen
+  let lastX = Infinity;
+  for (let i = pts.length - 1; i >= 0; i--){ const xx = X(pts[i].x); if (lastX - xx < 62) continue; lastX = xx;
+    g += `<text x="${Math.max(pl + 24, Math.min(W - pr - 24, xx))}" y="${H - pb + 18}" text-anchor="middle">${dshort(pts[i].datum)}</text>`; }
+  series.forEach(sr => {
+    const seg = pts.map((p, i) => sr.vals[i] == null || isNaN(sr.vals[i]) ? null : [X(p.x), Y(sr.vals[i])]);
+    let d = '', pen = false; seg.forEach(c => { if (!c){ pen = false; return; } d += (pen ? 'L' : 'M') + c[0].toFixed(1) + ' ' + c[1].toFixed(1); pen = true; });
+    if (d) g += `<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2.2" stroke-linejoin="round"/>`;
+    seg.forEach((c, i) => { if (!c) return; const p = pts[i];
+      g += `<circle data-open="${p.id}" cx="${c[0]}" cy="${c[1]}" r="5" fill="${p.locked ? sr.color : 'var(--sheet)'}" stroke="${sr.color}" stroke-width="2"><title>${sr.name} · ${dt(p.datum)}: ${o.fmt ? o.fmt(sr.vals[i]) : sr.vals[i]}${o.unit || ''}${p.locked ? '' : ' (laufend)'} – antippen öffnet den Bericht</title></circle>`; });
+  });
+  g += `<line class="ax" x1="${pl}" x2="${pl}" y1="${pt}" y2="${H-pb}"/>`;
+  return `<div class="scroll"><svg class="chart vchart" viewBox="0 0 ${W} ${H}" style="min-width:520px" role="img" aria-label="${esc(o.label)}">${g}</svg></div>`;
+}
+async function verlauf(kid){
+  const items = LIST.filter(r => r.kite_id === kid).sort((a, b) => String(a.datum).localeCompare(String(b.datum)) || String(a.created_at).localeCompare(String(b.created_at)));
+  if (!items.length) return '<div class="sheet">Keine Messreihen für diesen Kite.</div>';
+  const reps = await Promise.all(items.map(r => getRep(r.id)));
+  const an = reps.map(analyse);
+  // gleiche Tage leicht auseinanderziehen, damit Punkte nicht übereinanderliegen
+  const pts = items.map((r, i) => ({x: new Date(r.datum + 'T12:00:00').getTime() + i * 3600000, id: r.id, datum: r.datum, locked: r.locked}));
+  const last = reps[reps.length - 1];
+  const tdays = [...new Set((last.logbook || []).filter(e => e.kind === 'trim').map(e => (e.data && e.data.datum) || String(e.happened_at).slice(0, 10)))];
+  const trims = tdays.map(d => ({d, x: new Date(d + 'T12:00:00').getTime()}));
+  const it0 = items[0], itn = items[items.length - 1], a0 = an[0], an1 = an[an.length - 1];
+  const days = Math.round((new Date(itn.datum) - new Date(it0.datum)) / 86400000);
+  const fact = (l, n, u, d) => `<div class="kpi"><span class="lbl">${l}</span><span class="n mono">${n}<small>${u}</small></span><span class="d">${d}</span></div>`;
+  const dA = an1.aPlan - a0.aPlan;
+  const lv = LEVELS.filter(k => an.some(a => a.lv[k]));
+  const legend = lv.map(k => `<span><i class="dotL" style="background:${LCOL[k]}"></i>${NAMES[k]}</span>`).join('');
+  const num = x => isNaN(x) ? '–' : r0(x);
+  return `<section class="sheet vhead">
+      <div class="lbl">Verlauf · ${items.length} Messreihe${items.length === 1 ? '' : 'n'}${it0.mine ? '' : ' · von ' + esc(it0.owner_name || 'Mitglied')}</div>
+      <h2>${esc(kiteTitle(it0.kite))}</h2>
+      <p class="cnote" style="margin:0">${dt(it0.datum)} bis ${dt(itn.datum)}${days > 0 ? ` · ${days} Tage` : ''}${trims.length ? ` · ${trims.length} Trimm-Eintr${trims.length === 1 ? 'ag' : 'äge'} im Logbuch` : ''}. Punkte antippen öffnet den Bericht; hohle Punkte = laufende Messung.</p>
+    </section>
+    ${items.length < 2 ? '<div class="sheet">Für einen Verlauf braucht es mindestens zwei Messreihen. Nach dem nächsten Messen erscheint hier die Entwicklung.</div>' : ''}
+    <section class="vfacts" aria-label="Veränderung">
+      ${fact('A-Ebene', sg(dA), 'mm', `Veränderung seit ${dshort(it0.datum)} (Alterung)`)}
+      ${fact('Symmetrie heute', num(an1.sym), '%', `erste Messung: ${num(a0.sym)} %`)}
+      ${fact('Ebenenabgleich heute', num(an1.gap), 'mm', `erste Messung: ${num(a0.gap)} mm`)}
+      ${fact('Z links − rechts', sg(an1.zLR), 'mm', `erste Messung: ${sg(a0.zLR)} mm`)}
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Ebenen im Verlauf</h3><div class="legend">${legend}</div></div>
+      ${timeChart(pts, lv.map(k => ({name: NAMES[k], color: LCOL[k], vals: an.map(a => a.lv[k] ? a.lv[k].m : null)})), trims, {label: 'Mittlere Abweichung je Ebene über die Zeit', unit: '', zero: true, fmt: sg})}
+      <p class="cnote">Ø Ist − Soll je Ebene in mm. Sinkt die A-Ebene, altern die Leinen; laufen B/C von A weg, verändert sich das Profil – ein Trimm holt sie zurück.</p>
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Symmetrie links / rechts</h3><span class="lbl">Leinenpaare innerhalb ±5 mm</span></div>
+      ${timeChart(pts, [{name: 'Symmetrie', color: 'var(--ok)', vals: an.map(a => a.sym)}], trims, {label: 'Symmetrie über die Zeit', unit: '%', min: 0, max: 100, h: 220})}
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Ebenenabgleich und Steuerebene</h3><div class="legend"><span><i class="dotL" style="background:var(--warn)"></i>Ebenenabgleich</span><span><i class="dotL" style="background:#c58cff"></i>Z links − rechts</span></div></div>
+      ${timeChart(pts, [{name: 'Ebenenabgleich', color: 'var(--warn)', vals: an.map(a => a.gap)}, {name: 'Z links − rechts', color: '#c58cff', vals: an.map(a => a.zLR)}], trims, {label: 'Ebenenabgleich und Z-Seitendifferenz über die Zeit', zero: true, fmt: sg, h: 220})}
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Alle Messreihen</h3><span class="lbl">Ist − Soll in mm</span></div>
+      <div class="scroll"><table class="t"><thead><tr><th>Datum</th><th style="text-align:left">Zustand</th><th>Symmetrie</th><th>Abgleich</th>${lv.map(k => `<th>Ø ${k}</th>`).join('')}<th></th></tr></thead><tbody>
+      ${items.map((r, i) => `<tr><td>${dt(r.datum)}${r.locked ? '' : ' <span class="chip warn">laufend</span>'}</td><td class="l">${esc(r.zustand || '–')}${r.mine && r.label && r.label !== 'Laufende Messung' ? '<br><span class="cnote">' + esc(r.label) + '</span>' : ''}</td>
+        <td class="mono">${num(an[i].sym)} %</td><td class="mono">${num(an[i].gap)}</td>${lv.map(k => `<td class="mono">${an[i].lv[k] ? sg(an[i].lv[k].m) : '–'}</td>`).join('')}
+        <td><button class="lnk" data-open="${r.id}">Bericht</button></td></tr>`).reverse().join('')}
+      </tbody></table></div>
+    </section>`;
+}
+
 /* ---------- Laden & Anzeigen ---------- */
 async function getRep(id){ if (!cache[id]) { const r = await rpc('report_data', {m: id}); if (!r || !r.ok) throw new Error((r && r.error) || 'Bericht nicht gefunden'); cache[id] = r; } return cache[id]; }
 
 async function show(){
   const v = $('view');
-  const q = new URLSearchParams(); if (SEL[0]) q.set('a', SEL[0]); if (SEL[1]) q.set('b', SEL[1]);
-  history.replaceState(null, '', location.pathname + (SEL.length ? '?' + q : ''));
+  const q = new URLSearchParams(); if (VER) q.set('verlauf', VER); else { if (SEL[0]) q.set('a', SEL[0]); if (SEL[1]) q.set('b', SEL[1]); }
+  history.replaceState(null, '', location.pathname + ([...q].length ? '?' + q : ''));
   drawList();
+  if (VER){
+    v.innerHTML = '<div class="empty">Verlauf wird geladen …</div>';
+    try { v.innerHTML = await verlauf(VER); } catch (e) { v.innerHTML = `<div class="sheet err">${esc(e.message)}</div>`; }
+    return;
+  }
   if (!SEL.length){
     v.innerHTML = LIST.length ? `<div class="sheet"><h2 style="margin:0 0 6px;font-size:30px">Bericht wählen</h2><p style="margin:0">Tippe links auf eine Messreihe, um den Bericht zu öffnen. Mit <b>Vergleichen</b> stellst du einen zweiten Bericht daneben – auch von anderen Kites, Größen oder von Freunden.</p></div>` : '';
     return;
@@ -418,22 +520,28 @@ function drawList(){
   }
   $('list').innerHTML = sorted.map(([kid, g]) => `<div class="grp">
       <div class="grp-h"><div><b>${esc(kiteShort(g.kite))}</b><span class="by">${g.mine ? 'mein Kite' : 'von ' + esc(g.owner || 'Mitglied')}</span></div>
-        ${g.mine && g.freigabe ? `<button class="share${g.freigabe.mode !== 'privat' ? ' on' : ''}" data-share="${kid}" title="Freigabe ändern">${esc(shareLabel(g.freigabe))}</button>` : ''}</div>
+        <div class="acts">${g.items.length > 1 ? `<button class="vbtn" data-ver="${kid}" aria-pressed="${VER === kid}" title="Entwicklung über alle Messreihen">Verlauf</button>` : ''}
+        ${g.mine && g.freigabe ? `<button class="share${g.freigabe.mode !== 'privat' ? ' on' : ''}" data-share="${kid}" title="Freigabe ändern">${esc(shareLabel(g.freigabe))}</button>` : ''}</div></div>
       ${g.items.sort((x, y) => String(y.datum).localeCompare(String(x.datum)) || String(y.created_at).localeCompare(String(x.created_at))).map(r => {
-        const ia = SEL[0] === r.id, ib = SEL[1] === r.id;
+        const ia = !VER && SEL[0] === r.id, ib = !VER && SEL[1] === r.id;
         return `<div class="item${ia ? ' selA' : ''}${ib ? ' selB' : ''}">
           <button class="open" data-open="${r.id}">${ia && SEL.length > 1 ? '<span class="tagA">A</span>' : ''}${ib ? '<span class="tagB">B</span>' : ''}<span class="d">${dt(r.datum)}</span>${r.zustand ? ' · ' + esc(r.zustand) : ''}
             <span class="s">${r.locked ? 'gesichert' : 'laufende Messung'} · ${r.punkte} Punkte${r.mine && r.label && r.label !== 'Laufende Messung' ? ' · ' + esc(r.label) : ''}</span></button>
-          ${SEL.length && !ia ? `<button class="cmp" data-cmp="${r.id}" aria-pressed="${ib}">${ib ? 'Im Vergleich' : 'Vergleichen'}</button>` : ''}
+          ${SEL.length && !ia && !VER ? `<button class="cmp" data-cmp="${r.id}" aria-pressed="${ib}">${ib ? 'Im Vergleich' : 'Vergleichen'}</button>` : ''}
         </div>`; }).join('')}
     </div>`).join('');
 }
 
 $('list').addEventListener('click', e => {
-  const o = e.target.closest('[data-open]'), c = e.target.closest('[data-cmp]'), s = e.target.closest('[data-share]');
-  if (o){ SEL = [o.dataset.open]; show(); if (innerWidth <= 980) $('view').scrollIntoView({behavior: 'smooth'}); }
+  const o = e.target.closest('[data-open]'), c = e.target.closest('[data-cmp]'), s = e.target.closest('[data-share]'), vb = e.target.closest('[data-ver]');
+  if (vb){ VER = VER === vb.dataset.ver ? null : vb.dataset.ver; show(); if (innerWidth <= 980 && VER) $('view').scrollIntoView({behavior: 'smooth'}); return; }
+  if (o){ VER = null; SEL = [o.dataset.open]; show(); if (innerWidth <= 980) $('view').scrollIntoView({behavior: 'smooth'}); }
   else if (c){ const id = c.dataset.cmp; SEL = SEL[1] === id ? [SEL[0]] : [SEL[0], id]; show(); if (innerWidth <= 980 && SEL.length > 1) $('view').scrollIntoView({behavior: 'smooth'}); }
   else if (s) openShare(s.dataset.share);
+});
+$('view').addEventListener('click', e => {
+  const o = e.target.closest('[data-open]'); if (!o) return;
+  VER = null; SEL = [o.dataset.open]; show(); window.scrollTo({top: $('view').getBoundingClientRect().top + scrollY - 12, behavior: 'smooth'});
 });
 document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
   FILTER = b.dataset.f; document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawList();
@@ -488,7 +596,8 @@ $('nameSave').onclick = async () => {
     LIST = list || []; ME = name || ''; drawWho();
     const p = new URLSearchParams(location.search);
     SEL = [p.get('a'), p.get('b')].filter(id => id && LIST.some(r => r.id === id));
-    if (!SEL.length){ const first = LIST.find(r => r.mine && r.locked) || LIST[0]; if (first && innerWidth > 980) SEL = [first.id]; }
+    if (p.get('verlauf') && LIST.some(r => r.kite_id === p.get('verlauf'))) VER = p.get('verlauf');
+    if (!SEL.length && !VER){ const first = LIST.find(r => r.mine && r.locked) || LIST[0]; if (first && innerWidth > 980) SEL = [first.id]; }
     show();
   } catch (e) {
     $('list').innerHTML = `<div class="empty err">${/report_list|function/i.test(e.message) ? 'Die Datenbank ist für „Meine Berichte“ noch nicht vorbereitet (04_berichte.sql fehlt).' : esc(e.message)}</div>`;

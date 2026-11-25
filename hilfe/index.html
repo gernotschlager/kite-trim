@@ -402,14 +402,42 @@ pre.code{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-
 
       <article class="topic" id="vergleich">
         <h3>Berichte vergleichen</h3>
+        <p>Im Vergleich stehen immer <b>zwei Messreihen</b> nebeneinander: <span class="ui" style="color:#5aa7e8">A</span> (blau) und <span class="ui" style="color:#ff8a42">B</span> (orange). Das können zwei Messungen desselben Kites sein, zwei Größen, zwei Modelle oder dein Kite und der eines Freundes.</p>
+
+        <p><b>So geht’s</b></p>
         <ol>
-          <li>Einen Bericht öffnen – er wird <span class="ui" style="color:#5aa7e8">A</span>.</li>
-          <li>Bei einer zweiten Messreihe auf <span class="ui">Vergleichen</span> tippen – sie wird <span class="ui" style="color:#ff8a42">B</span>.</li>
-          <li>Oben erscheint die Vergleichstabelle mit <b>Δ B − A</b>: grün = B näher am Plan bzw. symmetrischer, rot = schlechter. Darunter beide Berichte nebeneinander (am Handy untereinander).</li>
+          <li>In der Liste auf eine Messreihe tippen – sie öffnet sich als Bericht und wird <b>A</b>.</li>
+          <li>Bei allen anderen Messreihen erscheint rechts <span class="ui">Vergleichen</span>. Bei der zweiten Messreihe antippen – sie wird <b>B</b>. Das geht auch bei einem anderen Kite oder einem geteilten Kite eines Freundes.</li>
+          <li>Oben erscheint die <b>Vergleichstabelle</b>, darunter beide Berichte vollständig nebeneinander (am Handy untereinander).</li>
         </ol>
-        <p>Typische Vergleiche: <b>vor und nach dem Trimm</b>, dein Kite <b>heute und vor einer Saison</b>, oder dein Kite gegen den eines Freundes. Auch <b>andere Größen und Modelle</b> lassen sich vergleichen, weil die Abweichung vom jeweiligen Leinenplan verglichen wird. Beim gleichen Kite gibt es zusätzlich <span class="ui">Alle Leinen vergleichen</span>.</p>
-        <p><span class="ui">A ⇄ B</span> tauscht die Seiten, <span class="ui">Vergleich beenden</span> zeigt wieder nur A. Die Adresse im Browser enthält beide Berichte – du kannst sie als Lesezeichen speichern.</p>
-        <figure class="shot wide"><img src="img/ber_compare.webp" width="1400" height="875" loading="lazy" alt="Zwei Berichte im Vergleich mit Differenztabelle"><figcaption>Vergleich am großen Bildschirm</figcaption></figure>
+
+        <p><b>Die Vergleichstabelle lesen</b></p>
+        <table class="def"><tbody>
+          <tr><th>Spalte A und B</th><td>Die Werte der beiden Messreihen, jeweils als Abweichung vom Leinenplan (Ist − Soll in mm) bzw. in Prozent.</td></tr>
+          <tr><th>Δ B − A</th><td>Der Unterschied: Wert von B minus Wert von A. <span style="color:#3cc487"><b>Grün</b></span> = B ist besser (näher am Plan, symmetrischer, kleinerer Abstand der Ebenen), <span style="color:#ef6a5b"><b>rot</b></span> = B ist schlechter. Ohne Farbe = praktisch gleich (unter 1 mm).</td></tr>
+          <tr><th>Obere Zeilen</th><td>Die vier Kennzahlen: Symmetrie, Ebenenabgleich, Z links − rechts, A-Ebene vs. Plan (siehe <a href="#kennzahlen">Kennzahlen</a>).</td></tr>
+          <tr><th>Je Ebene</th><td>Für A, B, C und Z: Ø Ist − Soll, größte Seitendifferenz |L − R| und Streuung.</td></tr>
+          <tr><th>Alle Leinen vergleichen</th><td>Nur beim selben Kite: jede Leine einzeln mit Soll, Abweichung links/rechts von A und B und Δ des Mittelwerts. Zum Aufklappen unter der Tabelle.</td></tr>
+        </tbody></table>
+        <div class="tip"><b>Welche Reihe ist A, welche B?</b> Am leichtesten zu lesen ist es, wenn <b>A die ältere</b> und <b>B die neuere</b> Messung ist – dann zeigt Δ, was sich seither verändert hat (grün = besser geworden). Falsch herum gewählt? <span class="ui">A ⇄ B</span> tauscht die Seiten.</div>
+
+        <p><b>Typische Vergleiche</b></p>
+        <table class="def"><tbody>
+          <tr><th>Vor und nach dem Trimm</th><td>A = Messung „vor Trimm“, B = „nach Trimm“. Zeigt, ob der Trimm sein Ziel erreicht hat: Ebenenabgleich und Seitendifferenzen sollten deutlich kleiner (grün) sein. Die A-Ebene bleibt gleich – sie wird nicht getrimmt.</td></tr>
+          <tr><th>Derselbe Kite, mehrmals gemessen</th><td>Alle Messreihen stehen untereinander beim Kite, die neueste oben. Wähle die zwei, die dich interessieren – z. B. heute gegen den letzten Trimm, um zu sehen, wie viel sich seither verstellt hat. Für die Entwicklung über alle Messungen gibt es den <a href="#verlauf">Verlauf</a>.</td></tr>
+          <tr><th>Gebrauchtkauf</th><td>Neuer Zustand bzw. Eingangsmessung gegen heute zeigt, wie stark die Leinen gealtert sind (A-Ebene) und ob ein Trimm fällig ist.</td></tr>
+          <tr><th>Andere Größe oder anderes Modell</th><td>Funktioniert auch, weil die Abweichung vom jeweiligen Leinenplan verglichen wird – nicht die Leinenlängen selbst. „Alle Leinen vergleichen“ gibt es dabei nicht, weil die Leinen nicht zusammenpassen.</td></tr>
+          <tr><th>Mit Freunden</th><td>Kites, die Freunde mit dir teilen, kannst du genauso als A oder B wählen – z. B. dein Sonic gegen den deines Freundes nach gleich vielen Saisons.</td></tr>
+        </tbody></table>
+
+        <p><b>Gut zu wissen</b></p>
+        <ul>
+          <li><span class="ui">Vergleich beenden</span> zeigt wieder nur Bericht A. Ein Tipp auf eine andere Messreihe öffnet diese allein.</li>
+          <li>Bei B nochmals <span class="ui">Im Vergleich</span> antippen nimmt B wieder heraus; <span class="ui">Vergleichen</span> bei einer anderen Reihe ersetzt B.</li>
+          <li>Die Adresse im Browser enthält beide Messreihen – als Lesezeichen gespeichert, öffnet sich derselbe Vergleich wieder.</li>
+          <li>Verglichen werden immer zwei Reihen. Mehr als zwei auf einmal zeigt der <a href="#verlauf">Verlauf</a>.</li>
+        </ul>
+        <figure class="shot wide"><img src="img/ber_compare.webp" width="1400" height="875" loading="lazy" alt="Zwei Berichte im Vergleich mit Differenztabelle"><figcaption>Vergleich am großen Bildschirm: oben die Tabelle mit Δ, darunter A und B nebeneinander</figcaption></figure>
       </article>
 
       <article class="topic" id="verlauf">

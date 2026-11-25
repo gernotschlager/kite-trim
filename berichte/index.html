@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="de" class="tw-wait">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meine Berichte</title>
+<meta name="theme-color" content="#0b141c">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;700&display=swap">
+<link rel="stylesheet" href="../site.css">
+<style>
+:root{--pre:#5d6d7a;--right:#ff8a42;--ok:#3cc487;--warn:#e3b13c;--bad:#ef6a5b;--grid:#1b2833;--band:rgba(90,167,232,.10);
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;color-scheme:dark}
+body{background:var(--paper)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.rb{max-width:1600px;margin:0 auto;padding:20px 16px 56px;display:grid;grid-template-columns:330px minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:980px){.rb{grid-template-columns:1fr}}
+
+/* ---------- Liste ---------- */
+.side{position:sticky;top:12px;display:flex;flex-direction:column;gap:12px;max-height:calc(100dvh - 24px)}
+@media (max-width:980px){.side{position:static;max-height:none}}
+.side h1{font-size:34px;margin:0}
+.who{font-size:14px;color:var(--ink-2);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.linkbtn{background:none;border:0;color:var(--accent-ink);cursor:pointer;font:inherit;padding:0;text-decoration:underline;text-underline-offset:3px}
+.seg{display:flex;border:1.5px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{flex:1;background:none;border:0;color:var(--ink-2);padding:9px 6px;font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#1a0b02}
+.search{width:100%;background:var(--sheet);border:1.5px solid var(--rule);border-radius:8px;color:var(--ink);padding:10px 12px;font:inherit}
+.list{overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;min-height:0}
+.grp{background:var(--sheet);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.grp-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--rule)}
+.grp-h b{font-family:var(--f-display);font-size:20px;font-weight:600;letter-spacing:.01em}
+.grp-h .by{display:block;font-size:12.5px;color:var(--ink-2)}
+.share{font:600 12.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;border:1.5px solid var(--rule);background:none;color:var(--ink-2);border-radius:999px;padding:3px 10px;cursor:pointer;white-space:nowrap}
+.share.on{color:var(--ok);border-color:var(--ok)}
+.item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-top:1px solid var(--rule)}
+.grp-h+.item{border-top:0}
+.item .open{background:none;border:0;color:var(--ink);text-align:left;cursor:pointer;font:inherit;padding:2px 0;min-width:0}
+.item .open .d{font-weight:600}
+.item .open .s{display:block;font-size:13px;color:var(--ink-2)}
+.item.selA{box-shadow:inset 4px 0 0 var(--left)} .item.selB{box-shadow:inset 4px 0 0 var(--right)}
+.cmp{font:600 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase;border:1.5px solid var(--rule);background:var(--paper);color:var(--ink-2);border-radius:6px;padding:6px 9px;cursor:pointer;white-space:nowrap}
+.cmp[aria-pressed="true"]{border-color:var(--right);color:var(--right)}
+.tagA,.tagB{display:inline-block;font:700 12px var(--f-display);letter-spacing:.08em;border-radius:4px;padding:1px 6px;margin-right:6px;color:#0b141c;vertical-align:1px}
+.tagA{background:var(--left)} .tagB{background:var(--right)}
+.empty{color:var(--ink-2);background:var(--sheet);border:1px dashed var(--rule);border-radius:8px;padding:18px}
+
+/* ---------- Bericht ---------- */
+.view{padding:0;min-width:0;display:flex;flex-direction:column;gap:20px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+@media (max-width:1180px){.pair{grid-template-columns:1fr}}
+.rep{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:22px;min-width:0}
+@media (max-width:600px){.sheet{padding:16px}}
+.head{border-top:4px solid var(--accent);display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.rep.b .head{border-top-color:var(--right)} .rep.a.paired .head{border-top-color:var(--left)}
+.head .mark{width:52px;height:52px;color:var(--ink)}
+.head h2{font-size:clamp(26px,3.4vw,38px);line-height:1.02;margin:2px 0 0}
+.meta{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--rule)}
+.meta div{padding:10px 12px 6px 0;border-bottom:1px solid var(--rule);min-width:0}
+.meta .v{font-weight:500;overflow-wrap:anywhere}
+@media (max-width:560px){.meta{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpis{padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.paired .kpis,.rep.b .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--sheet);padding:16px 18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .n{font-family:var(--f-display);font-size:38px;font-weight:600;line-height:1}
+.kpi .n small{font-size:17px;color:var(--ink-2);font-weight:500;margin-left:3px}
+.kpi .d{color:var(--ink-2);font-size:13px}
+.secthead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.secthead h3{font-size:24px;margin:0}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+.t th,.t td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+.t th:first-child,.t td:first-child{text-align:left}
+.t thead th{font:600 12px var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--ink-2)}
+.t td.l{text-align:left;white-space:normal}
+.t .g td{font:600 13px var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--accent);padding-top:14px;border-bottom:1px solid var(--accent)}
+.t .better{color:var(--ok)} .t .worse{color:var(--bad)}
+.scroll{overflow-x:auto}
+.chip{display:inline-flex;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
+.dotL,.dotR{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dotL{background:var(--left)} .dotR{background:var(--right)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.paired .charts,.rep.b .charts{grid-template-columns:1fr}
+@media (max-width:860px){.charts{grid-template-columns:1fr}}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-family:var(--f-mono);font-size:11px;fill:var(--ink-2)}
+.chart .ax{stroke:var(--rule)} .chart .gr{stroke:var(--grid)}
+.chart .zero{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;opacity:.55}
+.chart .band{fill:var(--band)}
+.cnote{font-size:13px;color:var(--ink-2);margin:6px 0 0}
+.cmpsum{border-top:4px solid var(--accent)}
+.cmpsum h2{font-size:30px;margin:0 0 4px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+details summary{cursor:pointer;font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);margin-top:12px}
+.err{color:var(--bad)}
+
+/* ---------- Dialoge ---------- */
+dialog{background:var(--sheet);color:var(--ink);border:1px solid var(--rule);border-radius:12px;padding:20px;width:min(460px,94vw);max-height:90dvh}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h3{font-size:26px;margin:0 0 6px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--rule);cursor:pointer}
+.opt input{margin-top:4px;accent-color:var(--accent);width:18px;height:18px}
+.opt small{display:block;color:var(--ink-2)}
+.friends{display:flex;flex-direction:column;gap:2px;margin:6px 0 0 28px;max-height:40dvh;overflow:auto}
+.friends label{display:flex;gap:8px;align-items:center;padding:6px 0;cursor:pointer}
+.friends input{accent-color:var(--accent);width:17px;height:17px}
+.dlgbar{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.btn.sm{padding:8px 14px;font-size:15px}
+</style>
+<style>.tw-wait body{visibility:hidden}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="../config.js"></script>
+<script src="../auth.js"></script>
+<script>TW.guard();</script>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="logoA" viewBox="0 0 64 64">
+    <path d="M6 30 C18 10 46 10 58 30" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <path d="M14 27 L32 54 M24 20 L32 54 M40 20 L32 54 M50 27 L32 54" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+    <path d="M32 54 L32 30" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="32" cy="27" r="3.4" fill="var(--accent)"/>
+  </symbol></defs></svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../index.html" aria-label="trimwerk – Startseite">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#logoA"/></svg>
+      <span class="wm"><b>trim</b><span>werk</span><i></i></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="../bericht/index.html">Musterbericht</a>
+      <a href="../diy/index.html">DIY</a>
+      <a href="./index.html" aria-current="page">Berichte</a>
+      <a href="../app/index.html">Mess-App</a>
+      <a href="../ueber/index.html">Über</a>
+    </nav>
+  </div>
+</header>
+
+<main class="rb">
+  <aside class="side" aria-label="Berichte">
+    <h1>Meine Berichte</h1>
+    <div class="who" id="who"></div>
+    <div class="seg" role="group" aria-label="Filter">
+      <button data-f="alle" aria-pressed="true">Alle</button>
+      <button data-f="meine" aria-pressed="false">Meine</button>
+      <button data-f="geteilt" aria-pressed="false">Geteilt</button>
+    </div>
+    <input class="search" id="q" type="search" placeholder="Kite oder Mitglied suchen …" aria-label="Suchen">
+    <div class="list" id="list"><div class="empty">Berichte werden geladen …</div></div>
+  </aside>
+  <section class="view" id="view" aria-live="polite"></section>
+</main>
+
+<dialog id="shareDlg">
+  <h3>Freigabe</h3>
+  <p class="cnote" id="shareKite" style="margin:0 0 8px"></p>
+  <label class="opt"><input type="radio" name="mode" value="privat"><span><b>Privat</b><small>Nur du siehst die Berichte dieses Kites.</small></span></label>
+  <label class="opt"><input type="radio" name="mode" value="freunde"><span><b>Freunde</b><small>Nur die ausgewählten Mitglieder.</small></span></label>
+  <div class="friends" id="friends"></div>
+  <label class="opt"><input type="radio" name="mode" value="alle"><span><b>Alle Mitglieder</b><small>Jeder mit einem Trimwerk-Konto.</small></span></label>
+  <p class="cnote">Geteilt werden nur gesicherte Messreihen und Trimm-Einträge. Seriennummer, eigene Bezeichnungen und Sessions bleiben privat.</p>
+  <p class="cnote err" id="shareErr" hidden></p>
+  <div class="dlgbar"><button class="btn sm" id="shareCancel">Abbrechen</button><button class="btn primary sm" id="shareSave">Speichern</button></div>
+</dialog>
+
+<dialog id="nameDlg">
+  <h3>Dein Name</h3>
+  <p class="cnote" style="margin:0 0 10px">So sehen dich Freunde bei geteilten Berichten und in der Freunde-Auswahl.</p>
+  <input class="search" id="nameIn" maxlength="40" autocomplete="nickname">
+  <p class="cnote err" id="nameErr" hidden></p>
+  <div class="dlgbar"><button class="btn sm" id="nameCancel">Abbrechen</button><button class="btn primary sm" id="nameSave">Speichern</button></div>
+</dialog>
+
+<script>
+(function(){
+const sb = TW.sb;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rpc = async (n, a) => { const r = await sb.rpc(n, a || {}); if (r.error) throw new Error(r.error.message); return r.data; };
+
+const LEVELS = ['A','B','C','Z'];
+const NAMES = {A:'A-Ebene', B:'B-Ebene', C:'C-Ebene', Z:'Z-Ebene (Steuer)'};
+const mean = a => a.length ? a.reduce((s,x)=>s+x,0)/a.length : NaN;
+const r0 = x => Math.round(x);
+const sg = x => { if (x == null || isNaN(x)) return '–'; const v = r0(x); return (v>0?'+':v<0?'−':'±') + Math.abs(v); };
+const dt = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'numeric'}) : '–';
+const kiteTitle = k => { const m = String(k||'').match(/^(.*?)\s+([\d.,]+)$/); return m ? `Flysurfer ${m[1]} · ${m[2]} m²` : `Flysurfer ${k}`; };
+const kiteShort = k => String(k||'') + ' m²';
+const LB_LABEL = {datum:'Datum', zeit:'Zeit', vorrichtung:'Vorrichtung', methode:'Methode / Referenz', last:'Last je Leine (kg)',
+  versatz:'Versatz Front/Back (mm)', versatz_l:'Versatz L (mm)', versatz_r:'Versatz R (mm)', tuner_L:'Performance Tuner L', tuner_R:'Performance Tuner R',
+  marker:'Marker-Leinen', m_A_L:'Marker A L', m_A_R:'Marker A R', m_B_L:'Marker B L', m_B_R:'Marker B R', m_C_L:'Marker C L', m_C_R:'Marker C R', m_Z_L:'Marker Z L', m_Z_R:'Marker Z R',
+  schl_B_L:'Schlaufe B L (mm)', schl_B_R:'Schlaufe B R (mm)', schl_C_L:'Schlaufe C L (mm)', schl_C_R:'Schlaufe C R (mm)',
+  pulley_B_L:'Pulleyline B L (mm)', pulley_B_R:'Pulleyline B R (mm)', pulley_C_L:'Pulleyline C L (mm)', pulley_C_R:'Pulleyline C R (mm)',
+  knoten:'Knoten an der Bar', bar_breite:'Bar-Breite', front_L:'Frontline L (mm)', front_R:'Frontline R (mm)', back_L:'Backline L (mm)', back_R:'Backline R (mm)', notiz:'Notiz'};
+
+let LIST = [], FILTER = 'alle', SEL = [], MEMBERS = null, ME = '';
+const cache = {};
+
+/* ---------- Auswertung ---------- */
+function analyse(rep){
+  const lv = {};
+  for (const L of LEVELS){
+    const rows = rep.lines.filter(x => x.level === L && x.soll != null).map(x => {
+      const s = Number(x.soll), l = x.L == null ? null : Number(x.L) - s, r = x.R == null ? null : Number(x.R) - s;
+      return {n:x.name, s, l, r, lr: l != null && r != null ? l - r : null};
+    });
+    if (!rows.length) continue;
+    const dev = rows.flatMap(x => [x.l, x.r]).filter(v => v != null);
+    const lrs = rows.map(x => x.lr).filter(v => v != null);
+    lv[L] = {rows, m: mean(dev), mL: mean(rows.map(x=>x.l).filter(v=>v!=null)), mR: mean(rows.map(x=>x.r).filter(v=>v!=null)),
+      mLR: mean(lrs), maxLR: lrs.length ? Math.max(...lrs.map(Math.abs)) : NaN,
+      spread: dev.length ? Math.max(...dev) - Math.min(...dev) : NaN, n: dev.length, total: rows.length * 2};
+  }
+  const all = Object.values(lv).flatMap(v => v.rows).filter(x => x.lr != null);
+  const sym = all.length ? Math.round(all.filter(x => Math.abs(x.lr) <= 5).length / all.length * 100) : NaN;
+  const gaps = ['B','C'].filter(k => lv[k] && lv.A).map(k => Math.abs(lv[k].m - lv.A.m));
+  const n = Object.values(lv).reduce((s,v)=>s+v.n,0), total = Object.values(lv).reduce((s,v)=>s+v.total,0);
+  return {lv, sym, gap: gaps.length ? Math.max(...gaps) : NaN, zLR: lv.Z ? lv.Z.mLR : NaN, aPlan: lv.A ? lv.A.m : NaN, n, total};
+}
+const rate = (k, v, a) => {
+  const g = (k === 'A' || k === 'Z' || !a.lv.A) ? 0 : Math.abs(v.m - a.lv.A.m);
+  const w = Math.max(isNaN(v.maxLR) ? 0 : v.maxLR, g);
+  return w <= 5 ? '<span class="chip ok">gut</span>' : w <= 10 ? '<span class="chip warn">prüfen</span>' : '<span class="chip bad">trimmen</span>';
+};
+
+/* ---------- Diagramme ---------- */
+function chart(k, v){
+  const rows = v.rows, W = 520, H = 220, pl = 42, pr = 10, pt = 12, pb = 32;
+  const vals = rows.flatMap(x => [x.l, x.r]).filter(x => x != null).concat([0]);
+  const lo = Math.floor((Math.min(...vals) - 6) / 10) * 10, hi = Math.ceil((Math.max(...vals) + 6) / 10) * 10;
+  const step = (hi - lo) > 80 ? 20 : 10;
+  const y = d => pt + (hi - d) / (hi - lo) * (H - pt - pb);
+  const x = i => pl + (i + .5) * (W - pl - pr) / rows.length;
+  let g = '';
+  for (let t = Math.ceil(lo/step)*step; t <= hi; t += step) g += `<line class="gr" x1="${pl}" x2="${W-pr}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`;
+  if (!isNaN(v.m)) g += `<rect class="band" x="${pl}" width="${W-pl-pr}" y="${y(v.m+5)}" height="${y(v.m-5)-y(v.m+5)}"/>`;
+  g += `<line class="zero" x1="${pl}" x2="${W-pr}" y1="${y(0)}" y2="${y(0)}"/>`;
+  rows.forEach((r, i) => {
+    if (r.l != null) g += `<circle cx="${x(i)-2.5}" cy="${y(r.l)}" r="3.8" fill="var(--left)"><title>${r.n} links: ${sg(r.l)} mm</title></circle>`;
+    if (r.r != null) g += `<circle cx="${x(i)+2.5}" cy="${y(r.r)}" r="3.8" fill="var(--right)"><title>${r.n} rechts: ${sg(r.r)} mm</title></circle>`;
+    if (rows.length <= 16 || i % 2 === 0) g += `<text x="${x(i)}" y="${H-pb+16}" text-anchor="middle">${esc(r.n)}</text>`;
+  });
+  g += `<line class="ax" x1="${pl}" x2="${pl}" y1="${pt}" y2="${H-pb}"/>`;
+  return `<figure style="margin:0;min-width:0"><div class="secthead" style="margin:0"><b style="font:600 18px var(--f-display)">${NAMES[k]}</b><span class="mono" style="font-size:13px;color:var(--ink-2)">Ø ${sg(v.m)} mm</span></div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${NAMES[k]}: Abweichung je Leine links und rechts">${g}</svg></figure>`;
+}
+function symChart(a){
+  const rows = LEVELS.flatMap(k => a.lv[k] ? a.lv[k].rows.map(r => Object.assign({k}, r)) : []);
+  if (!rows.length) return '';
+  const W = 1000, H = 200, pl = 40, pr = 10, pt = 12, pb = 28, lim = 24, bw = (W-pl-pr)/rows.length;
+  const y = d => pt + (lim - d) / (2*lim) * (H-pt-pb);
+  let g = '';
+  [-20,-10,-5,0,5,10,20].forEach(t => g += `<line class="${t?'gr':'zero'}" x1="${pl}" x2="${W-pr}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl-6}" y="${y(t)+4}" text-anchor="end">${t}</text>`);
+  g += `<rect class="band" x="${pl}" width="${W-pl-pr}" y="${y(5)}" height="${y(-5)-y(5)}"/>`;
+  let last = '';
+  rows.forEach((r, i) => {
+    if (r.k !== last){ last = r.k; g += `<line class="ax" x1="${pl+i*bw}" x2="${pl+i*bw}" y1="${pt}" y2="${H-pb+6}"/><text x="${pl+i*bw+4}" y="${H-pb+18}">${r.k}</text>`; }
+    if (r.lr == null) return;
+    const v = Math.max(-lim, Math.min(lim, r.lr)), a2 = Math.abs(r.lr);
+    const col = a2 <= 5 ? 'var(--ok)' : a2 <= 10 ? 'var(--warn)' : 'var(--bad)';
+    g += `<rect x="${pl+i*bw+1}" y="${Math.min(y(v),y(0))}" width="${Math.max(1,bw-2)}" height="${Math.max(1.5,Math.abs(y(v)-y(0)))}" fill="${col}"><title>${r.n}: L − R ${sg(r.lr)} mm</title></rect>`;
+  });
+  return `<div class="scroll"><svg class="chart" viewBox="0 0 ${W} ${H}" style="min-width:560px" role="img" aria-label="Differenz links minus rechts je Leine">${g}</svg></div>`;
+}
+
+/* ---------- Bericht ---------- */
+function logRows(rep){
+  const day = rep.datum;
+  const ents = (rep.logbook || []).filter(e => e.kind === 'trim' && ((e.data && e.data.datum) || String(e.happened_at).slice(0,10)) === day);
+  if (!ents.length) return '<p class="cnote">Keine Trimm-Einträge an diesem Tag.</p>';
+  return ents.map((e, i) => {
+    const d = e.data || {};
+    const rows = Object.keys(LB_LABEL).filter(k => d[k] !== undefined && d[k] !== null && String(d[k]).trim() !== '' && k !== 'datum')
+      .map(k => `<tr><td>${LB_LABEL[k]}</td><td class="mono l" style="text-align:right">${esc(d[k])}</td></tr>`).join('');
+    return `${ents.length > 1 ? `<div class="lbl" style="margin-top:${i?14:0}px">Eintrag ${i+1}${d.zeit ? ' · ' + esc(d.zeit) : ''}</div>` : ''}
+      <div class="scroll"><table class="t"><tbody>${rows || '<tr><td class="l">Eintrag ohne Felder</td><td></td></tr>'}</tbody></table></div>`;
+  }).join('');
+}
+function report(rep, slot, paired){
+  const a = analyse(rep), m = rep.meta || {};
+  const kpi = (l, n, u, d) => `<div class="kpi"><span class="lbl">${l}</span><span class="n mono">${n}<small>${u}</small></span><span class="d">${d}</span></div>`;
+  const metaCells = [
+    ['Datum', dt(rep.datum)],
+    ['Zustand', rep.zustand || '–'],
+    rep.mine ? ['Seriennummer', rep.serial || '–'] : ['Gemessen von', rep.owner_name || 'Mitglied'],
+    ['Messpunkte', `${a.n} von ${a.total}`],
+    ['Messzeit', m.messzeit_min != null ? `${m.messzeit_min} min${m.messungen ? ' · Ø ' + Math.round(m.messzeit_min*60/Math.max(1,m.messungen-1)) + ' s' : ''}` : '–'],
+    ['Status', rep.locked ? 'gesichert' : 'laufende Messung']
+  ];
+  if (rep.mine && rep.label) metaCells.push(['Bezeichnung', rep.label]);
+  const tag = slot ? `<span class="tag${slot}">${slot}</span>` : '';
+  return `<article class="rep ${slot === 'B' ? 'b' : 'a'}${paired ? ' paired' : ''}">
+    <header class="sheet head">
+      <svg class="mark" aria-hidden="true"><use href="#logoA"/></svg>
+      <div><div class="lbl">${tag}Leinenvermessung · Protokoll</div><h2>${esc(kiteTitle(rep.kite))}</h2></div>
+      <div class="meta">${metaCells.map(([l,v]) => `<div><div class="lbl">${l}</div><div class="v">${esc(v)}</div></div>`).join('')}</div>
+    </header>
+    <section class="kpis" aria-label="Kennzahlen">
+      ${kpi('Symmetrie', isNaN(a.sym) ? '–' : a.sym, '%', 'Leinenpaare innerhalb ±5 mm')}
+      ${kpi('Ebenenabgleich', isNaN(a.gap) ? '–' : r0(a.gap), 'mm', 'größter Abstand B/C zur A-Ebene')}
+      ${kpi('Z links − rechts', sg(a.zLR), 'mm', 'mittlere Seitendifferenz Steuerebene')}
+      ${kpi('A-Ebene vs. Plan', sg(a.aPlan), 'mm', 'Alterungszustand der Leinen')}
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Ebenen im Überblick</h3><span class="lbl">Ist − Soll in mm</span></div>
+      <div class="scroll"><table class="t"><thead><tr><th>Ebene</th><th>Ø</th><th>Ø L − R</th><th>max |L − R|</th><th>Streuung</th><th>Bewertung</th></tr></thead><tbody>
+      ${LEVELS.filter(k => a.lv[k]).map(k => { const v = a.lv[k];
+        return `<tr><td><b>${NAMES[k]}</b></td><td class="mono"><b>${sg(v.m)}</b></td><td class="mono">${sg(v.mLR)}</td><td class="mono">${isNaN(v.maxLR)?'–':r0(v.maxLR)}</td><td class="mono">${isNaN(v.spread)?'–':r0(v.spread)}</td><td>${rate(k, v, a)}</td></tr>`; }).join('')}
+      </tbody></table></div>
+      <p class="cnote">Bewertung nach größter Seitendifferenz bzw. Abstand zur A-Ebene: bis 5 mm gut, bis 10 mm prüfen, darüber trimmen. Die Z-Ebene liegt in Tuner-Standardstellung (Mitte) planmäßig rund 20 mm über dem Leinenplan.</p>
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Abweichung je Leine</h3><div class="legend"><span><i class="dotL"></i>links</span><span><i class="dotR"></i>rechts</span></div></div>
+      <div class="charts">${LEVELS.filter(k => a.lv[k]).map(k => chart(k, a.lv[k])).join('')}</div>
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Symmetrie links / rechts</h3><span class="lbl">L − R in mm</span></div>
+      ${symChart(a)}
+    </section>
+    <section class="sheet">
+      <div class="secthead"><h3>Trimm-Logbuch</h3><span class="lbl">${dt(rep.datum)}</span></div>
+      ${logRows(rep)}
+    </section>
+  </article>`;
+}
+
+/* ---------- Vergleich ---------- */
+function compare(A, B){
+  const a = analyse(A), b = analyse(B);
+  const lbl = r => `${kiteShort(r.kite)} · ${dt(r.datum)}${r.zustand ? ' · ' + r.zustand : ''}${r.mine ? '' : ' · ' + (r.owner_name || 'Mitglied')}`;
+  const d = (x, y, lowerBetter) => {
+    if (isNaN(x) || isNaN(y)) return '<td class="mono">–</td>';
+    const dd = y - x, better = lowerBetter ? Math.abs(y) < Math.abs(x) : y > x;
+    return `<td class="mono ${Math.abs(dd) < 1 ? '' : better ? 'better' : 'worse'}">${sg(dd)}</td>`;
+  };
+  const row = (l, x, y, u, lowerBetter, fmt) => `<tr><td>${l}</td><td class="mono">${fmt(x)}${u}</td><td class="mono">${fmt(y)}${u}</td>${d(x, y, lowerBetter)}</tr>`;
+  const num = x => isNaN(x) ? '–' : r0(x);
+  let rows = row('Symmetrie (±5 mm)', a.sym, b.sym, ' %', false, num)
+    + row('Ebenenabgleich B/C zu A', a.gap, b.gap, ' mm', true, num)
+    + row('Z links − rechts', a.zLR, b.zLR, ' mm', true, sg)
+    + row('A-Ebene vs. Plan', a.aPlan, b.aPlan, ' mm', true, sg);
+  LEVELS.filter(k => a.lv[k] || b.lv[k]).forEach(k => {
+    const va = a.lv[k] || {}, vb = b.lv[k] || {};
+    rows += `<tr class="g"><td colspan="4">${NAMES[k]}</td></tr>`
+      + row('Ø Ist − Soll', va.m ?? NaN, vb.m ?? NaN, ' mm', k !== 'Z', sg)
+      + row('max |L − R|', va.maxLR ?? NaN, vb.maxLR ?? NaN, ' mm', true, num)
+      + row('Streuung', va.spread ?? NaN, vb.spread ?? NaN, ' mm', true, num);
+  });
+  let lines = '';
+  if (A.kite === B.kite){
+    const bm = Object.fromEntries(B.lines.map(x => [x.name, x]));
+    const dv = (x, s) => x == null || s == null ? null : Number(x) - Number(s);
+    lines = `<details><summary>Alle Leinen vergleichen</summary><div class="scroll"><table class="t" style="margin-top:8px"><thead><tr><th>Leine</th><th>Soll</th><th><span class="tagA">A</span>L</th><th><span class="tagA">A</span>R</th><th><span class="tagB">B</span>L</th><th><span class="tagB">B</span>R</th><th>Δ Ø</th></tr></thead><tbody>
+      ${A.lines.map(x => { const y = bm[x.name] || {}; const s = x.soll ?? y.soll;
+        const al = dv(x.L, s), ar = dv(x.R, s), bl = dv(y.L, s), br = dv(y.R, s);
+        const ma = mean([al, ar].filter(v => v != null)), mb = mean([bl, br].filter(v => v != null));
+        return `<tr><td>${esc(x.name)}</td><td class="mono">${s ?? '–'}</td><td class="mono">${sg(al)}</td><td class="mono">${sg(ar)}</td><td class="mono">${sg(bl)}</td><td class="mono">${sg(br)}</td><td class="mono">${sg(mb - ma)}</td></tr>`; }).join('')}
+      </tbody></table></div><p class="cnote">Abweichung Ist − Soll in mm. Δ Ø = Mittel B − Mittel A.</p></details>`;
+  } else {
+    lines = `<p class="cnote">Unterschiedliche Kites: Verglichen werden die Abweichungen vom jeweiligen Leinenplan, darum passen auch andere Größen und Modelle zusammen.</p>`;
+  }
+  return `<section class="sheet cmpsum">
+    <div class="secthead"><h2>Vergleich</h2><div class="toolbar"><button class="btn sm" id="swap">A ⇄ B</button><button class="btn sm" id="closeB">Vergleich beenden</button></div></div>
+    <div class="scroll"><table class="t"><thead><tr><th></th><th><span class="tagA">A</span>${esc(lbl(A))}</th><th><span class="tagB">B</span>${esc(lbl(B))}</th><th>Δ B − A</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="cnote">Grün = B näher am Plan bzw. symmetrischer, rot = schlechter.</p>
+    ${lines}
+  </section>`;
+}
+
+/* ---------- Laden & Anzeigen ---------- */
+async function getRep(id){ if (!cache[id]) { const r = await rpc('report_data', {m: id}); if (!r || !r.ok) throw new Error((r && r.error) || 'Bericht nicht gefunden'); cache[id] = r; } return cache[id]; }
+
+async function show(){
+  const v = $('view');
+  const q = new URLSearchParams(); if (SEL[0]) q.set('a', SEL[0]); if (SEL[1]) q.set('b', SEL[1]);
+  history.replaceState(null, '', location.pathname + (SEL.length ? '?' + q : ''));
+  drawList();
+  if (!SEL.length){
+    v.innerHTML = LIST.length ? `<div class="sheet"><h2 style="margin:0 0 6px;font-size:30px">Bericht wählen</h2><p style="margin:0">Tippe links auf eine Messreihe, um den Bericht zu öffnen. Mit <b>Vergleichen</b> stellst du einen zweiten Bericht daneben – auch von anderen Kites, Größen oder von Freunden.</p></div>` : '';
+    return;
+  }
+  v.innerHTML = '<div class="empty">Bericht wird geladen …</div>';
+  try {
+    const reps = await Promise.all(SEL.map(getRep));
+    if (reps.length === 1) v.innerHTML = report(reps[0], '', false);
+    else v.innerHTML = compare(reps[0], reps[1]) + `<div class="pair">${report(reps[0], 'A', true)}${report(reps[1], 'B', true)}</div>`;
+    const sw = $('swap'); if (sw) sw.onclick = () => { SEL.reverse(); show(); };
+    const cb = $('closeB'); if (cb) cb.onclick = () => { SEL = SEL.slice(0, 1); show(); };
+  } catch (e) { v.innerHTML = `<div class="sheet err">${esc(e.message)}</div>`; }
+}
+
+function shareLabel(f){
+  if (!f) return '';
+  if (f.mode === 'alle') return 'alle Mitglieder';
+  if (f.mode === 'freunde') return (f.friends || []).length + (f.friends.length === 1 ? ' Freund' : ' Freunde');
+  return 'privat';
+}
+function drawList(){
+  const q = $('q').value.trim().toLowerCase();
+  const rows = LIST.filter(r => FILTER === 'alle' || (FILTER === 'meine') === !!r.mine)
+    .filter(r => !q || (r.kite + ' ' + (r.owner_name || '') + ' ' + (r.label || '') + ' ' + (r.zustand || '')).toLowerCase().includes(q));
+  const groups = new Map();
+  rows.forEach(r => { const g = groups.get(r.kite_id) || groups.set(r.kite_id, {kite: r.kite, mine: r.mine, owner: r.owner_name, freigabe: r.freigabe, items: []}).get(r.kite_id); g.items.push(r); });
+  const sorted = [...groups.entries()].sort((x, y) => (y[1].mine - x[1].mine) || x[1].kite.localeCompare(y[1].kite, 'de', {numeric: true}));
+  if (!sorted.length){
+    $('list').innerHTML = `<div class="empty">${LIST.length ? 'Nichts gefunden.' : FILTER === 'geteilt' ? 'Noch hat niemand Berichte mit dir geteilt.' : 'Noch keine Berichte. Miss einen Kite in der <a href="../app/index.html">Mess-App</a> und sichere die Messreihe – dann erscheint sie hier.'}</div>`;
+    return;
+  }
+  $('list').innerHTML = sorted.map(([kid, g]) => `<div class="grp">
+      <div class="grp-h"><div><b>${esc(kiteShort(g.kite))}</b><span class="by">${g.mine ? 'mein Kite' : 'von ' + esc(g.owner || 'Mitglied')}</span></div>
+        ${g.mine && g.freigabe ? `<button class="share${g.freigabe.mode !== 'privat' ? ' on' : ''}" data-share="${kid}" title="Freigabe ändern">${esc(shareLabel(g.freigabe))}</button>` : ''}</div>
+      ${g.items.sort((x, y) => String(y.datum).localeCompare(String(x.datum)) || String(y.created_at).localeCompare(String(x.created_at))).map(r => {
+        const ia = SEL[0] === r.id, ib = SEL[1] === r.id;
+        return `<div class="item${ia ? ' selA' : ''}${ib ? ' selB' : ''}">
+          <button class="open" data-open="${r.id}">${ia && SEL.length > 1 ? '<span class="tagA">A</span>' : ''}${ib ? '<span class="tagB">B</span>' : ''}<span class="d">${dt(r.datum)}</span>${r.zustand ? ' · ' + esc(r.zustand) : ''}
+            <span class="s">${r.locked ? 'gesichert' : 'laufende Messung'} · ${r.punkte} Punkte${r.mine && r.label && r.label !== 'Laufende Messung' ? ' · ' + esc(r.label) : ''}</span></button>
+          ${SEL.length && !ia ? `<button class="cmp" data-cmp="${r.id}" aria-pressed="${ib}">${ib ? 'Im Vergleich' : 'Vergleichen'}</button>` : ''}
+        </div>`; }).join('')}
+    </div>`).join('');
+}
+
+$('list').addEventListener('click', e => {
+  const o = e.target.closest('[data-open]'), c = e.target.closest('[data-cmp]'), s = e.target.closest('[data-share]');
+  if (o){ SEL = [o.dataset.open]; show(); if (innerWidth <= 980) $('view').scrollIntoView({behavior: 'smooth'}); }
+  else if (c){ const id = c.dataset.cmp; SEL = SEL[1] === id ? [SEL[0]] : [SEL[0], id]; show(); if (innerWidth <= 980 && SEL.length > 1) $('view').scrollIntoView({behavior: 'smooth'}); }
+  else if (s) openShare(s.dataset.share);
+});
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+  FILTER = b.dataset.f; document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawList();
+});
+$('q').addEventListener('input', drawList);
+
+/* ---------- Freigabe ---------- */
+let shareKid = null;
+async function openShare(kid){
+  shareKid = kid;
+  const g = LIST.find(r => r.kite_id === kid) || {};
+  const f = g.freigabe || {mode: 'privat', friends: []};
+  $('shareKite').textContent = kiteTitle(g.kite) + ' – alle gesicherten Messreihen dieses Kites.';
+  $('shareErr').hidden = true;
+  document.querySelectorAll('#shareDlg input[name=mode]').forEach(i => i.checked = i.value === f.mode);
+  $('friends').innerHTML = '<span class="cnote">Mitglieder werden geladen …</span>';
+  $('shareDlg').showModal();
+  try {
+    if (!MEMBERS) MEMBERS = await rpc('members');
+    $('friends').innerHTML = MEMBERS.length ? MEMBERS.map(m => `<label><input type="checkbox" value="${m.id}"${(f.friends || []).includes(m.id) ? ' checked' : ''}>${esc(m.name)}</label>`).join('')
+      : '<span class="cnote">Noch keine anderen Mitglieder.</span>';
+  } catch (e) { $('friends').innerHTML = `<span class="cnote err">${esc(e.message)}</span>`; }
+}
+$('friends').addEventListener('change', () => { if ($('friends').querySelector('input:checked')) document.querySelector('#shareDlg input[value=freunde]').checked = true; });
+$('shareCancel').onclick = () => $('shareDlg').close();
+$('shareSave').onclick = async () => {
+  const mode = (document.querySelector('#shareDlg input[name=mode]:checked') || {}).value || 'privat';
+  const friends = [...$('friends').querySelectorAll('input:checked')].map(i => i.value);
+  if (mode === 'freunde' && !friends.length){ $('shareErr').textContent = 'Bitte mindestens ein Mitglied auswählen.'; $('shareErr').hidden = false; return; }
+  $('shareSave').disabled = true;
+  try {
+    const f = await rpc('kite_share_set', {k: shareKid, mode, friends});
+    LIST.forEach(r => { if (r.kite_id === shareKid) r.freigabe = f; });
+    $('shareDlg').close(); drawList();
+  } catch (e) { $('shareErr').textContent = e.message; $('shareErr').hidden = false; }
+  $('shareSave').disabled = false;
+};
+
+/* ---------- Name ---------- */
+function drawWho(){ $('who').innerHTML = `Angemeldet als <b>${esc(ME || '…')}</b> <button class="linkbtn" id="editName">Name ändern</button>`; $('editName').onclick = () => { $('nameIn').value = ME; $('nameErr').hidden = true; $('nameDlg').showModal(); }; }
+$('nameCancel').onclick = () => $('nameDlg').close();
+$('nameSave').onclick = async () => {
+  try { ME = await rpc('set_my_name', {n: $('nameIn').value}); $('nameDlg').close(); drawWho(); }
+  catch (e) { $('nameErr').textContent = e.message; $('nameErr').hidden = false; }
+};
+
+/* ---------- Start ---------- */
+(async () => {
+  drawWho();
+  try {
+    const [list, name] = await Promise.all([rpc('report_list'), rpc('my_name').catch(() => '')]);
+    LIST = list || []; ME = name || ''; drawWho();
+    const p = new URLSearchParams(location.search);
+    SEL = [p.get('a'), p.get('b')].filter(id => id && LIST.some(r => r.id === id));
+    if (!SEL.length){ const first = LIST.find(r => r.mine && r.locked) || LIST[0]; if (first && innerWidth > 980) SEL = [first.id]; }
+    show();
+  } catch (e) {
+    $('list').innerHTML = `<div class="empty err">${/report_list|function/i.test(e.message) ? 'Die Datenbank ist für „Meine Berichte“ noch nicht vorbereitet (04_berichte.sql fehlt).' : esc(e.message)}</div>`;
+  }
+})();
+})();
+</script>
+</body>
+</html>

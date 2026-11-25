@@ -30,7 +30,7 @@
 .step p{color:var(--ink-2)}
 @media (max-width:820px){.steps{grid-template-columns:1fr}}
 
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
 .card{display:flex;flex-direction:column;gap:12px;text-decoration:none;color:var(--ink);transition:border-color .15s}
 .card:hover{border-color:var(--accent);color:var(--ink)}
 .card h3{font-size:28px}
@@ -85,6 +85,7 @@
     <nav class="nav" aria-label="Hauptnavigation">
       <a href="bericht/index.html">Musterbericht</a>
       <a href="diy/index.html">DIY</a>
+      <a href="berichte/index.html">Berichte</a>
       <a href="app/index.html">Mess-App</a>
       <a href="ueber/index.html">Über</a>
     </nav>
@@ -199,6 +200,12 @@
           <h3>DIY: Trimwerk Go</h3>
           <p>Die kleine, mobile Trimmvorrichtung zum Nachbauen – mit Bau- und Bedienungsanleitung.</p>
           <span class="go">Zur Anleitung →</span>
+        </a>
+        <a class="sheet card" href="berichte/index.html">
+          <span class="lbl">Privat</span>
+          <h3>Meine Berichte</h3>
+          <p>Alle eigenen Messberichte ansehen und nebeneinander vergleichen – auch mit anderen Größen, Modellen und den Kites deiner Freunde, wenn sie sie freigeben.</p>
+          <span class="go">Öffnen →</span>
         </a>
         <a class="sheet card" href="app/index.html">
           <span class="lbl">Werkzeug</span>

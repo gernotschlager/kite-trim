@@ -121,7 +121,28 @@ ol.steps li{margin-bottom:6px;max-width:72ch}
 .tuner svg text{font-family:var(--f-mono);font-size:12px;fill:var(--ink-2)}
 .foot{font-size:12.5px;color:var(--ink-2);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--rule);padding-top:14px}
 .topnav{max-width:1080px;margin:0 auto 12px;font-family:var(--f-display);font-weight:600;letter-spacing:.04em}.topnav a{color:var(--ink-2);text-decoration:none}.topnav a:hover{color:var(--ink)}
-@media print{.topnav{display:none}}
+.topnav{display:flex;justify-content:space-between;align-items:center}
+.pdfbtn{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.04em;background:var(--sheet);color:var(--ink);border:1.5px solid var(--rule);border-radius:8px;padding:7px 14px;cursor:pointer}
+.pdfbtn:hover{border-color:var(--ink-2)}
+.mr td.ok{color:var(--ok)} .mr td.warn{color:var(--warn)} .mr td.bad{color:var(--bad)}
+.mr th,.mr td{padding:6px 9px}
+.mr th.grpA,.mr th.grpB{border-bottom:2px solid var(--pre)} .mr th.grpB{border-bottom-color:var(--accent)}
+@media print{
+  @page{size:A4;margin:12mm}
+  :root,:root[data-theme="dark"]{--paper:#fff;--sheet:#fff;--ink:#0f2131;--ink-2:#4a5a68;--rule:#d6dde2;--grid:#e6ebee;--accent:#e8661c;--left:#1f6fb2;--right:#e8661c;--pre:#9aa7b2;
+    --ok:#1f8a5b;--warn:#c98a0b;--bad:#c23a2b;--band:rgba(31,111,178,.08);color-scheme:light}
+  html,body{background:#fff!important}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:0!important}
+  .topnav{display:none}
+  .wrap{gap:10px;max-width:none}
+  .sheet{break-inside:avoid;padding:14px 16px!important}
+  .sheet.mrsheet{break-inside:auto}
+  .t th,.t td{padding:3px 6px}
+  table.mr{font-size:9pt}
+  .scroll{overflow:visible}
+  .scroll svg{min-width:0!important}
+  figure{break-inside:avoid}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -135,7 +156,7 @@ ol.steps li{margin-bottom:6px;max-width:72ch}
   </defs>
 </svg>
 
-<nav class="topnav"><a href="../index.html">← trimwerk.app</a></nav>
+<nav class="topnav"><a href="../index.html">← trimwerk.app</a><button class="pdfbtn" id="pdfBtn" title="Als PDF speichern oder drucken">⬇ PDF</button></nav>
 <div class="wrap">
 
   <header class="sheet head">
@@ -188,6 +209,12 @@ ol.steps li{margin-bottom:6px;max-width:72ch}
     <div class="secthead"><h2>Trimm-Logbuch</h2><span class="lbl">Einträge aus der Kite-Trim-App</span></div>
     <div class="scroll"><table class="t" id="logbook"></table></div>
     <p class="cnote">Pulleylines unter Zug gemessen; Referenz neue Pulleyline: B 1190 mm, C 990 mm. Trimmschlaufen: Schlaufenlänge mit der Messlehre; Mixer 2:1 (Ring 2 cm verschieben → Ebene 1 cm).</p>
+  </section>
+
+  <section class="sheet mrsheet">
+    <div class="secthead"><h2>Messreihe</h2><span class="lbl">alle Leinen · vorher → nachher · mm</span></div>
+    <div class="scroll"><table class="t mr" id="mrtab"></table></div>
+    <p class="cnote">Δ = Ist − Soll nach dem Trimm. Dass alle Leinen gleichmäßig rund 30 mm kürzer sind als der Plan, ist die Alterung (A-Ebene wird nicht getrimmt) – entscheidend ist, dass B, C und Z zur A-Ebene passen. L − R farbig: bis 5 mm grün, bis 15 mm gelb, darüber rot. Werte nach Abzug des Laser-Offsets.</p>
   </section>
 
   <section class="sheet tuner">
@@ -414,6 +441,27 @@ const LOG = [
 document.getElementById('logbook').innerHTML = `<thead><tr><th>Feld</th><th>Eingang (vorher)</th><th>Ausgang (nachher)</th></tr></thead><tbody>` +
   LOG.map(r => r[0]==='grp' ? `<tr class="grp"><td colspan="3">${r[1]}</td></tr>` :
     `<tr><td>${r[0]}</td><td class="mono pre l" style="text-align:right">${r[1]}</td><td class="mono l" style="text-align:right">${r[2]}</td></tr>`).join('') + `</tbody>`;
+
+// Messreihe: alle Leinen vorher/nachher
+{
+  const cls = d => Math.abs(d) <= 5 ? 'ok' : Math.abs(d) <= 15 ? 'warn' : 'bad';
+  let h = `<thead><tr><th rowspan="2">Leine</th><th rowspan="2">Soll</th><th colspan="2" class="grpA" style="text-align:center">vorher</th><th colspan="2" class="grpB" style="text-align:center">nachher</th><th colspan="3" class="grpB" style="text-align:center">nachher Ist − Soll</th></tr>
+    <tr><th>L</th><th>R</th><th>L</th><th>R</th><th>Δ L</th><th>Δ R</th><th>L − R</th></tr></thead><tbody>`;
+  for (const k in DATA){
+    h += `<tr class="grp"><td colspan="9">${NAMES[k]}</td></tr>`;
+    DATA[k].forEach(([n,s,pl,pr,nl,nr]) => {
+      const dl = nl - s, dr = nr - s, lr = nl - nr;
+      h += `<tr><td>${n}</td><td class="mono">${s}</td><td class="mono pre">${pl}</td><td class="mono pre">${pr}</td><td class="mono">${nl}</td><td class="mono">${nr}</td>
+        <td class="mono">${sg(dl)}</td><td class="mono">${sg(dr)}</td><td class="mono ${cls(lr)}">${sg(lr)}</td></tr>`;
+    });
+  }
+  document.getElementById('mrtab').innerHTML = h + '</tbody>';
+}
+document.getElementById('pdfBtn').onclick = () => {
+  const old = document.title; document.title = 'Trimwerk_Musterbericht_Sonic5_10';
+  const done = () => { document.title = old; window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done); window.print(); setTimeout(done, 60000);
+};
 
 document.getElementById('time').innerHTML = `<tbody>` + [
   ['Eingangsmessung (94 Punkte)','46 min · Ø 29 s'],

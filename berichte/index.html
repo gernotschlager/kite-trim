@@ -114,6 +114,7 @@ details summary{cursor:pointer;font:600 15px var(--f-display);letter-spacing:.06
   .rb{display:block;padding:0;max-width:none}
   .view{gap:10px}
   .sheet{border:1px solid var(--rule);padding:12px 14px;break-inside:avoid}
+  figure{break-inside:avoid}
   .sheet:has(table.mr){break-inside:auto}
   .kpis{break-inside:avoid}
   .pair{display:block}
@@ -415,10 +416,10 @@ function lineTable(rep){
     const s = x.soll == null ? null : Number(x.soll), L = x.L == null ? null : Number(x.L), R = x.R == null ? null : Number(x.R);
     const dl = L != null && s != null ? L - s : null, dr = R != null && s != null ? R - s : null, lr = L != null && R != null ? L - R : null;
     body += `<tr><td>${esc(x.name)}</td><td class="mono">${s ?? '–'}</td><td class="mono">${L ?? '–'}</td><td class="mono">${R ?? '–'}</td>
-      <td class="mono ${cls(dl)}">${sg(dl)}</td><td class="mono ${cls(dr)}">${sg(dr)}</td><td class="mono ${cls(lr)}">${sg(lr)}</td></tr>`;
+      <td class="mono">${sg(dl)}</td><td class="mono">${sg(dr)}</td><td class="mono ${cls(lr)}">${sg(lr)}</td></tr>`;
   });
   return `<div class="scroll"><table class="t mr"><thead><tr><th>Leine</th><th>Soll</th><th>Links</th><th>Rechts</th><th>Δ L</th><th>Δ R</th><th>L − R</th></tr></thead><tbody>${body}</tbody></table></div>
-    <p class="cnote">Δ = Ist − Soll. Farben: bis 5 mm grün, bis 15 mm gelb, darüber rot. Werte nach Abzug des Laser-Offsets.</p>`;
+    <p class="cnote">Δ = Ist − Soll. Gleichmäßig kürzere Leinen zeigen die Alterung; wichtig ist, dass die Ebenen zueinander und links/rechts passen (siehe Ebenen im Überblick). L − R farbig: bis 5 mm grün, bis 15 mm gelb, darüber rot. Werte nach Abzug des Laser-Offsets.</p>`;
 }
 
 /* ---------- Käufer-Link ---------- */

@@ -84,6 +84,15 @@
   #queue{font-size:13px;color:var(--warn);text-align:center;min-height:1em}
   dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:16px;width:min(560px,94vw);max-height:90dvh}
   dialog::backdrop{background:rgba(0,0,0,.6)}
+  @media (min-width:1000px){
+    #list,#lb{width:min(1500px,96vw);max-width:none;height:94dvh;max-height:94dvh;padding:20px 24px}
+    #list[open],#lb[open]{display:flex;flex-direction:column}
+    #list .dgrid,#lb .dgrid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:28px}
+    #list .dmain,#list .dside,#lb .dmain,#lb .dside{overflow:auto;min-height:0;padding-right:6px}
+    #list .dside,#lb .dside{border-left:1px solid var(--line);padding-left:24px}
+    #list .dside>.sec:first-child,#lb .dside>.sec:first-child{margin-top:0;border-top:0;padding-top:0}
+    #lbEntries{font-size:14px}
+  }
   dialog h2{margin:0 0 10px;font-size:20px}
   dialog label{display:block;margin:10px 0 4px;color:var(--muted);font-size:14px}
   dialog input{width:100%}
@@ -252,6 +261,7 @@
 
 <dialog id="list">
   <h2 id="listTitle">Übersicht</h2>
+  <div class="dgrid"><div class="dmain">
   <div class="arbar">
     <label for="cmpSel">Vergleich mit gesicherter Messreihe</label>
     <select id="cmpSel"><option value="">– kein Vergleich –</option></select>
@@ -260,6 +270,7 @@
   <p class="hint" id="listTime" style="margin:4px 0;color:var(--text)"></p>
   <p class="hint" id="listHint">Auf einen Wert tippen, um dorthin zu springen.</p>
   <table id="tbl"></table>
+  </div><div class="dside">
   <div class="sec">Für Käufer freigeben</div>
   <div class="f2">
     <div><label for="shSel">Gesicherte Messreihe</label><select id="shSel"><option value="">– zuerst sichern –</option></select></div>
@@ -287,10 +298,12 @@
     <button class="btn" id="listClose" type="button">Schließen</button>
   </div>
   <p class="hint" style="font-size:13px">Die Messzeit zählt ab „Neue Messreihe“; Lücken über 5 min gelten als Pause. „Sichern“ kopiert alle aktuellen Werte samt Messzeit ins Blatt „Messarchiv“. „Neue Messreihe“ sichert zuerst und leert dann alle Felder dieses Kites.</p>
+</div></div>
 </dialog>
 
 <dialog id="lb">
   <h2 id="lbTitle">Logbuch</h2>
+  <div class="dgrid"><div class="dmain">
   <div class="tabs">
     <button class="btn sel" id="lbTabT" type="button">✂ Trimm</button>
     <button class="btn" id="lbTabS" type="button">🏄 Session</button>
@@ -426,8 +439,10 @@
     <button class="btn" id="lbClose" type="button">Schließen</button>
     <button class="btn primary" id="lbSave" type="button">Eintragen</button>
   </div>
+  </div><div class="dside">
   <div class="sec">Letzte Einträge</div>
   <table id="lbEntries"></table>
+  </div></div>
 </dialog>
 
 <script>

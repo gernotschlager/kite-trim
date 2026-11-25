@@ -99,6 +99,43 @@ table.t{width:100%;border-collapse:collapse;font-size:14px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 details summary{cursor:pointer;font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent-ink);margin-top:12px}
 .err{color:var(--bad)}
+.head .pdf{grid-column:2;justify-self:end;align-self:start}
+.head{position:relative}
+.head .pdfbtn{position:absolute;top:14px;right:14px}
+@media (max-width:560px){.head .pdfbtn{position:static;grid-column:1/-1;justify-self:start}}
+.printfoot{display:none}
+@media print{
+  @page{size:A4;margin:12mm}
+  :root{--paper:#fff;--sheet:#fff;--ink:#14202a;--ink-2:#55626d;--rule:#d5dce2;--grid:#eef1f4;--band:rgba(90,167,232,.12);--accent-ink:#c2551a;--pre:#9aa5ae;
+        --ok:#1f9d64;--warn:#b98900;--bad:#d2412f;color-scheme:light}
+  html,body{background:#fff!important}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11pt}
+  header.top,.side,footer.foot,.shbox,.toolbar,.pdfbtn,#swap,#closeB,.noprint{display:none!important}
+  .rb{display:block;padding:0;max-width:none}
+  .view{gap:10px}
+  .sheet{border:1px solid var(--rule);padding:12px 14px;break-inside:avoid}
+  .sheet:has(table.mr){break-inside:auto}
+  .kpis{break-inside:avoid}
+  .pair{display:block}
+  .pair .rep+.rep{break-before:page;margin-top:0}
+  .rep{gap:10px}
+  .head h2{font-size:26px}
+  .charts{grid-template-columns:1fr 1fr!important;gap:10px}
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .kpi .n{font-size:28px}
+  .t th,.t td{padding:4px 6px}
+  table.mr{font-size:9pt}
+  .t th,.t td,.mr th,.mr td{padding:2.5px 6px}
+  .pair.samekite .sheet:has(table.mr){display:none}
+  .scroll{overflow:visible}
+  .scroll svg{min-width:0!important}
+  details>summary{display:none}
+  details{display:block}
+  details>*{display:revert}
+  .printfoot{display:block;font-size:9pt;color:var(--ink-2);margin-top:8px}
+  .vchart{min-width:0!important}
+  a{color:inherit;text-decoration:none}
+}
 .mr td.ok{color:var(--ok)} .mr td.warn{color:var(--warn)} .mr td.bad{color:var(--bad)}
 .mr td.nil{color:var(--pre)}
 .mr th,.mr td{padding:6px 8px}
@@ -330,6 +367,7 @@ function report(rep, slot, paired){
   const tag = slot ? `<span class="tag${slot}">${slot}</span>` : '';
   return `<article class="rep ${slot === 'B' ? 'b' : 'a'}${paired ? ' paired' : ''}">
     <header class="sheet head">
+      ${slot ? '' : '<button class="btn sm pdfbtn" data-pdf title="Als PDF speichern oder drucken">⬇ PDF</button>'}
       <svg class="mark" aria-hidden="true"><use href="#logoA"/></svg>
       <div><div class="lbl">${tag}Leinenvermessung · Protokoll</div><h2>${esc(kiteTitle(rep.kite))}</h2></div>
       <div class="meta">${metaCells.map(([l,v]) => `<div><div class="lbl">${l}</div><div class="v">${esc(v)}</div></div>`).join('')}</div>
@@ -492,7 +530,7 @@ function compare(A, B){
     lines = `<p class="cnote">Unterschiedliche Kites: Verglichen werden die Abweichungen vom jeweiligen Leinenplan, darum passen auch andere Größen und Modelle zusammen.</p>`;
   }
   return `<section class="sheet cmpsum">
-    <div class="secthead"><h2>Vergleich</h2><div class="toolbar"><button class="btn sm" id="swap">A ⇄ B</button><button class="btn sm" id="closeB">Vergleich beenden</button></div></div>
+    <div class="secthead"><h2>Vergleich</h2><div class="toolbar"><button class="btn sm" data-pdf title="Vergleich als PDF speichern oder drucken">⬇ PDF</button><button class="btn sm" id="swap">A ⇄ B</button><button class="btn sm" id="closeB">Vergleich beenden</button></div></div>
     <div class="scroll"><table class="t"><thead><tr><th></th><th><span class="tagA">A</span>${esc(lbl(A))}</th><th><span class="tagB">B</span>${esc(lbl(B))}</th><th>Δ B − A</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="cnote">Grün = B näher am Plan bzw. symmetrischer, rot = schlechter.</p>
     ${lines}
@@ -549,7 +587,7 @@ async function verlauf(kid){
   const lv = LEVELS.filter(k => an.some(a => a.lv[k]));
   const legend = lv.map(k => `<span><i class="dotL" style="background:${LCOL[k]}"></i>${NAMES[k]}</span>`).join('');
   const num = x => isNaN(x) ? '–' : r0(x);
-  return `<section class="sheet vhead">
+  return `<section class="sheet vhead" style="position:relative"><button class="btn sm pdfbtn" data-pdf title="Verlauf als PDF speichern oder drucken" style="position:absolute;top:14px;right:14px">⬇ PDF</button>
       <div class="lbl">Verlauf · ${items.length} Messreihe${items.length === 1 ? '' : 'n'}${it0.mine ? '' : ' · von ' + esc(it0.owner_name || 'Mitglied')}</div>
       <h2>${esc(kiteTitle(it0.kite))}</h2>
       <p class="cnote" style="margin:0">${dt(it0.datum)} bis ${dt(itn.datum)}${days > 0 ? ` · ${days} Tage` : ''}${trims.length ? ` · ${trims.length} Trimm-Eintr${trims.length === 1 ? 'ag' : 'äge'} im Logbuch` : ''}. Punkte antippen öffnet den Bericht; hohle Punkte = laufende Messung.</p>
@@ -604,8 +642,9 @@ async function show(){
   v.innerHTML = '<div class="empty">Bericht wird geladen …</div>';
   try {
     const reps = await Promise.all(SEL.map(getRep));
-    if (reps.length === 1){ v.innerHTML = report(reps[0], '', false); shareInit(reps[0]); }
-    else v.innerHTML = compare(reps[0], reps[1]) + `<div class="pair">${report(reps[0], 'A', true)}${report(reps[1], 'B', true)}</div>`;
+    const foot = `<p class="printfoot">trimwerk.app · erstellt am ${new Date().toLocaleDateString('de-AT')} · Werte in mm nach Abzug des Laser-Offsets, Abweichung = Ist − Soll laut Leinenplan des Herstellers.</p>`;
+    if (reps.length === 1){ v.innerHTML = report(reps[0], '', false) + foot; shareInit(reps[0]); }
+    else v.innerHTML = compare(reps[0], reps[1]) + `<div class="pair${reps[0].kite === reps[1].kite ? ' samekite' : ''}">${report(reps[0], 'A', true)}${report(reps[1], 'B', true)}</div>` + foot;
     const sw = $('swap'); if (sw) sw.onclick = () => { SEL.reverse(); show(); };
     const cb = $('closeB'); if (cb) cb.onclick = () => { SEL = SEL.slice(0, 1); show(); };
   } catch (e) { v.innerHTML = `<div class="sheet err">${esc(e.message)}</div>`; }
@@ -649,7 +688,21 @@ $('list').addEventListener('click', e => {
   else if (c){ const id = c.dataset.cmp; SEL = SEL[1] === id ? [SEL[0]] : [SEL[0], id]; show(); if (innerWidth <= 980 && SEL.length > 1) $('view').scrollIntoView({behavior: 'smooth'}); }
   else if (s) openShare(s.dataset.share);
 });
+function printPdf(){
+  const reps = SEL.map(id => cache[id]).filter(Boolean);
+  const safe = t => String(t || '').replace(/[^\w\-äöüÄÖÜß]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+  const name = VER ? 'Trimwerk_Verlauf_' + safe((LIST.find(r => r.kite_id === VER) || {}).kite)
+    : reps.length === 2 ? `Trimwerk_Vergleich_${safe(reps[0].kite)}_${reps[0].datum}_vs_${safe(reps[1].kite)}_${reps[1].datum}`
+    : reps.length ? `Trimwerk_Protokoll_${safe(reps[0].kite)}_${reps[0].datum}` : 'Trimwerk';
+  const old = document.title; document.title = name;
+  document.querySelectorAll('details').forEach(d => { d.dataset.wasOpen = d.open ? '1' : ''; if (!d.classList.contains('shbox')) d.open = true; });
+  const done = () => { document.title = old; document.querySelectorAll('details').forEach(d => { if (d.dataset.wasOpen !== undefined){ d.open = d.dataset.wasOpen === '1'; delete d.dataset.wasOpen; } }); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  window.print();
+  setTimeout(() => { if (document.title === name) done(); }, 60000);
+}
 $('view').addEventListener('click', e => {
+  if (e.target.closest('[data-pdf]')) return printPdf();
   const o = e.target.closest('[data-open]'); if (!o) return;
   VER = null; SEL = [o.dataset.open]; show(); window.scrollTo({top: $('view').getBoundingClientRect().top + scrollY - 12, behavior: 'smooth'});
 });

@@ -77,7 +77,16 @@
 .stage img{width:100%;height:100%;object-fit:contain;display:block;cursor:zoom-in}
 .stage .v3d{position:absolute;inset:0;touch-action:none}
 .stage .v3d canvas{display:block}
-.stage .tools{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.stage .tools{position:absolute;right:10px;top:10px;display:flex;gap:6px;z-index:2}
+.stage.is3d{background:#27272a;container-type:inline-size}
+.brand3d{position:absolute;inset:0;pointer-events:none;z-index:1}
+.brand3d .pill{position:absolute;background:rgba(11,20,28,.80);border:1px solid rgba(255,255,255,.08)}
+.brand3d .cap{left:2.8cqw;top:2.4cqw;padding:.9cqw 1.3cqw;border-radius:.8cqw;font-family:var(--f-display);font-weight:600;font-size:2cqw;letter-spacing:.08em;text-transform:uppercase;color:#ff9a5c;line-height:1.15;max-width:60%}
+.brand3d .cap small{display:block;color:#c3cfd8;font-size:1.4cqw;letter-spacing:.1em}
+.brand3d .badge{right:2.8cqw;bottom:2.4cqw;display:flex;align-items:center;gap:1.1cqw;padding:1.1cqw 1.7cqw 1.1cqw 1.3cqw;border-radius:.9cqw}
+.brand3d .badge svg{width:4.2cqw;height:4.2cqw}
+.brand3d .wm{display:flex;align-items:baseline;font-family:var(--f-word);font-size:3.2cqw;letter-spacing:-.02em;line-height:1;color:#e7edf2}
+.brand3d .wm b{font-weight:700}.brand3d .wm span{font-weight:400;color:#9aabb8}.brand3d .wm i{display:inline-block;width:.7cqw;height:.7cqw;background:#ff7a2e;margin-left:.3cqw}
 .stage .tools button{font:600 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:rgba(11,20,28,.8);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;cursor:pointer}
 .stage .hint{position:absolute;left:10px;bottom:10px;font-size:12.5px;color:var(--ink-2);background:rgba(11,20,28,.7);padding:3px 8px;border-radius:5px}
 .stage .ph2{color:var(--ink-2);text-align:center;padding:20px;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -411,7 +420,7 @@ function renderDetail(r) {
     if (viewer) { viewer.dispose(); viewer = null; }
     document.querySelectorAll('#gTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === k));
     const st = $('gStage'), th = $('gThumbs'), cap = $('gCap');
-    th.innerHTML = ''; cap.textContent = '';
+    th.innerHTML = ''; cap.textContent = ''; st.classList.remove('is3d');
     if (k === '3d') return show3d(r, stls);
     const list = k === 'cad' ? cad : foto;
     if (!list.length) {
@@ -530,6 +539,9 @@ async function brandImage(src, title, sub, bg = '#27272a') {
   return await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
 }
 
+const brand3d = title => `<div class="brand3d" aria-hidden="true"><div class="pill cap">${esc(title)}<small>3D-Ansicht</small></div>
+  <div class="pill badge"><svg viewBox="0 0 64 64"><path d="M6 30 C18 10 46 10 58 30" fill="none" stroke="#e7edf2" stroke-width="5" stroke-linecap="round"/><path d="M14 27 L32 54 M24 20 L32 54 M40 20 L32 54 M50 27 L32 54" fill="none" stroke="#e7edf2" stroke-width="2" stroke-linecap="round" opacity=".55"/><path d="M32 54 L32 30" fill="none" stroke="#ff7a2e" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="27" r="3.4" fill="#ff7a2e"/></svg><span class="wm"><b>trim</b><span>werk</span><i></i></span></div></div>`;
+
 async function show3d(r, stls) {
   const st = $('gStage');
   const total = stls.reduce((s, f) => s + (f.size || 0), 0);
@@ -542,7 +554,8 @@ async function show3d(r, stls) {
       Promise.all(data.map(async (x, i) => ({ name: stls[i].name, buffer: await (await fetch(x.signedUrl)).arrayBuffer() })))
     ]);
     if (!document.querySelector('#gTabs [data-k="3d"][aria-pressed="true"]')) return;   // inzwischen umgeschaltet
-    st.innerHTML = '<div class="v3d" id="v3d"></div><span class="hint">Ziehen = drehen · Mausrad/zwei Finger = zoomen</span><div class="tools"><button id="v3rot">Drehen</button><button id="v3res">Ansicht</button></div>';
+    st.classList.add('is3d');
+    st.innerHTML = '<div class="v3d" id="v3d"></div>' + brand3d(r.title) + '<span class="hint">Ziehen = drehen · Mausrad/zwei Finger = zoomen</span><div class="tools"><button id="v3rot">Drehen</button><button id="v3res">Ansicht</button></div>';
     viewer = mod.createViewer($('v3d'), parts, { autoRotate: true });
     $('gCap').textContent = stls.map(f => f.name).join(' · ') + ' · ' + [viewer.size.x, viewer.size.y, viewer.size.z].map(n => Math.round(n)).join(' × ') + ' mm';
     $('v3rot').onclick = () => { $('v3rot').textContent = viewer.toggleRotate() ? 'Stopp' : 'Drehen'; };

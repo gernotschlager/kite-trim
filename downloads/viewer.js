@@ -1,0 +1,93 @@
+/* Trimwerk – 3D-Vorschau für STL-Dateien (three.js, selbst gehostet) */
+import * as THREE from '../lib/three/three.module.min.js';
+import { STLLoader } from '../lib/three/STLLoader.js';
+import { OrbitControls } from '../lib/three/OrbitControls.js';
+
+const COLORS = [0xff7a2e, 0xb9c3cc, 0x5aa7e8, 0x3cc487, 0xe3b13c];
+
+/**
+ * Zeigt STL-Dateien in einem Element an.
+ * parts: [{ buffer: ArrayBuffer, name }]
+ * opts: { background, grid, autoRotate, preserve (für Screenshots) }
+ * Rückgabe: { dispose(), reset(), toggleRotate(), canvas }
+ */
+export function createViewer(el, parts, opts = {}) {
+  const w = () => Math.max(1, el.clientWidth), h = () => Math.max(1, el.clientHeight);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: !opts.background, preserveDrawingBuffer: !!opts.preserve });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(w(), h());
+  if (opts.background) renderer.setClearColor(opts.background, 1);
+  el.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, w() / h(), 0.1, 5000);
+  camera.up.set(0, 0, 1);                       // Druckbett: Z nach oben
+
+  scene.add(new THREE.HemisphereLight(0xdfe8ef, 0x1a222a, 1.6));
+  const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-1, -1.4, 2); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x9fc7ff, 0.9); rim.position.set(1.5, 1.2, 0.6); scene.add(rim);
+
+  const loader = new STLLoader();
+  const group = new THREE.Group();
+  parts.forEach((p, i) => {
+    const geo = loader.parse(p.buffer);
+    geo.computeVertexNormals();
+    const mat = new THREE.MeshStandardMaterial({ color: COLORS[i % COLORS.length], roughness: 0.62, metalness: 0.05, flatShading: false });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.name = p.name || 'Teil ' + (i + 1);
+    group.add(mesh);
+  });
+  scene.add(group);
+
+  // Auf das Bett stellen und zentrieren
+  const box = new THREE.Box3().setFromObject(group);
+  const c = box.getCenter(new THREE.Vector3());
+  group.position.set(-c.x, -c.y, -box.min.z);
+  const size = box.getSize(new THREE.Vector3());
+  const r = Math.max(size.x, size.y, size.z) || 10;
+
+  if (opts.grid !== false) {
+    const g = Math.ceil(r * 1.6 / 10) * 10;
+    const grid = new THREE.GridHelper(g, g / 10, 0x3a4b59, 0x24333f);
+    grid.rotation.x = Math.PI / 2;
+    grid.position.z = -0.01;
+    scene.add(grid);
+  }
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.target.set(0, 0, size.z / 2);
+  controls.autoRotate = !!opts.autoRotate;
+  controls.autoRotateSpeed = 1.2;
+
+  function reset() {
+    const d = r * 2.1;
+    const dir = (opts.view || new THREE.Vector3(-0.9, -1.3, 0.85)).clone().normalize();
+    camera.position.set(dir.x * d, dir.y * d, size.z / 2 + dir.z * d);
+    controls.target.set(0, 0, size.z / 2);
+    controls.update();
+  }
+  reset();
+
+  let raf = 0, alive = true;
+  const loop = () => { if (!alive) return; controls.update(); renderer.render(scene, camera); raf = requestAnimationFrame(loop); };
+  loop();
+
+  const ro = new ResizeObserver(() => { camera.aspect = w() / h(); camera.updateProjectionMatrix(); renderer.setSize(w(), h()); });
+  ro.observe(el);
+
+  return {
+    canvas: renderer.domElement,
+    size: { x: size.x, y: size.y, z: size.z },
+    reset,
+    toggleRotate() { controls.autoRotate = !controls.autoRotate; return controls.autoRotate; },
+    setView(v) { opts.view = new THREE.Vector3(v[0], v[1], v[2]); reset(); },
+    render() { controls.update(); renderer.render(scene, camera); },
+    dispose() {
+      alive = false; cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
+      group.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+      renderer.dispose(); renderer.domElement.remove();
+    }
+  };
+}

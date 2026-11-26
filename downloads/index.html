@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="de" class="tw-wait">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trimwerk – Downloads</title>
+<meta name="description" content="3D-Druck-Dateien rund um Trimwerk: Laser-Case und Projekte aus der Community, mit 3D-Vorschau und Druckanleitung.">
+<meta name="theme-color" content="#0b141c">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<link rel="stylesheet" href="../site.css">
+<style>
+:root{--ok:#3cc487;--warn:#e3b13c;--bad:#ef6a5b}
+[hidden]{display:none!important}
+.dl{max-width:1100px;margin:0 auto;padding:28px 16px 64px;display:flex;flex-direction:column;gap:22px}
+.dl section{padding:0}
+.sub{display:flex;gap:6px;flex-wrap:wrap}
+.sub a{font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-decoration:none;border:1.5px solid var(--rule);border-radius:999px;padding:6px 14px}
+.sub a:hover{color:var(--ink);border-color:var(--ink-2)}
+.sub a[aria-current="page"]{color:#1a0b02;background:var(--accent);border-color:var(--accent)}
+.dl h1{font-size:clamp(36px,5.4vw,56px);margin:10px 0 10px}
+.lead{color:var(--ink-2);font-size:17px;max-width:44em}
+.bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border:1.5px solid var(--rule);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:none;border:0;color:var(--ink-2);padding:9px 14px;font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#1a0b02}
+.seg .n{margin-left:6px;opacity:.8}
+.btn{cursor:pointer;background:none}
+.btn.sm{min-height:40px;font-size:16px;padding:0 16px}
+.btn2{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.04em;background:var(--ink);color:var(--sheet);border:1.5px solid var(--ink);border-radius:8px;padding:9px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn2:hover{background:var(--accent);border-color:var(--accent);color:#1a0b02}
+.btn2.ghost{background:var(--sheet);color:var(--ink);border-color:var(--rule)}
+.btn2.ghost:hover{border-color:var(--ink-2);background:var(--sheet);color:var(--ink)}
+.btn2.danger{background:var(--sheet);color:var(--bad);border-color:var(--rule)}
+.btn2.ok{background:var(--ok);border-color:var(--ok);color:#06210f}
+.btn2:disabled{opacity:.5;cursor:default}
+
+/* Karten */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--ink-2);color:var(--ink);transform:translateY(-2px)}
+.cover{aspect-ratio:16/10;background:#0f1a23;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.cover svg{width:64px;opacity:.5}
+.cover .badges{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.card .bd{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card h3{font-size:24px}
+.card p{color:var(--ink-2);font-size:14.5px;line-height:1.5}
+.card .meta{margin-top:auto;padding-top:8px;display:flex;justify-content:space-between;gap:8px;color:var(--ink-2);font-size:13.5px}
+.chip{display:inline-flex;align-items:center;font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid currentColor;white-space:nowrap;background:rgba(11,20,28,.75)}
+.chip.off{color:var(--accent-ink)} .chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)} .chip.mute{color:var(--ink-2)}
+.empty{color:var(--ink-2);border:1px dashed var(--rule);border-radius:10px;padding:22px;text-align:center}
+.box{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:22px 24px}
+@media (max-width:600px){.box{padding:18px}}
+.box h2{font-size:28px;margin:0 0 10px}
+.box h3{font-size:21px;margin:0 0 8px}
+
+/* Detail */
+#vDetail,#vEdit{display:flex;flex-direction:column;gap:16px}
+#vEdit h1{margin:0}
+.back{font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--ink-2)}
+.back:hover{color:var(--ink)}
+.dhead{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.dhead h1{margin:6px 0 4px}
+.dhead .by{color:var(--ink-2);font-size:14.5px}
+.dgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);grid-template-areas:"gal side" "txt side";gap:22px;align-items:start}
+.dgrid .gal{grid-area:gal}.dgrid .side{grid-area:side;grid-row:1/span 2}.dgrid .txt{grid-area:txt;display:flex;flex-direction:column;gap:12px}
+@media (max-width:900px){.dgrid{grid-template-columns:1fr;grid-template-areas:"gal" "side" "txt"}.dgrid .side{grid-row:auto}}
+@media (max-width:600px){.stage .hint{display:none}}
+.gal{display:flex;flex-direction:column;gap:10px}
+.gtabs{display:flex;gap:6px;flex-wrap:wrap}
+.gtabs button{font:600 14px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);background:none;border:1.5px solid var(--rule);border-radius:999px;padding:5px 13px;cursor:pointer}
+.gtabs button[aria-pressed="true"]{color:#1a0b02;background:var(--accent);border-color:var(--accent)}
+.stage{aspect-ratio:16/10;background:#0f1a23;border:1px solid var(--rule);border-radius:10px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.stage img{width:100%;height:100%;object-fit:contain;display:block;cursor:zoom-in}
+.stage .v3d{position:absolute;inset:0;touch-action:none}
+.stage .v3d canvas{display:block}
+.stage .tools{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.stage .tools button{font:600 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase;background:rgba(11,20,28,.8);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;cursor:pointer}
+.stage .hint{position:absolute;left:10px;bottom:10px;font-size:12.5px;color:var(--ink-2);background:rgba(11,20,28,.7);padding:3px 8px;border-radius:5px}
+.stage .ph2{color:var(--ink-2);text-align:center;padding:20px;font-size:15px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.stage .ph2 svg{width:60px;opacity:.55}
+.cap{font-size:13.5px;color:var(--ink-2);min-height:1.2em}
+.thumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.thumbs button{flex:0 0 auto;width:92px;aspect-ratio:16/10;border:2px solid var(--rule);border-radius:6px;overflow:hidden;padding:0;background:#0f1a23;cursor:pointer}
+.thumbs button[aria-pressed="true"]{border-color:var(--accent)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.side{display:flex;flex-direction:column;gap:16px}
+.files{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.files li{display:flex;align-items:center;gap:10px;justify-content:space-between;border:1px solid var(--rule);border-radius:8px;padding:9px 10px 9px 12px;background:var(--paper)}
+.files .fn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14.5px}
+.files .fk{font:600 12px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink);margin-right:6px}
+.files .fs{color:var(--ink-2);font-size:12.5px;display:block}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14.5px}
+.kv dt{color:var(--ink-2)} .kv dd{margin:0}
+.prose p+p{margin-top:12px}
+.prose{max-width:70ch}
+.tips{margin:0;padding-left:20px}
+.tips li+li{margin-top:6px}
+.tips b{color:var(--ink)}
+.note{border-left:4px solid var(--left);background:color-mix(in srgb,var(--left) 9%,transparent);padding:10px 14px;border-radius:0 6px 6px 0;font-size:14.5px}
+.note.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.note.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* Formular */
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+.fgrid .full{grid-column:1/-1}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}}
+label.f{display:block;font-size:13.5px;color:var(--ink-2);margin-bottom:5px}
+label.f small{color:var(--ink-2);opacity:.8}
+.i{width:100%;background:var(--paper);border:1.5px solid var(--rule);border-radius:8px;color:var(--ink);padding:10px 12px;font:inherit}
+textarea.i{min-height:110px;resize:vertical;line-height:1.5}
+.i:focus{outline:2px solid var(--accent);outline-offset:1px}
+.drop{border:1.5px dashed var(--rule);border-radius:8px;padding:14px;background:var(--paper)}
+.drop input{font:inherit;color:var(--ink-2);max-width:100%}
+.drop .pl{list-style:none;margin:8px 0 0;padding:0;font-size:14px;color:var(--ink-2)}
+.chk{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:15px}
+.chk input{accent-color:var(--accent);width:19px;height:19px;margin-top:2px;flex:none}
+.exist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.exist li{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;border:1px solid var(--rule);border-radius:6px;padding:6px 8px 6px 10px}
+.exist li.gone{opacity:.45;text-decoration:line-through}
+.msg{font-size:15px;margin:0} .msg.ok{color:var(--ok)} .msg.err{color:var(--bad)}
+.prog{height:6px;background:var(--paper);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+</style>
+<style>.tw-wait body{visibility:hidden}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="../config.js"></script>
+<script src="../auth.js"></script>
+<script>TW.guard();</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../index.html" aria-label="trimwerk – Startseite">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M6 30 C18 10 46 10 58 30" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        <path d="M14 27 L32 54 M24 20 L32 54 M40 20 L32 54 M50 27 L32 54" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+        <path d="M32 54 L32 30" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="27" r="3.4" fill="var(--accent)"/>
+      </svg>
+      <span class="wm"><b>trim</b><span>werk</span><i></i></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="../bericht/index.html">Musterbericht</a>
+      <a href="../diy/index.html" aria-current="page">DIY</a>
+      <a href="../berichte/index.html">Berichte</a>
+      <a href="../app/index.html">App</a>
+      <a href="../hilfe/index.html">Hilfe</a>
+      <a href="../ueber/index.html">Über</a>
+      <a href="../konto/index.html">Konto</a>
+    </nav>
+  </div>
+</header>
+
+<main class="dl">
+  <nav class="sub" aria-label="DIY">
+    <a href="../diy/index.html">Bauanleitung</a>
+    <a href="./index.html" aria-current="page">Downloads</a>
+  </nav>
+
+  <!-- Nicht angemeldet -->
+  <section id="vGate" class="box" hidden>
+    <h2>Downloads für Mitglieder</h2>
+    <p class="lead">Die 3D-Druck-Dateien sind kostenlos – du brauchst nur ein Trimwerk-Konto. Die App musst du dafür nicht kaufen.</p>
+    <p style="margin-top:14px"><a class="btn primary" id="gateLogin" href="../index.html">Anmelden</a></p>
+  </section>
+
+  <!-- Liste -->
+  <section id="vList" hidden>
+    <span class="lbl">DIY · 3D-Druck</span>
+    <h1>Downloads</h1>
+    <p class="lead">Druckteile rund um Trimwerk zum Nachbauen – mit 3D-Vorschau, Bildern aus der Konstruktion und vom fertigen Druck und einer Anleitung, wie es am besten gedruckt wird. Eigene Projekte kannst du hochladen; sie erscheinen nach einer kurzen Prüfung für alle.</p>
+    <div class="bar" style="margin-top:22px">
+      <div class="seg" id="filt" role="group" aria-label="Filter">
+        <button data-f="alle" aria-pressed="true">Alle</button>
+        <button data-f="offiziell" aria-pressed="false">Trimwerk</button>
+        <button data-f="community" aria-pressed="false">Community</button>
+        <button data-f="meine" aria-pressed="false">Meine</button>
+        <button data-f="pruefen" aria-pressed="false" hidden>Zur Freigabe<span class="n" id="nPruef"></span></button>
+      </div>
+      <a class="btn2" href="#neu">+ Eigenes Projekt hochladen</a>
+    </div>
+    <div class="grid" id="grid" style="margin-top:18px"></div>
+    <p class="empty" id="gridEmpty" hidden></p>
+  </section>
+
+  <!-- Detail -->
+  <section id="vDetail" hidden></section>
+
+  <!-- Bearbeiten / Neu -->
+  <section id="vEdit" hidden>
+    <a class="back" href="#">← Alle Downloads</a>
+    <h1 id="eTitle">Eigenes Projekt hochladen</h1>
+    <p class="lead" id="eLead">Teile dein Druckteil mit der Community. Nach dem Speichern prüfen wir kurz, dann ist es für alle angemeldeten Mitglieder sichtbar.</p>
+    <form id="eForm" class="box" style="margin-top:18px" novalidate>
+      <div class="fgrid">
+        <div class="full"><label class="f" for="eT">Titel *</label><input class="i" id="eT" maxlength="120" required placeholder="z. B. Halter für Messschieber"></div>
+        <div class="full"><label class="f" for="eS">Kurzbeschreibung <small>(ein Satz für die Übersicht)</small></label><input class="i" id="eS" maxlength="240"></div>
+        <div><label class="f" for="eC">Kategorie</label>
+          <select class="i" id="eC">
+            <option value="laser">Laser</option>
+            <option value="trimwerk">Trimwerk</option>
+            <option value="trimwerk-go">Trimwerk Go</option>
+            <option value="zubehoer" selected>Zubehör</option>
+            <option value="sonstiges">Sonstiges</option>
+          </select></div>
+        <div><label class="f" for="eV">Version</label><input class="i" id="eV" maxlength="20" value="1.0"></div>
+        <div class="full"><label class="f" for="eL">Lizenz</label>
+          <select class="i" id="eL">
+            <option value="CC BY-NC-SA 4.0">CC BY-NC-SA 4.0 – Namensnennung, nicht kommerziell, Weitergabe unter gleichen Bedingungen</option>
+            <option value="CC BY-NC 4.0">CC BY-NC 4.0 – Namensnennung, nicht kommerziell</option>
+            <option value="CC BY-SA 4.0">CC BY-SA 4.0 – Namensnennung, Weitergabe unter gleichen Bedingungen</option>
+            <option value="CC BY 4.0">CC BY 4.0 – Namensnennung</option>
+            <option value="CC0 1.0">CC0 – frei, ohne Bedingungen</option>
+          </select></div>
+        <div class="full"><label class="f" for="eD">Beschreibung <small>(wofür, wie montiert; Leerzeile = neuer Absatz)</small></label><textarea class="i" id="eD" maxlength="6000"></textarea></div>
+        <div class="full"><label class="f" for="eP">So druckst du es <small>(Material, Schichthöhe, Ausrichtung, Stützen … eine Zeile = ein Punkt)</small></label><textarea class="i" id="eP" maxlength="4000" placeholder="Material: PETG&#10;Schichthöhe 0,2 mm&#10;Ohne Stützen, flache Seite aufs Bett"></textarea></div>
+        <div class="full"><label class="f" for="eH">Zubehör <small>(Schrauben, Magnete … eine Zeile = ein Punkt)</small></label><textarea class="i" id="eH" maxlength="2000" style="min-height:70px"></textarea></div>
+
+        <div class="full" id="eExistWrap" hidden><label class="f">Vorhandene Dateien <small>(× entfernt beim Speichern)</small></label><ul class="exist" id="eExist"></ul></div>
+
+        <div class="full drop"><label class="f" for="eM">Druckdateien <small>(STL, 3MF, STEP, PDF, ZIP · je max. 50 MB)</small></label>
+          <input type="file" id="eM" multiple accept=".stl,.3mf,.step,.stp,.pdf,.zip"><ul class="pl" id="eMl"></ul></div>
+        <div class="drop"><label class="f" for="eI">Bilder aus der Konstruktion <small>(CAD)</small></label>
+          <input type="file" id="eI" multiple accept="image/*"><ul class="pl" id="eIl"></ul></div>
+        <div class="drop"><label class="f" for="eF">Fotos vom fertigen Druck</label>
+          <input type="file" id="eF" multiple accept="image/*"><ul class="pl" id="eFl"></ul></div>
+        <label class="chk full"><input type="checkbox" id="eAuto" checked><span>Fehlt ein Konstruktionsbild, erzeugen wir zwei Vorschaubilder automatisch aus der STL.</span></label>
+        <label class="chk full" id="eOffWrap" hidden><input type="checkbox" id="eOff"><span><b>Offizielles Trimwerk-Teil</b> (nur Admin) – erscheint oben, ohne Freigabe sichtbar.</span></label>
+        <label class="chk full"><input type="checkbox" id="eRights"><span>Ich habe die Dateien selbst erstellt oder darf sie unter der gewählten Lizenz teilen. Nachbau und Verwendung erfolgen auf eigene Verantwortung (siehe <a href="../agb/index.html" target="_blank">Nutzungsbedingungen</a>).</span></label>
+      </div>
+      <div class="prog" id="eProg" style="margin-top:16px" hidden><i></i></div>
+      <p class="msg" id="eMsg" style="margin-top:12px"></p>
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary" type="submit" id="eSave">Speichern &amp; einreichen</button>
+        <a class="btn2 ghost" href="#" id="eCancel">Abbrechen</a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span><a href="../index.html">trimwerk.app</a></span>
+    <span>Unabhängiges Projekt, nicht mit Flysurfer verbunden. Nachbau und Trimm auf eigene Verantwortung.</span>
+    <span><a href="../impressum/index.html">Impressum</a> · <a href="../datenschutz/index.html">Datenschutz</a> · <a href="../agb/index.html">Nutzungsbedingungen</a></span>
+  </div>
+</footer>
+
+<script>
+const sb = TW.sb, $ = id => document.getElementById(id);
+const BUCKET = 'downloads', MAXB = 50 * 1024 * 1024;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CAT = { laser: 'Laser', trimwerk: 'Trimwerk', 'trimwerk-go': 'Trimwerk Go', zubehoer: 'Zubehör', sonstiges: 'Sonstiges' };
+const KIND = { stl: 'STL', '3mf': '3MF', step: 'STEP', pdf: 'PDF', zip: 'ZIP' };
+const MODEL = ['stl', '3mf', 'step', 'pdf', 'zip'];
+const ICON = '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M32 6 56 19v26L32 58 8 45V19z"/><path d="M8 19l24 13 24-13M32 32v26"/></svg>';
+let me = null, isAdmin = false, rows = [], urls = {}, filter = 'alle', viewer = null;
+
+const fmtSize = b => b == null ? '' : b < 1024 * 1024 ? Math.max(1, Math.round(b / 1024)) + ' KB' : (b / 1048576).toFixed(1).replace('.', ',') + ' MB';
+const fmtDate = s => new Date(s).toLocaleDateString('de-AT', { day: 'numeric', month: 'short', year: 'numeric' });
+const paras = t => String(t || '').trim().split(/\n\s*\n/).filter(Boolean).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+const bullets = t => {
+  const ls = String(t || '').split('\n').map(s => s.trim()).filter(Boolean);
+  if (!ls.length) return '';
+  return '<ul class="tips">' + ls.map(l => {
+    const m = l.match(/^([^:]{2,28}):\s+(.*)$/);           // „Material: PETG“ → Stichwort fett
+    return '<li>' + (m ? '<b>' + esc(m[1]) + ':</b> ' + esc(m[2]) : esc(l)) + '</li>';
+  }).join('') + '</ul>';
+};
+const statusChip = r => r.status === 'freigegeben' ? (r.mine || isAdmin ? '<span class="chip ok">Freigegeben</span>' : '')
+  : r.status === 'eingereicht' ? '<span class="chip warn">Wartet auf Freigabe</span>'
+  : r.status === 'abgelehnt' ? '<span class="chip bad">Nicht freigegeben</span>' : '<span class="chip mute">Entwurf</span>';
+const imgs = (r, kind) => r.files.filter(f => kind ? f.kind === kind : (f.kind === 'cad' || f.kind === 'foto'));
+const models = r => r.files.filter(f => MODEL.includes(f.kind));
+const byKey = k => rows.find(r => r.slug === k || r.id === k);
+
+// ---------- Laden ----------
+async function load() {
+  const { data, error } = await sb.rpc('download_list');
+  if (error) throw error;
+  rows = data || [];
+  const paths = rows.flatMap(r => imgs(r).map(f => f.path)).filter(p => !urls[p]);
+  if (paths.length) {
+    const { data: su } = await sb.storage.from(BUCKET).createSignedUrls(paths, 3600);
+    (su || []).forEach(x => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
+  }
+}
+
+// ---------- Liste ----------
+function renderList() {
+  const pend = rows.filter(r => r.status === 'eingereicht');
+  $('nPruef').textContent = pend.length ? '(' + pend.length + ')' : '';
+  document.querySelector('#filt [data-f="pruefen"]').hidden = !isAdmin;
+  const list = rows.filter(r =>
+    filter === 'offiziell' ? r.official && r.status === 'freigegeben' :
+    filter === 'community' ? !r.official && r.status === 'freigegeben' :
+    filter === 'meine' ? r.mine :
+    filter === 'pruefen' ? r.status === 'eingereicht' :
+    r.status === 'freigegeben' || r.mine);
+  $('grid').innerHTML = list.map(r => {
+    const c = imgs(r, 'cad')[0] || imgs(r, 'foto')[0];
+    const cover = c && urls[c.path] ? `<img src="${esc(urls[c.path])}" alt="" loading="lazy">` : ICON;
+    const nm = models(r).length;
+    return `<a class="card" href="#d=${esc(r.slug || r.id)}">
+      <div class="cover">${cover}<div class="badges">${r.official ? '<span class="chip off">Trimwerk</span>' : ''}${statusChip(r)}</div></div>
+      <div class="bd"><span class="lbl">${esc(CAT[r.category] || r.category)}</span><h3>${esc(r.title)}</h3>
+      <p>${esc(r.summary || '')}</p>
+      <div class="meta"><span>${esc(r.author)}</span><span>${nm} ${nm === 1 ? 'Datei' : 'Dateien'} · ${r.download_count}× geladen</span></div></div></a>`;
+  }).join('');
+  const emptyTxt = filter === 'meine' ? 'Du hast noch nichts hochgeladen. Teile dein erstes Druckteil mit „Eigenes Projekt hochladen“.'
+    : filter === 'pruefen' ? 'Nichts zu prüfen.' : filter === 'community' ? 'Noch keine Projekte aus der Community – mach den Anfang!' : 'Noch keine Downloads.';
+  $('gridEmpty').hidden = list.length > 0; $('gridEmpty').textContent = emptyTxt;
+}
+$('filt').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll('#filt button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  renderList();
+});
+
+// ---------- Detail ----------
+function renderDetail(r) {
+  const cad = imgs(r, 'cad'), foto = imgs(r, 'foto'), stls = r.files.filter(f => f.kind === 'stl');
+  const tabs = [];
+  if (stls.length) tabs.push(['3d', '3D-Ansicht']);
+  tabs.push(['cad', 'Konstruktion' + (cad.length ? ' (' + cad.length + ')' : '')]);
+  tabs.push(['foto', 'Gedruckt' + (foto.length ? ' (' + foto.length + ')' : '')]);
+  const canEdit = r.mine || isAdmin;
+  const review = isAdmin && r.status !== 'freigegeben' ? `
+    <div class="box"><h3>Freigabe</h3>
+      <label class="f" for="rvNote">Rückmeldung an ${esc(r.author)} (optional)</label>
+      <input class="i" id="rvNote" maxlength="300" value="${esc(r.review_note || '')}">
+      <div class="row" style="margin-top:10px"><button class="btn2 ok" id="rvOk">Freigeben</button><button class="btn2 danger" id="rvNo">Ablehnen</button></div>
+      <p class="msg" id="rvMsg" style="margin-top:8px"></p></div>` : '';
+  const statusNote = r.status === 'eingereicht' && r.mine ? '<p class="note warn">Wartet auf Freigabe – bis dahin siehst nur du dieses Projekt.</p>'
+    : r.status === 'abgelehnt' && r.mine ? `<p class="note bad">Nicht freigegeben${r.review_note ? ': ' + esc(r.review_note) : ''}. Nach dem Bearbeiten wird es erneut geprüft.</p>`
+    : r.status === 'eingereicht' && r.review_note && r.mine ? '' : '';
+  $('vDetail').innerHTML = `
+    <a class="back" href="#">← Alle Downloads</a>
+    <div class="dhead">
+      <div><span class="lbl">${esc(CAT[r.category] || r.category)}${r.official ? ' · Trimwerk' : ''}</span>
+        <h1>${esc(r.title)}</h1>
+        <div class="by">von ${esc(r.author)} · Version ${esc(r.version)} · aktualisiert ${fmtDate(r.updated_at)} · ${r.download_count}× geladen</div></div>
+      <div class="row">${statusChip(r)}${canEdit ? `<a class="btn2 ghost" href="#edit=${esc(r.id)}">Bearbeiten</a><button class="btn2 danger" id="dDel">Löschen</button>` : ''}</div>
+    </div>
+    ${statusNote}
+    <div class="dgrid">
+      <div class="gal">
+        <div class="gtabs" id="gTabs">${tabs.map(([k, t], i) => `<button data-k="${k}" aria-pressed="${i === 0}">${t}</button>`).join('')}</div>
+        <div class="stage" id="gStage"></div>
+        <div class="cap" id="gCap"></div>
+        <div class="thumbs" id="gThumbs"></div>
+      </div>
+      <div class="txt">
+        ${r.summary ? `<p style="font-size:18px">${esc(r.summary)}</p>` : ''}
+        ${r.description ? `<div class="prose">${paras(r.description)}</div>` : ''}
+        ${r.print_tips ? `<div class="box" style="margin-top:6px"><h2>So druckst du es</h2>${bullets(r.print_tips)}</div>` : ''}
+      </div>
+      <aside class="side">
+        ${review}
+        <div class="box"><h3>Dateien</h3>
+          ${models(r).length ? `<ul class="files">${models(r).map(f => `<li><span class="fn" title="${esc(f.name)}"><span class="fk">${KIND[f.kind] || f.kind}</span>${esc(f.name)}<span class="fs">${fmtSize(f.size)}</span></span><button class="btn2" data-dl="${esc(f.id)}">Laden</button></li>`).join('')}</ul>`
+            : '<p class="cap">Noch keine Dateien hochgeladen.</p>'}
+          <p class="msg" id="dlMsg" style="margin-top:8px"></p>
+        </div>
+        ${r.hardware ? `<div class="box"><h3>Du brauchst außerdem</h3>${bullets(r.hardware)}</div>` : ''}
+        <div class="box"><h3>Lizenz</h3>
+          <dl class="kv"><dt>Lizenz</dt><dd>${esc(r.license)}</dd><dt>Erstellt von</dt><dd>${esc(r.author)}</dd><dt>Seit</dt><dd>${fmtDate(r.created_at)}</dd></dl>
+          <p class="cap" style="margin-top:10px">Nachbau und Verwendung auf eigene Verantwortung. Bitte bei Weitergabe den Namen nennen und auf trimwerk.app verweisen.</p>
+        </div>
+      </aside>
+    </div>`;
+
+  // Galerie
+  const show = k => {
+    if (viewer) { viewer.dispose(); viewer = null; }
+    document.querySelectorAll('#gTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === k));
+    const st = $('gStage'), th = $('gThumbs'), cap = $('gCap');
+    th.innerHTML = ''; cap.textContent = '';
+    if (k === '3d') return show3d(r, stls);
+    const list = k === 'cad' ? cad : foto;
+    if (!list.length) {
+      st.innerHTML = `<div class="ph2">${ICON}<span>${k === 'foto' ? 'Fotos vom fertigen Druck folgen.' : 'Noch keine Bilder aus der Konstruktion.'}</span></div>`;
+      return;
+    }
+    const pick = i => {
+      const f = list[i];
+      st.innerHTML = `<img src="${esc(urls[f.path] || '')}" alt="${esc(f.caption || r.title)}">`;
+      st.querySelector('img').onclick = () => window.open(urls[f.path], '_blank', 'noopener');
+      cap.textContent = f.caption || '';
+      th.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-pressed', j === i));
+    };
+    if (list.length > 1) th.innerHTML = list.map((f, i) => `<button data-i="${i}" aria-label="Bild ${i + 1}"><img src="${esc(urls[f.path] || '')}" alt="" loading="lazy"></button>`).join('');
+    th.onclick = e => { const b = e.target.closest('button'); if (b) pick(+b.dataset.i); };
+    pick(0);
+  };
+  $('gTabs').onclick = e => { const b = e.target.closest('button'); if (b) show(b.dataset.k); };
+  show(tabs[0][0] === '3d' && (cad.length || foto.length) ? (cad.length ? 'cad' : 'foto') : tabs[0][0]);
+
+  // Downloads
+  $('vDetail').querySelectorAll('[data-dl]').forEach(b => b.onclick = () => download(r, r.files.find(f => f.id === b.dataset.dl), b));
+  // Löschen (2× tippen)
+  let armed = false;
+  if ($('dDel')) $('dDel').onclick = async () => {
+    if (!armed) { armed = true; $('dDel').textContent = 'Wirklich löschen? Nochmal tippen'; setTimeout(() => { armed = false; if ($('dDel')) $('dDel').textContent = 'Löschen'; }, 4000); return; }
+    $('dDel').disabled = true;
+    try { await removeItem(r); location.hash = ''; await refresh(); } catch (e) { alertMsg($('dlMsg'), e); }
+  };
+  // Freigabe
+  const rv = async ok => {
+    $('rvMsg').className = 'msg'; $('rvMsg').textContent = 'Speichere …';
+    const { error } = await sb.rpc('download_review', { d: r.id, approve: ok, note: $('rvNote').value });
+    if (error) return alertMsg($('rvMsg'), error);
+    await refresh();
+  };
+  if ($('rvOk')) { $('rvOk').onclick = () => rv(true); $('rvNo').onclick = () => rv(false); }
+}
+
+async function show3d(r, stls) {
+  const st = $('gStage');
+  const total = stls.reduce((s, f) => s + (f.size || 0), 0);
+  st.innerHTML = `<div class="ph2">${ICON}<span id="v3msg">3D-Vorschau wird geladen${total ? ' (' + fmtSize(total) + ')' : ''} …</span></div>`;
+  try {
+    const { data, error } = await sb.storage.from(BUCKET).createSignedUrls(stls.map(f => f.path), 600);
+    if (error) throw error;
+    const [mod, parts] = await Promise.all([
+      import('./viewer.js'),
+      Promise.all(data.map(async (x, i) => ({ name: stls[i].name, buffer: await (await fetch(x.signedUrl)).arrayBuffer() })))
+    ]);
+    if (!document.querySelector('#gTabs [data-k="3d"][aria-pressed="true"]')) return;   // inzwischen umgeschaltet
+    st.innerHTML = '<div class="v3d" id="v3d"></div><span class="hint">Ziehen = drehen · Mausrad/zwei Finger = zoomen</span><div class="tools"><button id="v3rot">Drehen</button><button id="v3res">Ansicht</button></div>';
+    viewer = mod.createViewer($('v3d'), parts, { autoRotate: true });
+    $('gCap').textContent = stls.map(f => f.name).join(' · ') + ' · ' + [viewer.size.x, viewer.size.y, viewer.size.z].map(n => Math.round(n)).join(' × ') + ' mm';
+    $('v3rot').onclick = () => { $('v3rot').textContent = viewer.toggleRotate() ? 'Stopp' : 'Drehen'; };
+    $('v3rot').textContent = 'Stopp';
+    $('v3res').onclick = () => viewer.reset();
+  } catch (e) {
+    console.error(e);
+    st.innerHTML = `<div class="ph2">${ICON}<span>3D-Vorschau nicht verfügbar (${esc(e.message || e)}).</span></div>`;
+  }
+}
+
+const hits = new Set();
+async function download(r, f, btn) {
+  btn.disabled = true;
+  const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(f.path, 120, { download: f.name });
+  btn.disabled = false;
+  if (error) return alertMsg($('dlMsg'), error);
+  const a = document.createElement('a'); a.href = data.signedUrl; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+  if (!hits.has(r.id)) { hits.add(r.id); sb.rpc('download_hit', { d: r.id }).then(() => { r.download_count++; }); }
+}
+
+async function removeItem(r) {
+  const paths = r.files.map(f => f.path);
+  if (paths.length) { const { error } = await sb.storage.from(BUCKET).remove(paths); if (error) throw error; }
+  const { error } = await sb.from('downloads').delete().eq('id', r.id);
+  if (error) throw error;
+}
+function alertMsg(el, e) { el.className = 'msg err'; el.textContent = (e && (e.message || e.error_description)) || String(e); }
+
+// ---------- Bearbeiten ----------
+let editRow = null, removeIds = new Set();
+const fileLists = { eM: 'eMl', eI: 'eIl', eF: 'eFl' };
+Object.entries(fileLists).forEach(([inp, ul]) => $(inp).addEventListener('change', () => {
+  $(ul).innerHTML = [...$(inp).files].map(f => `<li>${esc(f.name)} · ${fmtSize(f.size)}${f.size > MAXB && inp === 'eM' ? ' <b style="color:var(--bad)">zu groß</b>' : ''}</li>`).join('');
+}));
+
+function openEdit(r) {
+  editRow = r || null; removeIds = new Set();
+  $('eForm').reset();
+  Object.values(fileLists).forEach(id => $(id).innerHTML = '');
+  $('eMsg').textContent = ''; $('eProg').hidden = true;
+  $('eTitle').textContent = r ? 'Bearbeiten' : 'Eigenes Projekt hochladen';
+  $('eLead').textContent = r ? (isAdmin ? 'Änderungen sind sofort sichtbar.' : 'Nach dem Speichern wird das Projekt erneut kurz geprüft.')
+    : 'Teile dein Druckteil mit der Community. Nach dem Speichern prüfen wir kurz, dann ist es für alle angemeldeten Mitglieder sichtbar.';
+  $('eSave').textContent = isAdmin ? 'Speichern' : 'Speichern & einreichen';
+  $('eOffWrap').hidden = !isAdmin;
+  if (r) {
+    $('eT').value = r.title; $('eS').value = r.summary || ''; $('eC').value = r.category; $('eV').value = r.version;
+    $('eL').value = r.license; $('eD').value = r.description || ''; $('eP').value = r.print_tips || ''; $('eH').value = r.hardware || '';
+    $('eOff').checked = !!r.official; $('eRights').checked = true;
+  }
+  $('eExistWrap').hidden = !(r && r.files.length);
+  $('eExist').innerHTML = r ? r.files.map(f => `<li data-id="${esc(f.id)}"><span><span class="fk" style="font:600 12px var(--f-display);letter-spacing:.08em;color:var(--accent-ink);margin-right:6px">${f.kind === 'cad' ? 'BILD CAD' : f.kind === 'foto' ? 'FOTO' : (KIND[f.kind] || f.kind)}</span>${esc(f.name)}</span><button type="button" class="btn2 ghost" aria-label="Entfernen">×</button></li>`).join('') : '';
+  $('eCancel').href = r ? '#d=' + (r.slug || r.id) : '#';
+}
+$('eExist').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const li = b.closest('li'), id = li.dataset.id;
+  if (removeIds.has(id)) { removeIds.delete(id); li.classList.remove('gone'); b.textContent = '×'; }
+  else { removeIds.add(id); li.classList.add('gone'); b.textContent = '↺'; }
+});
+
+const extOf = n => (n.split('.').pop() || '').toLowerCase();
+const safe = n => n.normalize('NFKD').replace(/[^\w.\-]+/g, '_').replace(/_+/g, '_').slice(-80);
+async function shrink(file, max = 1800) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const s = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    return await new Promise(res => c.toBlob(res, 'image/jpeg', 0.86));
+  } catch (_) { return file; }
+}
+async function renderPreviews(stlFiles) {
+  const mod = await import('./viewer.js');
+  const parts = await Promise.all(stlFiles.map(async f => ({ name: f.name, buffer: await f.arrayBuffer() })));
+  const box = document.createElement('div');
+  box.style.cssText = 'position:fixed;left:-3000px;top:0;width:1600px;height:1000px';
+  document.body.appendChild(box);
+  const v = mod.createViewer(box, parts, { background: '#0f1a23', preserve: true });
+  const out = [];
+  for (const [view, cap] of [[[-0.9, -1.3, 0.85], 'Vorschau aus der STL'], [[-0.35, -0.6, 1.6], 'Vorschau von oben']]) {
+    v.setView(view); v.render();
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    v.render();
+    const blob = await new Promise(r => v.canvas.toBlob(r, 'image/jpeg', 0.88));
+    if (blob) out.push({ blob, name: 'vorschau-' + (out.length + 1) + '.jpg', caption: cap });
+  }
+  v.dispose(); box.remove();
+  return out;
+}
+
+$('eForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('eMsg'), prog = $('eProg'), bar = prog.querySelector('i');
+  const say = (t, cls = '') => { msg.className = 'msg ' + cls; msg.textContent = t; };
+  const title = $('eT').value.trim();
+  if (title.length < 3) return say('Bitte einen Titel angeben (mind. 3 Zeichen).', 'err');
+  if (!$('eRights').checked) return say('Bitte bestätige, dass du die Dateien teilen darfst.', 'err');
+  const mFiles = [...$('eM').files], iFiles = [...$('eI').files], fFiles = [...$('eF').files];
+  const bad = mFiles.find(f => !['stl', '3mf', 'step', 'stp', 'pdf', 'zip'].includes(extOf(f.name)) || f.size > MAXB);
+  if (bad) return say(`„${bad.name}“ geht nicht: erlaubt sind STL, 3MF, STEP, PDF, ZIP bis 50 MB.`, 'err');
+  const keepModels = editRow ? models(editRow).filter(f => !removeIds.has(f.id)).length : 0;
+  if (!editRow && !mFiles.length) return say('Bitte mindestens eine Druckdatei (z. B. STL) auswählen.', 'err');
+  if (editRow && !mFiles.length && !keepModels && !isAdmin) return say('Mindestens eine Druckdatei muss bleiben.', 'err');
+
+  $('eSave').disabled = true; prog.hidden = false; bar.style.width = '3%';
+  try {
+    const rec = {
+      title, summary: $('eS').value.trim() || null, category: $('eC').value, version: $('eV').value.trim() || '1.0',
+      license: $('eL').value, description: $('eD').value.trim() || null, print_tips: $('eP').value.trim() || null,
+      hardware: $('eH').value.trim() || null
+    };
+    if (isAdmin) { rec.official = $('eOff').checked; if (!editRow || editRow.mine) rec.status = 'freigegeben'; }
+    else rec.status = 'eingereicht';
+    say('Speichere …');
+    let row;
+    if (editRow) {
+      const { data, error } = await sb.from('downloads').update(rec).eq('id', editRow.id).select('id, owner, slug').single();
+      if (error) throw error; row = data;
+    } else {
+      const { data, error } = await sb.from('downloads').insert(rec).select('id, owner, slug').single();
+      if (error) throw error; row = data;
+    }
+    // Entfernen: erst Speicher, dann Eintrag
+    if (editRow && removeIds.size) {
+      const gone = editRow.files.filter(f => removeIds.has(f.id));
+      await sb.storage.from(BUCKET).remove(gone.map(f => f.path));
+      const { error } = await sb.from('download_files').delete().in('id', gone.map(f => f.id));
+      if (error) throw error;
+    }
+    // Hochladen
+    const jobs = [];
+    mFiles.forEach(f => { const x = extOf(f.name); jobs.push({ kind: x === 'stp' ? 'step' : x, file: f, name: f.name }); });
+    for (const f of iFiles) jobs.push({ kind: 'cad', img: f, name: f.name });
+    for (const f of fFiles) jobs.push({ kind: 'foto', img: f, name: f.name });
+    const keepCad = editRow ? imgs(editRow, 'cad').filter(f => !removeIds.has(f.id)).length : 0;
+    const stlNew = mFiles.filter(f => extOf(f.name) === 'stl');
+    if ($('eAuto').checked && !iFiles.length && !keepCad && stlNew.length) {
+      say('Erzeuge Vorschaubilder …');
+      try { (await renderPreviews(stlNew)).forEach(p => jobs.push({ kind: 'cad', blob: p.blob, name: p.name, caption: p.caption })); }
+      catch (err) { console.warn('Vorschau', err); }
+    }
+    const base = editRow ? editRow.files.length : 0;
+    for (let i = 0; i < jobs.length; i++) {
+      const j = jobs[i];
+      say(`Lade hoch: ${j.name} (${i + 1}/${jobs.length}) …`);
+      let body = j.file || j.blob, name = j.name;
+      if (j.img) { body = await shrink(j.img); if (body !== j.img) name = name.replace(/\.[^.]+$/, '') + '.jpg'; }
+      const path = `${row.owner}/${row.id}/${Date.now().toString(36)}${i}-${safe(name)}`;
+      const { data: fr, error: fe } = await sb.from('download_files')
+        .insert({ download_id: row.id, kind: j.kind, path, name, size: body.size, caption: j.caption || null, sort: base + i }).select('id').single();
+      if (fe) throw fe;
+      const { error: ue } = await sb.storage.from(BUCKET).upload(path, body, { contentType: body.type || 'application/octet-stream', upsert: false });
+      if (ue) { await sb.from('download_files').delete().eq('id', fr.id); throw ue; }
+      bar.style.width = Math.round(8 + 92 * (i + 1) / jobs.length) + '%';
+    }
+    bar.style.width = '100%';
+    say(isAdmin ? 'Gespeichert.' : 'Gespeichert und zur Freigabe eingereicht – danke!', 'ok');
+    await refresh(false);
+    location.hash = 'd=' + (row.slug || row.id);
+  } catch (err) {
+    console.error(err); alertMsg(msg, err);
+  } finally { $('eSave').disabled = false; }
+});
+
+// ---------- Ansicht wählen ----------
+function route() {
+  if (viewer) { viewer.dispose(); viewer = null; }
+  const h = decodeURIComponent(location.hash.slice(1));
+  ['vList', 'vDetail', 'vEdit'].forEach(id => $(id).hidden = true);
+  if (h === 'neu') { openEdit(null); $('vEdit').hidden = false; }
+  else if (h.startsWith('edit=')) {
+    const r = byKey(h.slice(5));
+    if (r && (r.mine || isAdmin)) { openEdit(r); $('vEdit').hidden = false; } else { location.hash = ''; return; }
+  } else if (h.startsWith('d=')) {
+    const r = byKey(h.slice(2));
+    if (r) { renderDetail(r); $('vDetail').hidden = false; }
+    else { $('vDetail').innerHTML = '<a class="back" href="#">← Alle Downloads</a><p class="empty" style="margin-top:16px">Diesen Download gibt es nicht (mehr) oder er ist noch nicht freigegeben.</p>'; $('vDetail').hidden = false; }
+  } else { renderList(); $('vList').hidden = false; }
+  window.scrollTo(0, 0);
+}
+async function refresh(doRoute = true) { await load(); if (doRoute) route(); }
+window.addEventListener('hashchange', route);
+
+(async () => {
+  const s = await TW.session();
+  if (!s) {
+    $('gateLogin').href = TW.root + 'index.html?next=' + encodeURIComponent(location.pathname + location.hash);
+    $('vGate').hidden = false; document.documentElement.classList.remove('tw-wait'); return;
+  }
+  me = s.user;
+  const { data: adm } = await sb.rpc('is_admin');
+  isAdmin = adm === true;
+  try { await load(); } catch (e) {
+    $('vList').hidden = false;
+    $('gridEmpty').hidden = false;
+    $('gridEmpty').textContent = /download_list|function|schema cache/i.test(e.message || '') ? 'Der Download-Bereich wird gerade eingerichtet (SQL 07 fehlt noch).' : 'Laden fehlgeschlagen: ' + (e.message || e);
+    return;
+  }
+  route();
+})();
+</script>
+</body>
+</html>

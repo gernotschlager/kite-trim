@@ -47,6 +47,10 @@
 .figs figcaption{font-size:13px;color:var(--ink-2);margin-top:6px}
 @media (max-width:640px){.figs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+.sub{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.sub a{font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-decoration:none;border:1.5px solid var(--rule);border-radius:999px;padding:6px 14px}
+.sub a:hover{color:var(--ink);border-color:var(--ink-2)}
+.sub a[aria-current="page"]{color:#1a0b02;background:var(--accent);border-color:var(--accent)}
 .callout{background:var(--paper);border-radius:8px;padding:14px 16px;margin-top:14px;font-size:15px}
 .callout .lbl{display:block;margin-bottom:4px;color:var(--accent-ink)}
 </style>
@@ -84,6 +88,7 @@
 <main>
   <section class="intro">
     <div class="wrap">
+      <nav class="sub" aria-label="DIY"><a href="./index.html" aria-current="page">Bauanleitung</a><a href="../downloads/index.html">Downloads</a></nav>
       <span class="lbl">DIY · Bau- und Bedienungsanleitung</span>
       <h1>Trimwerk Go</h1>
       <p>Die kleine, mobile Trimmvorrichtung für Foil-Kites. Sie hält Front- und Backlines unter gleicher Last, zeigt den Versatz zwischen Front und Back auf einen Blick und passt in jedes Kitebag – zum Trimmen in der Wiese oder in der Garage.</p>
@@ -189,7 +194,7 @@
         <article class="sheet">
           <h2 id="ausblick"><span class="num">7</span>Ausblick: Laser-Add-on</h2>
           <p>Als Erweiterung für Trimwerk Go kommt eine Laser-Zielscheibe: eine kurze Linearführung mit Schlitten und Zielscheibe, der Flysurfer Trim Checker dient als Gewicht. Damit vermisst du jede Leine per Laser, und die Werte laufen per Bluetooth direkt in die <a href="../app/index.html">Trimwerk-App</a> – mit Vergleich zum Leinenplan und Messbericht.</p>
-          <p>Geplant: Bauanleitung mit 3D-Druckteilen frei zum Nachbauen, fertige Add-ons auf Anfrage.</p>
+          <p>Geplant: Bauanleitung mit 3D-Druckteilen frei zum Nachbauen, fertige Add-ons auf Anfrage. Das erste Teil gibt es schon: das <a href="../downloads/index.html#d=laser-case-glm-50-c">Laser-Case für den Bosch GLM 50 C</a> im Bereich <a href="../downloads/index.html">Downloads</a>.</p>
         </article>
 
       </div>

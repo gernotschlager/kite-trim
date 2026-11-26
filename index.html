@@ -31,6 +31,7 @@
 @media (max-width:820px){.steps{grid-template-columns:1fr}}
 
 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.cards .card:last-child:nth-child(odd){grid-column:1/-1}
 .card{display:flex;flex-direction:column;gap:12px;text-decoration:none;color:var(--ink);transition:border-color .15s}
 .card:hover{border-color:var(--accent);color:var(--ink)}
 .card h3{font-size:28px}
@@ -207,6 +208,12 @@
           <h3>DIY: Trimwerk Go</h3>
           <p>Die kleine, mobile Trimmvorrichtung zum Nachbauen – mit Bau- und Bedienungsanleitung.</p>
           <span class="go">Zur Anleitung →</span>
+        </a>
+        <a class="sheet card" href="downloads/index.html">
+          <span class="lbl">3D-Druck</span>
+          <h3>Downloads</h3>
+          <p>Laser-Case mit „trimwerk“-Schriftzug und Projekte aus der Community – mit 3D-Vorschau und Druckanleitung. Kostenlos für alle mit Konto.</p>
+          <span class="go">Zu den Dateien →</span>
         </a>
         <a class="sheet card" href="berichte/index.html">
           <span class="lbl">Privat</span>

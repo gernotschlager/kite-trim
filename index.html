@@ -107,7 +107,7 @@
       <input id="lPw" type="password" autocomplete="current-password" required>
       <button class="btn primary" type="submit">Anmelden</button>
       <button class="link" type="button" id="toForgot">Passwort vergessen?</button>
-      <button class="link" type="button" id="toActivate" style="padding-top:0">Kite bei einer Kiteschule oder einem Shop vermessen lassen? Konto aktivieren</button>
+      <button class="link" type="button" id="toActivate" style="padding-top:0;text-align:left">Neu hier? Konto aktivieren</button>
     </form>
     <form id="fForgot" data-mode="forgot" hidden>
       <label for="fEmail">E-Mail</label>
@@ -258,7 +258,7 @@
 
   $('toForgot').onclick = () => { mode('forgot'); $('fEmail').value = $('lEmail').value; };
   $('toActivate').onclick = () => { mode('forgot'); $('fEmail').value = $('lEmail').value;
-    $('gMsg').className = 'msg'; $('gMsg').textContent = 'Gib die E-Mail-Adresse ein, die du bei der Kiteschule bzw. beim Shop angegeben hast. Du bekommst einen Link, um dein Passwort festzulegen.'; };
+    $('gMsg').className = 'msg'; $('gMsg').textContent = 'Hat eine Kiteschule oder ein Shop ein Konto für dich angelegt? Gib die E-Mail-Adresse ein, die du dort angegeben hast – du bekommst einen Link, um dein Passwort festzulegen.'; };
   $('toLogin').onclick = () => mode('login');
   $('fLogin').onsubmit = async e => {
     e.preventDefault(); msg('Anmelden …');

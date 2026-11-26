@@ -120,8 +120,18 @@ textarea.i{min-height:110px;resize:vertical;line-height:1.5}
 .chk{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:15px}
 .chk input{accent-color:var(--accent);width:19px;height:19px;margin-top:2px;flex:none}
 .exist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.exist li{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;border:1px solid var(--rule);border-radius:6px;padding:6px 8px 6px 10px}
-.exist li.gone{opacity:.45;text-decoration:line-through}
+.exist li{display:flex;gap:12px;align-items:center;font-size:14px;border:1px solid var(--rule);border-radius:8px;padding:6px 8px;background:var(--paper)}
+.exist li.gone{opacity:.4}.exist li.gone .xn{text-decoration:line-through}
+.exist .xt{flex:none;width:112px;aspect-ratio:16/10;border-radius:5px;overflow:hidden;background:#0f1a23;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;cursor:zoom-in;padding:0}
+.exist .xt img{width:100%;height:100%;object-fit:cover;display:block}
+.exist .xt.file{cursor:default;font:700 15px var(--f-display);letter-spacing:.08em;color:var(--accent-ink)}
+.exist .xi{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.exist .xk{font:600 12px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}
+.exist .xn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exist .xs{color:var(--ink-2);font-size:12.5px}
+.exist .xb{display:flex;gap:4px;flex:none}
+.exist .xb button{min-width:38px;padding:7px 0;justify-content:center}
+@media (max-width:560px){.exist li{gap:8px}.exist .xt{width:64px}.exist .xb button{min-width:32px;padding:5px 0;font-size:14px}}
 .msg{font-size:15px;margin:0} .msg.ok{color:var(--ok)} .msg.err{color:var(--bad)}
 .lb{position:fixed;inset:0;z-index:100;background:rgba(5,9,13,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:pan-y}
 .lb img{max-width:100vw;max-height:calc(100vh - 110px);object-fit:contain;display:block;user-select:none;-webkit-user-drag:none;transition:opacity .15s}
@@ -231,7 +241,7 @@ textarea.i{min-height:110px;resize:vertical;line-height:1.5}
         <div class="full"><label class="f" for="eP">So druckst du es <small>(Material, Schichthöhe, Ausrichtung, Stützen … eine Zeile = ein Punkt)</small></label><textarea class="i" id="eP" maxlength="4000" placeholder="Material: PETG&#10;Schichthöhe 0,2 mm&#10;Ohne Stützen, flache Seite aufs Bett"></textarea></div>
         <div class="full"><label class="f" for="eH">Zubehör <small>(Schrauben, Magnete … eine Zeile = ein Punkt)</small></label><textarea class="i" id="eH" maxlength="2000" style="min-height:70px"></textarea></div>
 
-        <div class="full" id="eExistWrap" hidden><label class="f">Vorhandene Dateien <small>(× entfernt beim Speichern)</small></label><ul class="exist" id="eExist"></ul></div>
+        <div class="full" id="eExistWrap" hidden><label class="f">Vorhandene Dateien <small>(Bild antippen = groß ansehen · ↑↓ = Reihenfolge, das erste Bild ist das Titelbild · × entfernt beim Speichern)</small></label><ul class="exist" id="eExist"></ul></div>
 
         <div class="full drop"><label class="f" for="eM">Druckdateien <small>(STL, 3MF, STEP, PDF, ZIP · je max. 50 MB)</small></label>
           <input type="file" id="eM" multiple accept=".stl,.3mf,.step,.stp,.pdf,.zip"><ul class="pl" id="eMl"></ul></div>
@@ -584,14 +594,30 @@ function openEdit(r) {
     $('eOff').checked = !!r.official; $('eRights').checked = true;
   }
   $('eExistWrap').hidden = !(r && r.files.length);
-  $('eExist').innerHTML = r ? r.files.map(f => `<li data-id="${esc(f.id)}"><span><span class="fk" style="font:600 12px var(--f-display);letter-spacing:.08em;color:var(--accent-ink);margin-right:6px">${f.kind === 'cad' ? 'BILD CAD' : f.kind === 'foto' ? 'FOTO' : (KIND[f.kind] || f.kind)}</span>${esc(f.name)}</span><button type="button" class="btn2 ghost" aria-label="Entfernen">×</button></li>`).join('') : '';
+  const isImg = f => f.kind === 'cad' || f.kind === 'foto';
+  $('eExist').innerHTML = r ? r.files.map(f => `<li data-id="${esc(f.id)}">
+      ${isImg(f) ? `<button type="button" class="xt" data-act="view" aria-label="Groß ansehen"><img src="${esc(urls[f.path] || '')}" alt="" loading="lazy"></button>`
+                 : `<span class="xt file">${KIND[f.kind] || esc(f.kind)}</span>`}
+      <span class="xi"><span class="xk">${f.kind === 'cad' ? 'Konstruktion' : f.kind === 'foto' ? 'Foto vom Druck' : 'Druckdatei'}</span>
+        <span class="xn" title="${esc(f.name)}">${esc(f.name)}</span>
+        <span class="xs">${[f.caption, fmtSize(f.size)].filter(Boolean).map(esc).join(' · ')}</span></span>
+      <span class="xb"><button type="button" class="btn2 ghost" data-act="up" aria-label="Nach oben">↑</button><button type="button" class="btn2 ghost" data-act="down" aria-label="Nach unten">↓</button><button type="button" class="btn2 ghost" data-act="del" aria-label="Entfernen">×</button></span>
+    </li>`).join('') : '';
   $('eCancel').href = r ? '#d=' + (r.slug || r.id) : '#';
 }
 $('eExist').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  const li = b.closest('li'), id = li.dataset.id;
-  if (removeIds.has(id)) { removeIds.delete(id); li.classList.remove('gone'); b.textContent = '×'; }
-  else { removeIds.add(id); li.classList.add('gone'); b.textContent = '↺'; }
+  const li = b.closest('li'), id = li.dataset.id, act = b.dataset.act;
+  if (act === 'view') {
+    const imgsAll = [...$('eExist').children].map(x => editRow.files.find(f => f.id === x.dataset.id)).filter(f => f && (f.kind === 'cad' || f.kind === 'foto'));
+    return openLightbox(imgsAll, imgsAll.findIndex(f => f.id === id));
+  }
+  if (act === 'up' && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
+  else if (act === 'down' && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
+  else if (act === 'del') {
+    if (removeIds.has(id)) { removeIds.delete(id); li.classList.remove('gone'); b.textContent = '×'; }
+    else { removeIds.add(id); li.classList.add('gone'); b.textContent = '↺'; }
+  }
 });
 
 const extOf = n => (n.split('.').pop() || '').toLowerCase();
@@ -662,6 +688,17 @@ $('eForm').addEventListener('submit', async e => {
       await sb.storage.from(BUCKET).remove(gone.map(f => f.path));
       const { error } = await sb.from('download_files').delete().in('id', gone.map(f => f.id));
       if (error) throw error;
+    }
+    // Reihenfolge (nur Geändertes speichern)
+    if (editRow) {
+      const ids = [...$('eExist').children].map(li => li.dataset.id).filter(id => !removeIds.has(id));
+      for (let i = 0; i < ids.length; i++) {
+        const f = editRow.files.find(x => x.id === ids[i]);
+        if (f && f.sort !== i) {
+          const { error } = await sb.from('download_files').update({ sort: i }).eq('id', f.id);
+          if (error) throw error;
+        }
+      }
     }
     // Hochladen
     const jobs = [];

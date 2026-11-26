@@ -3,7 +3,6 @@ import * as THREE from '../lib/three/three.module.min.js';
 import { STLLoader } from '../lib/three/STLLoader.js';
 import { OrbitControls } from '../lib/three/OrbitControls.js';
 
-const COLORS = [0xff7a2e, 0xb9c3cc, 0x5aa7e8, 0x3cc487, 0xe3b13c];
 
 /**
  * Zeigt STL-Dateien in einem Element an.
@@ -29,10 +28,15 @@ export function createViewer(el, parts, opts = {}) {
 
   const loader = new STLLoader();
   const group = new THREE.Group();
+  // Größtes Teil grau, kleinere Teile in Trimwerk-Orange (dann Blau, Grün …)
+  const geos = parts.map(p => { const g = loader.parse(p.buffer); g.computeVertexNormals(); g.computeBoundingBox(); return g; });
+  const vol = g => { const s = g.boundingBox.getSize(new THREE.Vector3()); return s.x * s.y * s.z; };
+  const big = geos.length > 1 ? geos.indexOf(geos.reduce((m, g) => vol(g) > vol(m) ? g : m)) : -1;
+  let k = 0;
   parts.forEach((p, i) => {
-    const geo = loader.parse(p.buffer);
-    geo.computeVertexNormals();
-    const mat = new THREE.MeshStandardMaterial({ color: COLORS[i % COLORS.length], roughness: 0.62, metalness: 0.05, flatShading: false });
+    const geo = geos[i];
+    const color = i === big ? 0x9aa5ae : [0xff7a2e, 0x5aa7e8, 0x3cc487, 0xe3b13c][k++ % 4];
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.62, metalness: 0.05, flatShading: false });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.name = p.name || 'Teil ' + (i + 1);
     group.add(mesh);

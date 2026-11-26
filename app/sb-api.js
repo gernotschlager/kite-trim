@@ -25,7 +25,7 @@
   const HEAD2KEY = Object.fromEntries(LB_FIELDS.map(([k, h]) => [h, k]));
   const PAUSE_MIN = 5;
   const sheetOf = model => model + 'm²';
-  const modelOf = sheet => String(sheet || '').replace(/\s*m²\s*$/, '').trim();
+  const modelOf = sheet => String(sheet || '').replace(/\s*·.*$/, '').replace(/\s*m²\s*$/, '').trim();
   const today = () => new Date().toISOString().slice(0, 10);
   const ok = (o = {}) => Object.assign({ ok: true }, o);
   const chk = r => { if (r.error) throw new Error(r.error.message); return r.data; };
@@ -36,9 +36,17 @@
   const planCache = {};      // 'Sonic5 7m²' → Leinenplan-Zeilen
   async function me() { if (!uid) { const s = await TW.session(); if (!s) throw new Error('Bitte neu anmelden'); uid = s.user.id; } return uid; }
 
+  // Eigene Kites heißen wie bisher „Sonic5 10m²“; Kundenkites (diese Werkstatt) „Sonic5 10m² · Kundenname“
   async function myKites() {
-    const rows = chk(await sb.from('kites').select('id, model_key, serial, created_at').order('created_at'));
-    rows.forEach(k => { const s = sheetOf(k.model_key); if (!kiteIds[s]) kiteIds[s] = k.id; });
+    const u = await me();
+    const rows = chk(await sb.from('kites').select('id, model_key, serial, created_at, owner, workshop, nickname').order('created_at'));
+    const used = {};
+    rows.forEach(k => {
+      k.customer = k.workshop === u ? (k.nickname || 'Kunde') : null;
+      let s = sheetOf(k.model_key) + (k.customer ? ' · ' + k.customer : '');
+      if (used[s]) s += ' #' + (++used[s]); else used[s] = 1;
+      k.sheet = s; kiteIds[s] = k.id;
+    });
     return rows;
   }
   async function kiteId(sheet) {
@@ -97,15 +105,19 @@
   const A = {
     async catalog() {
       const lib = chk(await sb.from('lineplan_kites').select('kite, model, size'));
-      const mine = await myKites(), have = new Set(mine.map(k => k.model_key));
+      const all = await myKites(), mine = all.filter(k => !k.customer), have = new Set(mine.map(k => k.model_key));
       const kites = lib.map(k => ({ name: k.kite, model: k.model, size: String(k.size).replace('.', ','), sheet: have.has(k.kite) ? sheetOf(k.kite) : '', lib: true }));
       mine.filter(k => !lib.some(l => l.kite === k.model_key)).forEach(k => {
         const m = k.model_key.match(/^(.*?)\s*([\d.,]+)$/);
-        kites.push({ name: k.model_key, model: m ? m[1] : k.model_key, size: m ? m[2] : '', sheet: sheetOf(k.model_key), lib: false });
+        kites.push({ name: k.model_key, model: m ? m[1] : k.model_key, size: m ? m[2] : '', sheet: k.sheet, lib: false });
+      });
+      all.filter(k => k.customer).forEach(k => {
+        const m = k.model_key.match(/^(.*?)\s*([\d.,]+)$/);
+        kites.push({ name: k.sheet.replace(/m²/, ' m²'), model: m ? m[1] : k.model_key, size: m ? String(m[2]).replace('.', ',') : '', sheet: k.sheet, lib: false, customer: k.customer });
       });
       return ok({ kites });
     },
-    async kites() { return ok({ kites: (await myKites()).map(k => sheetOf(k.model_key)) }); },
+    async kites() { return ok({ kites: (await myKites()).map(k => k.sheet) }); },
     async kite_new(p) {
       const name = String(p.name || '').trim(); if (!name) throw new Error('Kein Kite angegeben');
       await me();

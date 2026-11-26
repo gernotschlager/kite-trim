@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="de" class="tw-wait">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konto – Trimwerk</title>
+<meta name="theme-color" content="#0b141c">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;700&display=swap">
+<link rel="stylesheet" href="../site.css">
+<style>
+:root{--ok:#3cc487;--warn:#e3b13c;--bad:#ef6a5b;color-scheme:dark}
+.acc{max-width:1100px;margin:0 auto;padding:28px 16px 64px;display:flex;flex-direction:column;gap:22px}
+.acc section{padding:0}
+.acc section.card{padding:22px 24px}
+@media (max-width:600px){.acc section.card{padding:18px}}
+.acc h1{font-size:clamp(34px,5vw,46px);margin:0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs a{font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-decoration:none;border:1.5px solid var(--rule);border-radius:999px;padding:6px 14px}
+.tabs a:hover{color:var(--ink);border-color:var(--ink-2)}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:22px 24px;scroll-margin-top:12px}
+@media (max-width:600px){.card{padding:18px}}
+.card h2{font-size:28px;margin:0 0 4px}
+.card .lead{color:var(--ink-2);margin:0 0 16px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+.grid .full{grid-column:1/-1}
+@media (max-width:640px){.grid{grid-template-columns:1fr}}
+label.f{display:block;font-size:13.5px;color:var(--ink-2);margin-bottom:5px}
+input.i,select.i,textarea.i{width:100%;background:var(--paper);border:1.5px solid var(--rule);border-radius:8px;color:var(--ink);padding:10px 12px;font:inherit}
+input.i:focus,select.i:focus,textarea.i:focus{outline:2px solid var(--accent);outline-offset:1px}
+input.i[readonly]{color:var(--ink-2)}
+.seg{display:inline-flex;border:1.5px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg label{padding:9px 16px;cursor:pointer;font:600 15px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked+span{color:#1a0b02}
+.seg label:has(input:checked){background:var(--accent);color:#1a0b02}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn2{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.04em;background:var(--sheet);color:var(--ink);border:1.5px solid var(--rule);border-radius:8px;padding:9px 14px;cursor:pointer}
+.btn2:hover{border-color:var(--ink-2)}
+.btn2.danger{color:var(--bad)}
+.chip{display:inline-flex;font-size:12.5px;font-weight:600;padding:2px 10px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)} .chip.mute{color:var(--ink-2)}
+.msg{margin:10px 0 0;font-size:15px} .msg.ok{color:var(--ok)} .msg.err{color:var(--bad)}
+.consent{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.consent label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.consent input{accent-color:var(--accent);width:19px;height:19px;margin-top:2px;flex:none}
+.consent q{display:block;font-weight:600;quotes:"„" "“"}
+.consent small{display:block;color:var(--ink-2);font-size:13.5px;margin-top:2px}
+.list{display:flex;flex-direction:column;gap:12px}
+.cust{border:1px solid var(--rule);border-radius:8px;padding:14px 16px;background:var(--paper)}
+.cust-h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline}
+.cust-h b{font:600 21px var(--f-display);letter-spacing:.01em}
+.cust .meta{color:var(--ink-2);font-size:14px;margin:4px 0 8px}
+.kt{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--rule);padding:9px 0 0;margin-top:9px}
+.kt b{font-weight:600}
+.empty{color:var(--ink-2);border:1px dashed var(--rule);border-radius:8px;padding:16px}
+.uidst{margin-top:8px;font-size:14px}
+.note{border-left:4px solid var(--left);background:color-mix(in srgb,var(--left) 9%,transparent);padding:10px 14px;border-radius:0 6px 6px 0;font-size:14.5px;margin:0 0 14px}
+.hidden{display:none!important}
+</style>
+<style>.tw-wait body{visibility:hidden}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0"></script>
+<script src="../config.js"></script>
+<script src="../auth.js"></script>
+<script>TW.guard();</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../index.html" aria-label="trimwerk – Startseite">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M6 30 C18 10 46 10 58 30" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+        <path d="M14 27 L32 54 M24 20 L32 54 M40 20 L32 54 M50 27 L32 54" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+        <path d="M32 54 L32 30" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="27" r="3.4" fill="var(--accent)"/>
+      </svg>
+      <span class="wm"><b>trim</b><span>werk</span><i></i></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="../bericht/index.html">Musterbericht</a>
+      <a href="../diy/index.html">DIY</a>
+      <a href="../berichte/index.html">Berichte</a>
+      <a href="../app/index.html">App</a>
+      <a href="../hilfe/index.html">Hilfe</a>
+      <a href="../ueber/index.html">Über</a>
+      <a href="./index.html" aria-current="page">Konto</a>
+    </nav>
+  </div>
+</header>
+
+<main class="acc">
+  <div>
+    <h1>Konto</h1>
+    <div class="tabs" style="margin-top:12px"><a href="#profil">Mein Konto</a><a href="#kunden">Kunden</a><a href="#werkstaetten" id="tabWs" class="hidden">Meine Werkstätten</a><a href="#" id="logout">Abmelden</a></div>
+  </div>
+
+  <!-- ============ Profil ============ -->
+  <section class="card" id="profil">
+    <h2>Mein Konto</h2>
+    <p class="lead">Deine Angaben für Berichte und – sobald es kostenpflichtige Leistungen gibt – für Rechnungen.</p>
+    <form id="pf" class="grid" autocomplete="on">
+      <div class="full">
+        <span class="f" style="display:block;font-size:13.5px;color:var(--ink-2);margin-bottom:6px">Konto-Art</span>
+        <div class="seg" role="radiogroup" aria-label="Konto-Art">
+          <label><input type="radio" name="atype" value="privat"><span>Privat</span></label>
+          <label><input type="radio" name="atype" value="unternehmen"><span>Unternehmen</span></label>
+        </div>
+      </div>
+      <div><label class="f" for="pName">Name (so sehen dich Freunde und Kunden)</label><input class="i" id="pName" maxlength="40" autocomplete="name"></div>
+      <div><label class="f" for="pMail">E-Mail (Anmeldung)</label><input class="i" id="pMail" readonly></div>
+      <div class="biz full grid" style="gap:14px 18px">
+        <div><label class="f" for="pCompany">Firmenname</label><input class="i" id="pCompany" maxlength="120" autocomplete="organization"></div>
+        <div><label class="f" for="pUid">UID-Nummer (z. B. ATU12345678)</label>
+          <div class="row" style="flex-wrap:nowrap"><input class="i" id="pUid" maxlength="20" style="flex:1"><button class="btn2" type="button" id="uidBtn">Prüfen</button></div>
+          <div class="uidst" id="uidSt"></div></div>
+      </div>
+      <div class="full"><label class="f" for="pStreet">Straße und Hausnummer</label><input class="i" id="pStreet" maxlength="120" autocomplete="street-address"></div>
+      <div><label class="f" for="pZip">PLZ</label><input class="i" id="pZip" maxlength="12" autocomplete="postal-code"></div>
+      <div><label class="f" for="pCity">Ort</label><input class="i" id="pCity" maxlength="80" autocomplete="address-level2"></div>
+      <div><label class="f" for="pCountry">Land</label><select class="i" id="pCountry"></select></div>
+      <div><label class="f" for="pPhone">Telefon (optional)</label><input class="i" id="pPhone" maxlength="40" autocomplete="tel"></div>
+      <div class="full row"><button class="btn primary" type="submit">Speichern</button><span class="msg" id="pMsg" style="margin:0"></span></div>
+    </form>
+  </section>
+
+  <!-- ============ Kunden (Werkstatt) ============ -->
+  <section class="card" id="kunden">
+    <h2>Kunden</h2>
+    <p class="lead">Für Kiteschulen, Shops und alle, die Kites für andere trimmen. Du misst den Kite wie gewohnt in der App – die Berichte gehören dem Kunden.</p>
+    <div class="note" id="fnNote" hidden>Die Kunden-Funktion ist in der Datenbank noch nicht eingerichtet (06_konto_werkstatt.sql und Edge Function „werkstatt“ fehlen).</div>
+
+    <details id="newBox">
+      <summary class="btn primary" style="display:inline-flex;list-style:none;cursor:pointer">＋ Neuer Kunden-Kite</summary>
+      <form id="cf" class="grid" style="margin-top:16px" autocomplete="off">
+        <div><label class="f" for="cName">Name des Kunden *</label><input class="i" id="cName" maxlength="120" required></div>
+        <div><label class="f" for="cMail">E-Mail</label><input class="i" id="cMail" type="email" maxlength="200" inputmode="email"></div>
+        <div><label class="f" for="cPhone">Telefon</label><input class="i" id="cPhone" maxlength="40" inputmode="tel"></div>
+        <div><label class="f" for="cCountry">Land</label><select class="i" id="cCountry"></select></div>
+        <div class="full"><label class="f" for="cStreet">Straße und Hausnummer</label><input class="i" id="cStreet" maxlength="120"></div>
+        <div><label class="f" for="cZip">PLZ</label><input class="i" id="cZip" maxlength="12"></div>
+        <div><label class="f" for="cCity">Ort</label><input class="i" id="cCity" maxlength="80"></div>
+        <div><label class="f" for="cKite">Kite *</label><input class="i" id="cKite" list="kiteList" placeholder="z. B. Sonic5 10" required><datalist id="kiteList"></datalist></div>
+        <div><label class="f" for="cSerial">Seriennummer</label><input class="i" id="cSerial" maxlength="60"></div>
+        <div class="full"><label class="f" for="cNote">Notiz (nur für dich)</label><input class="i" id="cNote" maxlength="500" placeholder="z. B. Auftrag, Abholtermin"></div>
+        <div class="full consent">
+          <div style="font-size:13.5px;color:var(--ink-2)">Bitte dem Kunden vorlesen bzw. zeigen und seine Antwort ankreuzen:</div>
+          <label><input type="checkbox" id="cAcc"><span><q>Dürfen wir für Sie ein kostenloses Trimwerk-Konto anlegen, in dem Ihre Messberichte gespeichert werden?</q><small>Braucht die E-Mail-Adresse. Gibt es zu der E-Mail schon ein Konto, kommt der Kite dorthin. Ohne Konto bleibt der Kite vorerst bei dir.</small></span></label>
+          <label><input type="checkbox" id="cAna"><span><q>Dürfen wir Ihre Berichte für spätere Analysen und Vergleiche verwenden?</q><small>Gilt nur für dich bzw. deinen Betrieb. Ohne Zustimmung endet dein Zugriff, sobald du den Auftrag abschließt.</small></span></label>
+          <label id="invRow" class="hidden"><input type="checkbox" id="cInv" checked><span><b>Begrüßungs-E-Mail jetzt senden</b><small>Der Kunde bekommt einen Link, um sein Passwort festzulegen. Ohne E-Mail kann er später auf trimwerk.app „Passwort vergessen“ nutzen.</small></span></label>
+        </div>
+        <div class="full row"><button class="btn primary" type="submit" id="cBtn">Kunde und Kite anlegen</button><button class="btn2" type="button" id="cCancel">Abbrechen</button></div>
+        <p class="msg full" id="cMsg" hidden></p>
+      </form>
+    </details>
+
+    <div class="list" id="custList" style="margin-top:18px"><div class="empty">Kunden werden geladen …</div></div>
+  </section>
+
+  <!-- ============ Meine Werkstätten (als Kunde) ============ -->
+  <section class="card hidden" id="werkstaetten">
+    <h2>Meine Werkstätten</h2>
+    <p class="lead">Betriebe, die Kites für dich vermessen haben. Du entscheidest, ob sie deine Berichte weiter sehen dürfen.</p>
+    <div class="list" id="wsList"></div>
+  </section>
+
+  <p style="color:var(--ink-2);font-size:14px;margin:0"><a href="../impressum/index.html">Impressum</a> · <a href="../datenschutz/index.html">Datenschutz</a> · <a href="../agb/index.html">Nutzungsbedingungen</a></p>
+</main>
+
+<script>
+(function(){
+const sb = TW.sb, $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rpc = async (n, a) => { const r = await sb.rpc(n, a || {}); if (r.error) throw new Error(r.error.message); return r.data; };
+const fn = async body => {
+  const r = await sb.functions.invoke('werkstatt', { body });
+  if (r.error){ let m = r.error.message; try { const j = await r.error.context.json(); if (j && j.error) m = j.error; } catch(e){} throw new Error(m); }
+  if (r.data && r.data.ok === false) throw new Error(r.data.error || 'Fehler');
+  return r.data;
+};
+const dt = d => d ? new Date(d).toLocaleDateString('de-AT', {day:'2-digit', month:'2-digit', year:'numeric'}) : '';
+const COUNTRIES = [['AT','Österreich'],['DE','Deutschland'],['CH','Schweiz'],['IT','Italien'],['NL','Niederlande'],['FR','Frankreich'],['ES','Spanien'],['DK','Dänemark'],['HU','Ungarn'],['CZ','Tschechien'],['SK','Slowakei'],['SI','Slowenien'],['HR','Kroatien'],['PL','Polen'],['BE','Belgien'],['LU','Luxemburg'],['PT','Portugal'],['GR','Griechenland'],['SE','Schweden'],['GB','Vereinigtes Königreich'],['XX','anderes Land']];
+['pCountry','cCountry'].forEach(id => $(id).innerHTML = COUNTRIES.map(([c,n]) => `<option value="${c}">${n}</option>`).join(''));
+let uid = null, prof = {};
+
+/* ---------- Profil ---------- */
+function showBiz(){ const biz = (document.querySelector('input[name=atype]:checked') || {}).value === 'unternehmen'; document.querySelector('.biz').classList.toggle('hidden', !biz); }
+document.querySelectorAll('input[name=atype]').forEach(r => r.addEventListener('change', showBiz));
+function uidStatus(){
+  const s = $('uidSt');
+  if (!prof.uid){ s.innerHTML = '<span class="chip mute">nicht angegeben</span> <span style="color:var(--ink-2)">Ohne UID gibt es später eine Rechnung mit Name und Adresse.</span>'; return; }
+  if (prof.uid_valid === true) s.innerHTML = `<span class="chip ok">gültig</span> ${esc(prof.uid_name || '')}${prof.uid_address ? ' · ' + esc(prof.uid_address) : ''} <span style="color:var(--ink-2)">(geprüft ${dt(prof.uid_checked_at)})</span>`;
+  else if (prof.uid_valid === false) s.innerHTML = `<span class="chip bad">ungültig</span> Laut EU-Prüfung (VIES) ist ${esc(prof.uid)} nicht gültig.`;
+  else s.innerHTML = '<span class="chip warn">nicht geprüft</span> Speichern und dann „Prüfen“.';
+}
+async function loadProfile(){
+  const s = await TW.session(); uid = s.user.id;
+  const r = await sb.from('profiles').select('*').eq('id', uid).single();
+  prof = r.data || {};
+  const at = prof.account_type || 'privat';
+  document.querySelectorAll('input[name=atype]').forEach(x => x.checked = x.value === at);
+  $('pName').value = prof.display_name || ''; $('pMail').value = prof.email || s.user.email || '';
+  $('pCompany').value = prof.company || ''; $('pUid').value = prof.uid || '';
+  $('pStreet').value = prof.street || ''; $('pZip').value = prof.zip || ''; $('pCity').value = prof.city || '';
+  $('pCountry').value = prof.country || 'AT'; $('pPhone').value = prof.phone || '';
+  showBiz(); uidStatus();
+}
+$('pf').onsubmit = async e => {
+  e.preventDefault(); const m = $('pMsg'); m.className = 'msg'; m.textContent = 'Wird gespeichert …';
+  const atype = (document.querySelector('input[name=atype]:checked') || {}).value || 'privat';
+  const upd = { display_name: $('pName').value.trim() || null, account_type: atype, company: $('pCompany').value.trim() || null,
+    uid: atype === 'unternehmen' ? ($('pUid').value.trim() || null) : null, street: $('pStreet').value.trim() || null,
+    zip: $('pZip').value.trim() || null, city: $('pCity').value.trim() || null, country: $('pCountry').value, phone: $('pPhone').value.trim() || null };
+  const r = await sb.from('profiles').update(upd).eq('id', uid).select('*').single();
+  if (r.error){ m.className = 'msg err'; m.textContent = /column|does not exist|schema cache/i.test(r.error.message) ? 'Die Datenbank ist noch nicht vorbereitet (06_konto_werkstatt.sql fehlt).' : r.error.message; return; }
+  prof = r.data; $('pUid').value = prof.uid || ''; uidStatus();
+  m.className = 'msg ok'; m.textContent = 'Gespeichert ✓';
+  if (atype === 'unternehmen' && prof.uid && prof.uid_valid == null) $('uidBtn').click();
+};
+$('uidBtn').onclick = async () => {
+  if (($('pUid').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')) !== (prof.uid || '')){ $('pMsg').className = 'msg'; $('pMsg').textContent = 'Bitte zuerst speichern.'; return; }
+  $('uidBtn').disabled = true; $('uidSt').innerHTML = '<span class="chip mute">wird geprüft …</span>';
+  try {
+    const j = await fn({ action: 'uid_check' });
+    prof.uid_valid = j.valid; prof.uid_name = j.name; prof.uid_address = j.address; prof.uid_checked_at = new Date().toISOString();
+    if (j.valid && j.name && !$('pCompany').value.trim()){ $('pCompany').value = j.name; }
+    uidStatus();
+  } catch (e) { $('uidSt').innerHTML = `<span class="chip warn">nicht geprüft</span> ${esc(e.message)}`; }
+  $('uidBtn').disabled = false;
+};
+$('logout').onclick = e => { e.preventDefault(); TW.logout(); };
+
+/* ---------- Kunden ---------- */
+function syncConsent(){ $('invRow').classList.toggle('hidden', !$('cAcc').checked); }
+$('cAcc').addEventListener('change', syncConsent);
+$('cCancel').onclick = () => { $('newBox').open = false; };
+const openInApp = (kite, cust) => {
+  try { localStorage.setItem('kite', JSON.stringify(kite + 'm² · ' + cust)); } catch (e) {}
+  location.href = '../app/index.html';
+};
+async function loadKiteList(){
+  try { const r = await sb.from('lineplan_kites').select('kite').order('kite'); if (r.data) $('kiteList').innerHTML = r.data.map(k => `<option value="${esc(k.kite)}">`).join(''); } catch (e) {}
+}
+$('cf').onsubmit = async e => {
+  e.preventDefault(); const m = $('cMsg'); m.hidden = false; m.className = 'msg full';
+  const email = $('cMail').value.trim();
+  if ($('cAcc').checked && !email){ m.className = 'msg full err'; m.textContent = 'Für ein Kundenkonto braucht es die E-Mail-Adresse.'; return; }
+  m.textContent = 'Wird angelegt …'; $('cBtn').disabled = true;
+  try {
+    const j = await fn({ action: 'customer_create', name: $('cName').value, email, phone: $('cPhone').value, street: $('cStreet').value, zip: $('cZip').value,
+      city: $('cCity').value, country: $('cCountry').value, model_key: $('cKite').value.trim(), serial: $('cSerial').value, note: $('cNote').value,
+      consent_account: $('cAcc').checked, consent_analysis: $('cAna').checked, send_invite: $('cAcc').checked && $('cInv').checked });
+    const acc = j.account === 'neu' ? (j.invited ? 'Kundenkonto angelegt, Begrüßungs-E-Mail verschickt.' : 'Kundenkonto angelegt (ohne E-Mail).')
+      : j.account === 'vorhanden' ? 'Der Kunde hatte schon ein Konto – der Kite liegt jetzt dort.' : 'Ohne Kundenkonto – der Kite bleibt vorerst bei dir.';
+    m.className = 'msg full ok'; m.innerHTML = `✓ ${esc($('cKite').value)} für ${esc($('cName').value)} angelegt. ${acc} <a href="#" id="goApp">Jetzt in der App messen →</a>`;
+    const kite = $('cKite').value.trim(), cust = $('cName').value.trim();
+    $('goApp').onclick = ev => { ev.preventDefault(); openInApp(kite, cust); };
+    ['cName','cMail','cPhone','cStreet','cZip','cCity','cKite','cSerial','cNote'].forEach(id => $(id).value = '');
+    $('cAcc').checked = $('cAna').checked = false; syncConsent();
+    loadCustomers();
+  } catch (e) { m.className = 'msg full err'; m.textContent = /Failed to send|FunctionsFetchError|404|not found/i.test(e.message) ? 'Die Edge Function „werkstatt“ ist noch nicht eingerichtet.' : e.message; }
+  $('cBtn').disabled = false;
+};
+async function loadCustomers(){
+  let list;
+  try { list = await rpc('my_customers'); }
+  catch (e) { $('custList').innerHTML = ''; $('fnNote').hidden = false; return; }
+  if (!list.length){ $('custList').innerHTML = '<div class="empty">Noch keine Kunden. Mit „＋ Neuer Kunden-Kite“ legst du den ersten an.</div>'; return; }
+  $('custList').innerHTML = list.map(c => `<div class="cust">
+    <div class="cust-h"><b>${esc(c.name)}</b><span class="row" style="gap:6px">
+      ${c.has_account ? '<span class="chip ok">Konto</span>' : '<span class="chip mute">kein Konto</span>'}
+      ${c.consent_analysis ? '<span class="chip ok">Analysen erlaubt</span>' : '<span class="chip warn">nur dieser Auftrag</span>'}</span></div>
+    <div class="meta">${[c.email, c.phone, [c.street, [c.zip, c.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')].filter(Boolean).map(esc).join(' · ') || 'keine Kontaktdaten'}${c.note ? '<br>📝 ' + esc(c.note) : ''}<br><span style="font-size:12.5px">Zustimmung erfasst am ${dt(c.consent_at)}</span></div>
+    ${(c.kites || []).map(k => `<div class="kt"><span><b>${esc(k.kite)} m²</b>${k.serial ? ' · ' + esc(k.serial) : ''} · ${k.reports} Bericht${k.reports === 1 ? '' : 'e'}${k.access ? '' : ' · <span class="chip mute">Zugriff beendet</span>'}</span>
+      ${k.access ? `<span class="row" style="gap:8px"><button class="btn2" data-app="${esc(k.kite)}" data-cust="${esc(c.name)}">Messen</button><a class="btn2" href="../berichte/index.html" style="text-decoration:none">Berichte</a><button class="btn2" data-done="${k.id}">Auftrag abschließen</button></span>` : ''}</div>`).join('') || '<div class="kt"><span style="color:var(--ink-2)">Keine Kites mit Zugriff</span></div>'}
+  </div>`).join('');
+}
+$('custList').addEventListener('click', async e => {
+  const a = e.target.closest('[data-app]'); if (a) return openInApp(a.dataset.app, a.dataset.cust);
+  const d = e.target.closest('[data-done]'); if (!d) return;
+  if (!d.dataset.armed){ d.dataset.armed = '1'; d.textContent = 'Wirklich abschließen?'; setTimeout(() => { delete d.dataset.armed; d.textContent = 'Auftrag abschließen'; }, 4000); return; }
+  try {
+    const j = await rpc('workshop_job_done', { k: d.dataset.done });
+    alertMsg(j.access === 'bleibt' ? `Auftrag abgeschlossen. Zugriff bleibt: ${j.grund}.` : 'Auftrag abgeschlossen. Ohne Zustimmung für Analysen endet dein Zugriff – der Kunde behält alle Berichte.');
+    loadCustomers();
+  } catch (err) { alertMsg(err.message, true); }
+});
+function alertMsg(t, bad){ const m = $('cMsg'); m.hidden = false; m.className = 'msg full ' + (bad ? 'err' : 'ok'); m.textContent = t; $('newBox').open = true; m.scrollIntoView({block: 'nearest'}); }
+
+/* ---------- Meine Werkstätten ---------- */
+async function loadWorkshops(){
+  let list; try { list = await rpc('my_workshops'); } catch (e) { return; }
+  if (!list.length) return;
+  $('werkstaetten').classList.remove('hidden'); $('tabWs').classList.remove('hidden');
+  $('wsList').innerHTML = list.map(w => `<div class="cust">
+    <div class="cust-h"><b>${esc(w.workshop_name)}</b><span class="chip mute">seit ${dt(w.consent_at)}</span></div>
+    <label class="row" style="margin:10px 0 4px;gap:10px;cursor:pointer;align-items:flex-start"><input type="checkbox" data-consent="${w.id}" ${w.consent_analysis ? 'checked' : ''} style="accent-color:var(--accent);width:19px;height:19px;margin-top:2px">
+      <span>Darf meine Berichte für spätere Analysen und Vergleiche verwenden<br><small style="color:var(--ink-2)">Häkchen entfernen beendet den Zugriff dieser Werkstatt auf alle deine Kites sofort.</small></span></label>
+    ${(w.kites || []).map(k => `<div class="kt"><span><b>${esc(k.kite)} m²</b> · ${k.access ? '<span class="chip ok">Werkstatt hat Zugriff</span>' : '<span class="chip mute">kein Zugriff</span>'}</span>
+      ${k.access ? `<button class="btn2 danger" data-rm="${k.id}">Zugriff entfernen</button>` : ''}</div>`).join('')}
+  </div>`).join('');
+}
+$('wsList').addEventListener('change', async e => {
+  const c = e.target.closest('[data-consent]'); if (!c) return;
+  try { await rpc('customer_consent_set', { c: c.dataset.consent, analysis: c.checked }); loadWorkshops(); } catch (err) { c.checked = !c.checked; }
+});
+$('wsList').addEventListener('click', async e => {
+  const b = e.target.closest('[data-rm]'); if (!b) return;
+  if (!b.dataset.armed){ b.dataset.armed = '1'; b.textContent = 'Wirklich entfernen?'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Zugriff entfernen'; }, 4000); return; }
+  try { await rpc('kite_workshop_remove', { k: b.dataset.rm }); loadWorkshops(); } catch (err) {}
+});
+
+(async () => {
+  try { await loadProfile(); } catch (e) {}
+  if (location.hash === '#kunden') $('newBox').open = true;
+  loadKiteList(); loadCustomers(); loadWorkshops();
+})();
+})();
+</script>
+</body>
+</html>

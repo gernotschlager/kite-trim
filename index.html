@@ -90,6 +90,7 @@
       <a href="app/index.html">App</a>
       <a href="hilfe/index.html">Hilfe</a>
       <a href="ueber/index.html">Über</a>
+      <a href="konto/index.html">Konto</a>
     </nav>
   </div>
 </header>
@@ -106,6 +107,7 @@
       <input id="lPw" type="password" autocomplete="current-password" required>
       <button class="btn primary" type="submit">Anmelden</button>
       <button class="link" type="button" id="toForgot">Passwort vergessen?</button>
+      <button class="link" type="button" id="toActivate" style="padding-top:0">Kite bei einer Kiteschule oder einem Shop vermessen lassen? Konto aktivieren</button>
     </form>
     <form id="fForgot" data-mode="forgot" hidden>
       <label for="fEmail">E-Mail</label>
@@ -122,6 +124,7 @@
       <button class="btn primary" type="submit">Passwort speichern</button>
     </form>
     <div class="msg" id="gMsg" role="status" aria-live="polite"></div>
+    <p style="font-size:13.5px;margin:0"><a href="impressum/index.html">Impressum</a> · <a href="datenschutz/index.html">Datenschutz</a> · <a href="agb/index.html">Nutzungsbedingungen</a></p>
   </div>
 </section>
 
@@ -231,6 +234,7 @@
     <span class="out"><button type="button" id="logout">Abmelden</button> <span id="who"></span></span>
     <span>trimwerk.app</span>
     <span>Unabhängiges Projekt, nicht mit Flysurfer verbunden. Markennamen gehören ihren Inhabern.</span>
+    <span><a href="impressum/index.html">Impressum</a> · <a href="datenschutz/index.html">Datenschutz</a> · <a href="agb/index.html">Nutzungsbedingungen</a></span>
   </div>
 </footer>
 
@@ -253,6 +257,8 @@
     : /rate limit/i.test(e.message) ? 'Zu viele Versuche – bitte kurz warten.' : e.message;
 
   $('toForgot').onclick = () => { mode('forgot'); $('fEmail').value = $('lEmail').value; };
+  $('toActivate').onclick = () => { mode('forgot'); $('fEmail').value = $('lEmail').value;
+    $('gMsg').className = 'msg'; $('gMsg').textContent = 'Gib die E-Mail-Adresse ein, die du bei der Kiteschule bzw. beim Shop angegeben hast. Du bekommst einen Link, um dein Passwort festzulegen.'; };
   $('toLogin').onclick = () => mode('login');
   $('fLogin').onsubmit = async e => {
     e.preventDefault(); msg('Anmelden …');

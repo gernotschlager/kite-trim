@@ -167,6 +167,7 @@
   #kdlg .kfam>summary::-webkit-details-marker{display:none}
   #kdlg .kfam>summary::before{content:'▸ ';color:var(--muted)} #kdlg .kfam[open]>summary::before{content:'▾ '}
   #kdlg .krow{margin:6px 0 12px}
+  #kcust .kc{flex:0 0 auto;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;padding:9px 12px}
   #kdlg .kmod{color:var(--muted);font-size:13px;font-weight:600;margin-bottom:5px}
   #kdlg .ksz{display:flex;flex-wrap:wrap;gap:6px}
   #kfams .ksz{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
@@ -267,6 +268,8 @@
   <div class="hint" id="kHint" style="margin:6px 0 10px;font-size:13px"></div>
   <div class="ksec">★ Favoriten</div>
   <div class="ksz" id="kfav"></div>
+  <div id="kcustBox" hidden><div class="ksec" style="margin-top:12px">🧰 Kundenkites</div><div class="ksz" id="kcust"></div></div>
+  <div class="hint" style="margin:8px 0 0;font-size:13px">Kite für einen Kunden anlegen: auf der Webseite unter <a href="../konto/index.html#kunden" target="_blank" rel="noopener" style="color:var(--accent)">Konto → Kunden</a>.</div>
   <div id="kfams" style="margin-top:10px"></div>
 </dialog>
 
@@ -567,8 +570,11 @@ function kRender(){
   const fav = favs.map(n => catalog.find(k => k.name === n)).filter(Boolean);
   $('kfav').innerHTML = fav.length ? fav.map(k => kChip(k).replace(`>${esc(k.size)}<`, `>${esc(k.name)}<`)).join('')
     : '<span class="hint">Noch keine – oben „☆ Favoriten“ tippen und Kites markieren.</span>';
+  const cust = catalog.filter(k => k.customer).sort((a, b) => a.customer.localeCompare(b.customer, 'de') || a.name.localeCompare(b.name, 'de', { numeric:true }));
+  $('kcustBox').hidden = !cust.length;
+  $('kcust').innerHTML = cust.map(k => kChip(k).replace(`>${esc(k.size || k.name)}<`, `>${esc(k.name)}<`)).join('');
   const fams = {};
-  catalog.forEach(k => { const f = famOf(k.model); ((fams[f] = fams[f] || {})[k.model] = fams[f][k.model] || []).push(k); });
+  catalog.filter(k => !k.customer).forEach(k => { const f = famOf(k.model); ((fams[f] = fams[f] || {})[k.model] = fams[f][k.model] || []).push(k); });
   const fo = Object.keys(fams).sort((a,b) => ((FAM_ORDER.indexOf(a)+99)%99) - ((FAM_ORDER.indexOf(b)+99)%99) || a.localeCompare(b));
   const curK = catalog.find(x => x.sheet === kite);
   const open = store.get('kOpen', {});

@@ -107,12 +107,14 @@
       <input id="lPw" type="password" autocomplete="current-password" required>
       <button class="btn primary" type="submit">Anmelden</button>
       <button class="link" type="button" id="toForgot">Passwort vergessen?</button>
-      <button class="link" type="button" id="toActivate" style="padding-top:0;text-align:left">Neu hier? Konto aktivieren</button>
+      <button class="link" type="button" id="toActivate" style="padding-top:0;text-align:left">Konto von einer Kiteschule oder einem Shop? Aktivieren</button>
+      <p style="font-size:14px;margin:4px 0 0">Noch kein Konto? Trimwerk ist derzeit nur auf Einladung nutzbar – schreib uns an <a class="em" href="#" data-u="contact" data-d="trimwerk.app">contact [at] trimwerk [punkt] app</a>.</p>
     </form>
     <form id="fForgot" data-mode="forgot" hidden>
+      <p id="fIntro" style="margin:0"></p>
       <label for="fEmail">E-Mail</label>
       <input id="fEmail" type="email" autocomplete="username" required>
-      <button class="btn primary" type="submit">Link zum Zurücksetzen senden</button>
+      <button class="btn primary" type="submit" id="fBtn">Link zum Zurücksetzen senden</button>
       <button class="link" type="button" id="toLogin">Zurück zur Anmeldung</button>
     </form>
     <form id="fSetPw" data-mode="setpw" hidden>
@@ -256,9 +258,11 @@
     : /Email not confirmed/i.test(e.message) ? 'Die E-Mail-Adresse ist noch nicht bestätigt.'
     : /rate limit/i.test(e.message) ? 'Zu viele Versuche – bitte kurz warten.' : e.message;
 
-  $('toForgot').onclick = () => { mode('forgot'); $('fEmail').value = $('lEmail').value; };
-  $('toActivate').onclick = () => { mode('forgot'); $('fEmail').value = $('lEmail').value;
-    $('gMsg').className = 'msg'; $('gMsg').textContent = 'Hat eine Kiteschule oder ein Shop ein Konto für dich angelegt? Gib die E-Mail-Adresse ein, die du dort angegeben hast – du bekommst einen Link, um dein Passwort festzulegen.'; };
+  let activating = false;
+  $('toForgot').onclick = () => { activating = false; mode('forgot'); $('fEmail').value = $('lEmail').value;
+    $('fIntro').innerHTML = '<b style="color:var(--ink)">Passwort vergessen</b><br>Du bekommst einen Link, um ein neues Passwort festzulegen.'; $('fBtn').textContent = 'Link zum Zurücksetzen senden'; };
+  $('toActivate').onclick = () => { activating = true; mode('forgot'); $('fEmail').value = $('lEmail').value;
+    $('fIntro').innerHTML = '<b style="color:var(--ink)">Konto aktivieren</b><br>Eine Kiteschule oder ein Shop hat deinen Kite vermessen und ein Konto für dich angelegt? Gib die E-Mail-Adresse ein, die du dort angegeben hast.'; $('fBtn').textContent = 'Aktivierungslink senden'; };
   $('toLogin').onclick = () => mode('login');
   $('fLogin').onsubmit = async e => {
     e.preventDefault(); msg('Anmelden …');
@@ -270,7 +274,8 @@
     e.preventDefault(); msg('Senden …');
     const { error } = await TW.sb.auth.resetPasswordForEmail($('fEmail').value.trim(), { redirectTo: TW.root + 'index.html' });
     if (error) return msg(de(error), 'err');
-    msg('Falls ein Konto existiert, ist eine E-Mail mit Link unterwegs.', 'ok');
+    msg(activating ? 'Falls zu dieser E-Mail ein Konto angelegt wurde, ist ein Link unterwegs. Nichts angekommen? Spam-Ordner prüfen oder bei der Kiteschule bzw. dem Shop nachfragen, welche Adresse eingetragen ist.'
+                   : 'Falls ein Konto existiert, ist eine E-Mail mit Link unterwegs.', 'ok');
   };
   $('fSetPw').onsubmit = async e => {
     e.preventDefault();
@@ -281,6 +286,7 @@
     unlock(await TW.session());
   };
   $('logout').onclick = () => TW.logout();
+  document.querySelectorAll('a.em').forEach(a => { const m = a.dataset.u + '\u0040' + a.dataset.d; a.textContent = m; a.href = 'mai' + 'lto:' + m; });
   TW.sb.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') { document.body.classList.add('gated'); mode('setpw'); } });
 
   (async () => {

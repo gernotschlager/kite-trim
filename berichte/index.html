@@ -8,8 +8,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="../icons/icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;700&display=swap">
+<link rel="stylesheet" href="../fonts/fonts.css">
 <link rel="stylesheet" href="../site.css">
 <style>
 :root{--pre:#5d6d7a;--right:#ff8a42;--ok:#3cc487;--warn:#e3b13c;--bad:#ef6a5b;--grid:#1b2833;--band:rgba(90,167,232,.10);
@@ -449,7 +448,7 @@ function shareBox(rep){
 function loadQr(){
   return window.QRCode ? Promise.resolve() : new Promise((ok, bad) => {
     const sc = document.createElement('script');
-    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    sc.src = '../lib/qrcode.min.js';
     sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc);
   });
 }

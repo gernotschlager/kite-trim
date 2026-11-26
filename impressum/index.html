@@ -44,19 +44,18 @@
 <main class="legal">
   <h1>Impressum</h1>
   <p class="stand">Informationen nach § 5 E-Commerce-Gesetz, § 14 Unternehmensgesetzbuch und Offenlegung nach § 25 Mediengesetz</p>
-  <div class="draft"><b>Entwurf.</b> Dieser Text ist ein Arbeitsentwurf und noch nicht rechtlich geprüft. Gelb markierte Stellen sind noch auszufüllen.</div>
+  <div class="draft"><b>Entwurf.</b> Dieser Text ist ein Arbeitsentwurf und noch nicht rechtlich geprüft. Gelb markierte Stellen sind noch offen.</div>
   <table><tbody>
-    <tr><th>Betreiber</th><td><span class="lph">Vorname Nachname</span></td></tr>
-    <tr><th>Anschrift</th><td><span class="lph">Straße Nr., PLZ Ort, Österreich</span></td></tr>
-    <tr><th>E-Mail</th><td><span class="lph">kontakt@trimwerk.app</span></td></tr>
-    <tr><th>Telefon</th><td><span class="lph">optional</span></td></tr>
+    <tr><th>Betreiber</th><td>Gernot Schlager</td></tr>
+    <tr><th>Anschrift</th><td>Schönblickstraße 15, 2630 Ternitz, Österreich</td></tr>
+    <tr><th>E-Mail</th><td><a class="em" href="#" data-u="kontakt" data-d="trimwerk.app">kontakt [at] trimwerk [punkt] app</a></td></tr>
     <tr><th>Unternehmensgegenstand</th><td>Vermessung und Trimm von Foil-Kites, Betrieb der Online-Plattform trimwerk.app</td></tr>
     <tr><th>Gewerbe / Behörde</th><td><span class="lph">Gewerbewortlaut, zuständige Bezirkshauptmannschaft bzw. Magistrat – falls angemeldet</span></td></tr>
     <tr><th>Mitgliedschaft</th><td><span class="lph">Wirtschaftskammer … – falls Gewerbe angemeldet</span></td></tr>
     <tr><th>UID-Nummer</th><td><span class="lph">ATU… – falls vorhanden</span></td></tr>
   </tbody></table>
   <h2>Offenlegung nach § 25 Mediengesetz</h2>
-  <p>Medieninhaber: <span class="lph">Vorname Nachname</span>, <span class="lph">Ort</span>. Blattlinie: Informationen rund um Vermessung und Trimm von Foil-Kites, Anleitungen und die Messplattform trimwerk.app.</p>
+  <p>Medieninhaber: Gernot Schlager, Ternitz. Blattlinie: Informationen rund um Vermessung und Trimm von Foil-Kites, Anleitungen und die Messplattform trimwerk.app.</p>
   <h2>Hinweise</h2>
   <p>Trimwerk ist ein unabhängiges Projekt und steht in keiner Verbindung zur FLYSURFER Kiteboarding GmbH. Produkt- und Markennamen gehören ihren jeweiligen Inhabern und werden nur zur Beschreibung verwendet.</p>
   <p>Nachbau der Trimmvorrichtungen und Trimm von Kites erfolgen auf eigene Verantwortung. Für Inhalte externer Links sind ausschließlich deren Betreiber verantwortlich.</p>
@@ -68,5 +67,6 @@
     <span><a href="../impressum/index.html">Impressum</a> · <a href="../datenschutz/index.html">Datenschutz</a> · <a href="../agb/index.html">Nutzungsbedingungen</a></span>
   </div>
 </footer>
+<script>document.querySelectorAll('a.em').forEach(a=>{const m=a.dataset.u+'\u0040'+a.dataset.d;a.textContent=m;a.href='mai'+'lto:'+m;});</script>
 </body>
 </html>

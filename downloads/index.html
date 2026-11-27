@@ -260,7 +260,7 @@ textarea.i{min-height:110px;resize:vertical;line-height:1.5}
         <div class="drop"><label class="f" for="eF">Fotos vom fertigen Druck</label>
           <input type="file" id="eF" multiple accept="image/*"><ul class="pl" id="eFl"></ul></div>
         <label class="chk full"><input type="checkbox" id="eAuto" checked><span>Fehlt ein Konstruktionsbild, erzeugen wir zwei Vorschaubilder automatisch aus der STL.</span></label>
-        <label class="chk full"><input type="checkbox" id="eBrand"><span>Konstruktionsbilder mit „trimwerk.“-Logo und Titel versehen (wie bei den offiziellen Teilen).</span></label>
+        <label class="chk full"><input type="checkbox" id="eBrand" checked><span>Neue Konstruktionsbilder mit „trimwerk.“-Logo und Titel versehen. Haken weg, wenn deine Bilder schon gebrandet sind. Vorhandene Bilder bekommen das Logo mit ✦.</span></label>
         <label class="chk full" id="eOffWrap" hidden><input type="checkbox" id="eOff"><span><b>Offizielles Trimwerk-Teil</b> (nur Admin) – erscheint oben, ohne Freigabe sichtbar.</span></label>
         <label class="chk full"><input type="checkbox" id="eRights"><span>Ich habe die Dateien selbst erstellt oder darf sie unter der gewählten Lizenz teilen. Nachbau und Verwendung erfolgen auf eigene Verantwortung (siehe <a href="../agb/index.html" target="_blank">Nutzungsbedingungen</a>).</span></label>
       </div>
@@ -615,7 +615,7 @@ function openEdit(r) {
       <span class="xi"><span class="xk">${f.kind === 'cad' ? 'Konstruktion' : f.kind === 'foto' ? 'Foto vom Druck' : 'Druckdatei'}</span>
         <span class="xn" title="${esc(f.name)}">${esc(f.name)}</span>
         <span class="xs">${[f.caption, fmtSize(f.size)].filter(Boolean).map(esc).join(' · ')}</span></span>
-      <span class="xb"><button type="button" class="btn2 ghost" data-act="up" aria-label="Nach oben">↑</button><button type="button" class="btn2 ghost" data-act="down" aria-label="Nach unten">↓</button><button type="button" class="btn2 ghost" data-act="del" aria-label="Entfernen">×</button></span>
+      <span class="xb">${isImg(f) ? '<button type="button" class="btn2 ghost" data-act="brand" title="trimwerk.-Logo nachträglich aufbringen" aria-label="Logo aufbringen">✦</button>' : ''}<button type="button" class="btn2 ghost" data-act="up" aria-label="Nach oben">↑</button><button type="button" class="btn2 ghost" data-act="down" aria-label="Nach unten">↓</button><button type="button" class="btn2 ghost" data-act="del" aria-label="Entfernen">×</button></span>
     </li>`).join('') : '';
   $('eCancel').href = r ? '#d=' + (r.slug || r.id) : '#';
 }
@@ -626,6 +626,7 @@ $('eExist').addEventListener('click', e => {
     const imgsAll = [...$('eExist').children].map(x => editRow.files.find(f => f.id === x.dataset.id)).filter(f => f && (f.kind === 'cad' || f.kind === 'foto'));
     return openLightbox(imgsAll, imgsAll.findIndex(f => f.id === id));
   }
+  if (act === 'brand') return brandExisting(id, li, b);
   if (act === 'up' && li.previousElementSibling) li.parentNode.insertBefore(li, li.previousElementSibling);
   else if (act === 'down' && li.nextElementSibling) li.parentNode.insertBefore(li.nextElementSibling, li);
   else if (act === 'del') {
@@ -633,6 +634,33 @@ $('eExist').addEventListener('click', e => {
     else { removeIds.add(id); li.classList.add('gone'); b.textContent = '↺'; }
   }
 });
+
+// Vorhandenes Bild nachträglich branden: neues Bild hochladen, altes ersetzen
+async function brandExisting(id, li, btn) {
+  const f = editRow.files.find(x => x.id === id); if (!f) return;
+  const msg = $('eMsg'); btn.disabled = true; btn.textContent = '…';
+  try {
+    msg.className = 'msg'; msg.textContent = 'Bringe das Logo auf „' + f.name + '“ auf …';
+    const { data: su, error: se } = await sb.storage.from(BUCKET).createSignedUrl(f.path, 120);
+    if (se) throw se;
+    const bmp = await createImageBitmap(await (await fetch(su.signedUrl)).blob());
+    const title = $('eT').value.trim() || editRow.title;
+    const blob = await brandImage(bmp, title, f.kind === 'foto' ? 'Gedruckt' : 'Konstruktion');
+    const name = f.name.replace(/\.[^.]+$/, '') + '.jpg';
+    const path = `${editRow.owner}/${editRow.id}/${Date.now().toString(36)}b-${safe(name)}`;
+    const { error: ue } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+    if (ue) throw ue;
+    await sb.storage.from(BUCKET).remove([f.path]);
+    const { error: re } = await sb.from('download_files').update({ path, name, size: blob.size }).eq('id', f.id);
+    if (re) throw re;
+    f.path = path; f.name = name; f.size = blob.size;
+    urls[path] = URL.createObjectURL(blob);
+    li.querySelector('.xt img').src = urls[path];
+    li.querySelector('.xn').textContent = name;
+    msg.className = 'msg ok'; msg.textContent = 'Logo aufgebracht.';
+    btn.textContent = '✓';
+  } catch (e) { alertMsg(msg, e); btn.disabled = false; btn.textContent = '✦'; }
+}
 
 const extOf = n => (n.split('.').pop() || '').toLowerCase();
 const safe = n => n.normalize('NFKD').replace(/[^\w.\-]+/g, '_').replace(/_+/g, '_').slice(-80);

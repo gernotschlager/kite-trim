@@ -40,6 +40,12 @@ export function createViewer(el, parts, opts = {}) {
     const mesh = new THREE.Mesh(geo, mat);
     mesh.name = p.name || 'Teil ' + (i + 1);
     group.add(mesh);
+    // Kanten nachzeichnen: Gravuren, Fasen und Schriftzüge werden so gut sichtbar
+    if (opts.edges !== false) {
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 28),
+        new THREE.LineBasicMaterial({ color: 0x1a1208, transparent: true, opacity: 0.38 }));
+      group.add(edges);
+    }
   });
   scene.add(group);
 
@@ -65,9 +71,28 @@ export function createViewer(el, parts, opts = {}) {
   controls.autoRotate = !!opts.autoRotate;
   controls.autoRotateSpeed = 1.2;
 
+  // Blickrichtung: von der Seite mit den meisten Details (z. B. Gravur), damit man sie sofort sieht
+  const side = { x: 1, y: 1 };
+  if (opts.autoSide !== false) {
+    const cnt = { px: 0, nx: 0, py: 0, ny: 0 };
+    const n = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    geos.forEach(g => {
+      const pos = g.attributes.position;
+      for (let k = 0; k < pos.count; k += 3) {
+        a.fromBufferAttribute(pos, k); b.fromBufferAttribute(pos, k + 1); c.fromBufferAttribute(pos, k + 2);
+        n.subVectors(c, b).cross(a.clone().sub(b)).normalize();
+        if (n.x > 0.5) cnt.px++; else if (n.x < -0.5) cnt.nx++;
+        if (n.y > 0.5) cnt.py++; else if (n.y < -0.5) cnt.ny++;
+      }
+    });
+    if (cnt.py > cnt.ny * 1.5 + 20) side.y = -1;   // Standardblick kommt von −y; Details auf +y → umdrehen
+    if (cnt.px > cnt.nx * 1.5 + 20) side.x = -1;
+  }
   function reset() {
     const d = r * 2.1;
-    const dir = (opts.view || new THREE.Vector3(-0.9, -1.3, 0.85)).clone().normalize();
+    const v0 = (opts.view || new THREE.Vector3(-0.9, -1.3, 0.85)).clone();
+    v0.x *= side.x; v0.y *= side.y;
+    const dir = v0.normalize();
     camera.position.set(dir.x * d, dir.y * d, size.z / 2 + dir.z * d);
     controls.target.set(0, 0, size.z / 2);
     controls.update();
@@ -90,7 +115,7 @@ export function createViewer(el, parts, opts = {}) {
     render() { controls.update(); renderer.render(scene, camera); },
     dispose() {
       alive = false; cancelAnimationFrame(raf); ro.disconnect(); controls.dispose();
-      group.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+      group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
       renderer.dispose(); renderer.domElement.remove();
     }
   };
